@@ -1,207 +1,193 @@
-// User types
-export enum UserRole {
-  ADMIN = 'admin',
-  NURSE = 'nurse',
-  PHYSICIAN = 'physician',
-  AUDITOR = 'auditor',
+// Core data types for PriorAuth AI platform
+
+export type AuthorizationStatus =
+  | "Approved"
+  | "Not Approved"
+  | "More Information Required"
+  | "Nurse Review Required"
+  | "Pending Review"
+  | "Under Review"
+  | "Denied"
+  | "Rejected";
+
+export type RuleDecision = "Approved" | "Not Approved" | "More Information Required" | "Nurse Review Required";
+
+export interface MLComplexityPrediction {
+  predictedComplexity: "high" | "medium" | "low";
+  complexityRank: number;
+  confidenceScore: number;
+  featuresUsed?: Record<string, any>;
+  modelUsed?: string;
+  predictedAt?: string;
 }
 
-export interface User {
-  id: number
-  name: string
-  email: string
-  role: UserRole
-  created_at: string
+export interface RuleEvaluation {
+  decision: RuleDecision;
+  reason: string;
+  missingInformation: string[];
+  exclusions?: string[];
+  pathways: Array<{ pathwayId: string; passed: boolean; unknown: boolean; conditions: string[] }>;
+  evaluatedAt?: string | null;
+  mlComplexity?: MLComplexityPrediction;
 }
 
-// Insurance & Patient types
-export interface InsurancePlan {
-  id: number
-  name: string
-  provider: string
-  plan_type: string
-  active: boolean
-  created_at: string
-  updated_at: string
-}
+export type RiskLevel = "high" | "medium" | "low";
+
+export type Priority = "urgent" | "high" | "normal" | "low";
 
 export interface Patient {
-  id: number
-  name: string
-  date_of_birth: string
-  gender?: string
-  member_id: string
-  insurance_plan_id?: number
-  insurance_plan?: InsurancePlan
-  created_at: string
-  updated_at: string
+  id: string;
+  name: string;
+  dob: string;
+  memberId: string;
+  groupId: string;
+  plan: string;
+  payer: string;
+  gender: "Male" | "Female" | "Other";
+  phone: string;
+  address: string;
+  primaryCare: string;
 }
 
-// Provider & Service types
 export interface Provider {
-  id: number
-  name: string
-  organization?: string
-  license_number: string
-  created_at: string
-  updated_at: string
+  id: string;
+  name: string;
+  npi: string;
+  specialty: string;
+  organization: string;
+  phone: string;
+  fax: string;
+  address: string;
+  taxId: string;
 }
 
-export interface Service {
-  id: number
-  name: string
-  code: string
-  description?: string
-  created_at: string
-  updated_at: string
+export interface Diagnosis {
+  code: string;
+  description: string;
+  type: "primary" | "secondary";
 }
 
-// Authorization types
-export enum AuthStatus {
-  PENDING = 'pending',
-  IN_REVIEW = 'in_review',
-  APPROVED = 'approved',
-  DENIED = 'denied',
-}
-
-export enum Priority {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-  URGENT = 'urgent',
+export interface Procedure {
+  code: string;
+  description: string;
+  modifier?: string;
+  quantity: number;
+  serviceDate: string;
+  placeOfService: string;
 }
 
 export interface AuthorizationRequest {
-  id: number
-  patient_id: number
-  provider_id: number
-  service_id: number
-  diagnosis: string
-  clinical_notes?: string
-  status: AuthStatus
-  priority: Priority
-  submitted_at: string
-  patient?: Patient
-  provider?: Provider
-  service?: Service
-  documents?: Document[]
-  ai_decisions?: AIDecision[]
-  nurse_reviews?: NurseReview[]
-  authorization_decisions?: AuthorizationDecision[]
-  denial_reason?: string
-  policy_reference?: string
-  appeal_instructions?: string
+  id: string;
+  caseNumber: string;
+  patient: Patient;
+  provider: Provider;
+  diagnoses: Diagnosis[];
+  procedures: Procedure[];
+  status: AuthorizationStatus;
+  priority: Priority;
+  riskLevel: RiskLevel;
+  submittedAt: string;
+  updatedAt: string;
+  dueDate: string;
+  assignedTo?: string;
+  clinicalNotes?: string;
+  documents: ClinicalDocument[];
+  aiRecommendation?: AIRecommendation;
+  ruleEvaluation?: RuleEvaluation;
+  // Module 4 & 5
+  policyId?: string | null;
+  policyContext?: Record<string, any> | null;
+  auditLog: AuditEntry[];
 }
 
-// Document types
-export interface Document {
-  id: number
-  authorization_id: number
-  document_type: string
-  file_url: string
-  uploaded_by: number
-  uploaded_at: string
-  uploader?: User
+export interface ClinicalDocument {
+  id: string;
+  name: string;
+  type: "lab_result" | "imaging" | "clinical_note" | "referral" | "prior_auth" | "insurance_card";
+  uploadedAt: string;
+  uploadedBy: string;
+  size: string;
+  url?: string;
 }
 
-// Policy types
-export interface Policy {
-  id: number
-  insurance_plan_id: number
-  name: string
-  version: string
-  content: string
-  active: boolean
-  created_at: string
-  updated_at: string
-  rules?: PolicyRule[]
-  insurance_plan?: InsurancePlan
+export interface AIRecommendation {
+  decision: "Approve" | "Deny" | "Request More Info" | "Escalate";
+  confidence: number;
+  reasoning: string;
+  keyFactors: AIFactor[];
+  missingInfo: string[];
+  policyReferences: PolicyReference[];
+  generatedAt: string;
+  modelVersion: string;
 }
 
-export interface PolicyRule {
-  id: number
-  policy_id: number
-  rule: string
-  requirement: string
-  source_reference?: string
+export interface AIFactor {
+  name: string;
+  impact: "positive" | "negative" | "neutral";
+  weight: number;
+  description: string;
 }
 
-// AI Decision types
-export enum AIRecommendation {
-  APPROVE = 'approve',
-  DENY = 'deny',
-  ESCALATE = 'escalate',
+export interface PolicyReference {
+  id: string;
+  title: string;
+  section: string;
+  relevanceScore: number;
+  excerpt: string;
+  url?: string;
 }
 
-export interface AIDecision {
-  id: number
-  authorization_id: number
-  recommendation: AIRecommendation
-  confidence_score: number
-  reasoning?: string
-  created_at: string
+export interface AuditEntry {
+  id: string;
+  action: string;
+  performedBy: string;
+  role: string;
+  timestamp: string;
+  details: string;
+  previousValue?: string;
+  newValue?: string;
 }
 
-// Nurse Review types
-export enum NurseDecision {
-  APPROVE = 'approve',
-  DENY = 'deny',
-  ESCALATE = 'escalate',
-  REQUEST_INFO = 'request_info',
+export interface ValidationIssue {
+  id: string;
+  field: string;
+  severity: "critical" | "warning" | "info";
+  message: string;
+  resolution?: string;
 }
 
-export interface NurseReview {
-  id: number
-  authorization_id: number
-  nurse_id: number
-  decision: NurseDecision
-  notes?: string
-  reviewed_at: string
-  nurse?: User
+export interface WhatIfScenario {
+  id: string;
+  name: string;
+  changes: Record<string, string | number | boolean>;
+  predictedOutcome: "Approve" | "Deny" | "Request More Info";
+  confidenceChange: number;
+  rationale: string;
 }
 
-// Final Decision types
-export enum FinalDecision {
-  APPROVED = 'approved',
-  DENIED = 'denied',
-  APPEALED = 'appealed',
-  CANCELLED = 'cancelled',
+export interface KPIMetric {
+  label: string;
+  value: string | number;
+  change: number;
+  changeLabel: string;
+  trend: "up" | "down" | "flat";
+  icon: string;
 }
 
-export interface AuthorizationDecision {
-  id: number
-  authorization_id: number
-  decided_by: number
-  decision: FinalDecision
-  reason?: string
-  decided_at: string
-  decider?: User
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: string;
+  sources?: PolicyReference[];
 }
 
-// Dashboard stats type
-export interface DashboardStats {
-  total_requests: number
-  pending_requests: number
-  approved: number
-  nurse_review: number
-  approval_rate: number
-  denial_rate: number
-  avg_processing_time: number
-}
-
-// Chart data types
-export interface TrendData {
-  date: string
-  total: number
-  approved: number
-  denied: number
-}
-
-export interface ActivityItem {
-  id: string
-  type: 'authorization' | 'review' | 'policy' | 'request'
-  title: string
-  description: string
-  timestamp: string
-  user?: string
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: "info" | "warning" | "success" | "error";
+  timestamp: string;
+  read: boolean;
+  caseId?: string;
 }

@@ -1,171 +1,147 @@
-import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
+import { useSidebar } from "@/context/SidebarContext";
+import { ROLE_NAV_GROUPS } from "@/lib/roles";
 import {
-  LayoutDashboard, FileText, FilePlus, UserCheck, BookOpen,
-  History, BarChart3, FolderOpen, Shield,
-  ChevronLeft, ChevronRight, HeartHandshake, User, ArrowLeftRight, XCircle
-} from 'lucide-react'
-import { useUIStore } from '@/store/uiStore'
-import { cn } from '@/lib/utils'
+  LayoutDashboard,
+  FileText,
+  FilePlus2,
+  ListOrdered,
+  BookOpen,
+  History,
+  BarChart3,
+  ChevronRight,
+  ShieldAlert,
+  Bell,
+  User,
+  LogOut,
+  Home,
+  Sparkles,
+  Stethoscope,
+} from "lucide-react";
+
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
+  LayoutDashboard,
+  FileText,
+  FilePlus2,
+  ListOrdered,
+  BookOpen,
+  History,
+  BarChart3,
+  Bell,
+  User,
+  Home,
+  Sparkles,
+  Stethoscope,
+};
 
 export default function Sidebar() {
-  const { sidebarCollapsed, toggleSidebar, userRole } = useUIStore()
-  const location = useLocation()
-  const navigate = useNavigate()
+  const location = useLocation();
+  const pathname = location.pathname;
+  const { user, logout } = useAuth();
+  const { collapsed } = useSidebar();
 
-  // Define 3 role-specific sidebars
-  const roleSections = {
-    provider: [
-      {
-        label: 'Provider Portal',
-        items: [
-          { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-          { to: '/auth-requests', icon: FileText, label: 'Auth Requests' },
-          { to: '/auth-requests/new', icon: FilePlus, label: 'New Authorization' },
-          { to: '/policy-companion', icon: BookOpen, label: 'Policy Companion' },
-        ],
-      },
-      {
-        label: 'Records',
-        items: [
-          { to: '/history', icon: History, label: 'Patient History' },
-          { to: '/documents', icon: FolderOpen, label: 'Clinical Documents' },
-        ],
-      },
-    ],
-    payer: [
-      {
-        label: 'Payer Review Queue',
-        items: [
-          { to: '/nurse-review', icon: UserCheck, label: 'Nurse Review Queue' },
-          { to: '/auth-requests', icon: FileText, label: 'Claims Queue' },
-          { to: '/policy-companion', icon: BookOpen, label: 'Policy Companion' },
-        ],
-      },
-      {
-        label: 'Payer Insights',
-        items: [
-          { to: '/analytics', icon: BarChart3, label: 'Payer Analytics' },
-          { to: '/administration', icon: Shield, label: 'Administration' },
-        ],
-      },
-    ],
-    patient: [
-      {
-        label: 'Patient Member Care',
-        items: [
-          { to: '/patient-portal', icon: User, label: 'My Coverage Requests' },
-          { to: '/patient-portal?filter=denied', icon: XCircle, label: 'Rejection Reasons' },
-          { to: '/policy-companion', icon: BookOpen, label: 'Plan Coverage Rules' },
-        ],
-      },
-    ],
-  }
+  const navGroups = user ? ROLE_NAV_GROUPS[user.role] : [];
 
-  const activeSections = roleSections[userRole] || roleSections.provider
+  const isActive = (href: string) => {
+    if (href === "/dashboard") return pathname === "/" || pathname === "/dashboard";
+    return pathname.startsWith(href) || pathname.includes(href);
+  };
 
   return (
     <aside
-      style={{ width: sidebarCollapsed ? 76 : 260 }}
-      className="flex flex-col h-screen bg-white border-r border-[#e2e8f0] transition-all duration-200 flex-shrink-0 overflow-hidden select-none z-20 shadow-xs"
+      className={cn(
+        "flex h-full flex-col border-r border-slate-800 bg-slate-900 text-slate-300 transition-all duration-200 shadow-sm",
+        collapsed ? "w-[76px] min-w-[76px]" : "w-[260px] min-w-[260px]"
+      )}
     >
-      {/* Brand Logo */}
-      <div className={cn(
-        'flex items-center h-[64px] px-4 border-b border-[#e2e8f0] flex-shrink-0',
-        sidebarCollapsed ? 'justify-center' : 'justify-between'
-      )}>
-        <div className="flex items-center gap-3 overflow-hidden cursor-pointer" onClick={() => navigate('/')}>
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#0eadb9] to-[#00c4cc] flex items-center justify-center shadow-sm flex-shrink-0">
-            <HeartHandshake className="w-5 h-5 text-white" />
+      {/* Logo & Branding */}
+      <div className="border-b border-slate-800 px-5 py-4 bg-slate-900">
+        <Link to="/" title="Go to Home Page" className={cn("flex items-center gap-3 group transition-transform hover:scale-[1.01]", !collapsed && "mb-1")}>
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-600 group-hover:bg-blue-700 transition-colors">
+            <ShieldAlert className="h-4.5 w-4.5 text-white" strokeWidth={2.2} />
           </div>
-          {!sidebarCollapsed && (
-            <div className="overflow-hidden">
-              <div className="flex items-center gap-1.5">
-                <span className="text-slate-900 font-extrabold text-base tracking-tight leading-none">Care</span>
-                <span className="text-[#0eadb9] font-bold text-xs bg-[#e0f7f8] px-1.5 py-0.5 rounded uppercase">{userRole}</span>
-              </div>
-              <p className="text-slate-500 text-[10.5px] font-medium leading-tight truncate">
-                {userRole === 'provider' && 'Hospital & Doctor View'}
-                {userRole === 'payer' && 'Insurance Company View'}
-                {userRole === 'patient' && 'Patient Member View'}
-              </p>
+          {!collapsed && (
+            <div className="flex-1">
+              <p className="text-sm font-bold text-white tracking-tight">CareAuth <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest ml-0.5">AI</span></p>
+              <p className="text-[10px] font-bold text-slate-500 tracking-wider uppercase">Enterprise Prior Auth</p>
             </div>
           )}
-        </div>
-
-        {!sidebarCollapsed && (
-          <button
-            onClick={toggleSidebar}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-            title="Collapse sidebar"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-        )}
+        </Link>
       </div>
 
+      {/* Role Badge */}
+      {user && !collapsed && (
+        <div className="mx-4 mt-4 rounded-lg border border-slate-800 bg-slate-850/40 p-3">
+          <div className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              {user.role === "provider" ? "Healthcare Provider" : "Clinical Review Operations"}
+            </p>
+          </div>
+          <p className="text-xs text-white mt-0.5 font-semibold truncate">{user.organization}</p>
+        </div>
+      )}
+
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-5">
-        {activeSections.map((section) => (
-          <div key={section.label}>
-            {!sidebarCollapsed && (
-              <p className="px-3 mb-2 text-slate-400 text-[10.5px] font-bold uppercase tracking-wider">
-                {section.label}
+      <nav className="flex-1 overflow-y-auto scrollbar-hide px-3 py-4 space-y-6">
+        {navGroups.map((group) => (
+          <div key={group.label} className="space-y-1.5">
+            {!collapsed && (
+              <p className="px-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
+                {group.label}
               </p>
             )}
-            {sidebarCollapsed && (
-              <div className="border-t border-[#e2e8f0] mb-2 mt-1" />
-            )}
-            <ul className="space-y-1">
-              {section.items.map(({ to, icon: Icon, label }) => {
-                const isActive = location.pathname === to ||
-                  (to !== '/dashboard' && to !== '/patient-portal' && location.pathname.startsWith(to))
+            <ul className="space-y-0.5">
+              {group.items.map(({ href, label, icon: iconName }) => {
+                const active = isActive(href);
+                const Icon = ICON_MAP[iconName] ?? LayoutDashboard;
                 return (
-                  <li key={to}>
-                    <NavLink
-                      to={to}
-                      title={sidebarCollapsed ? label : undefined}
+                  <li key={href}>
+                    <Link
+                      to={href}
+                      title={collapsed ? label : undefined}
                       className={cn(
-                        'flex items-center rounded-xl text-[13.5px] font-medium transition-all duration-150',
-                        sidebarCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'gap-3 px-3 h-10',
-                        isActive
-                          ? 'bg-[#e0f7f8] text-[#0eadb9] font-bold shadow-2xs border-l-4 border-[#0eadb9]'
-                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                        "flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold transition-all duration-150",
+                        collapsed && "justify-center",
+                        active
+                          ? "bg-slate-800 text-white font-bold"
+                          : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
                       )}
                     >
-                      <Icon className={cn('w-4.5 h-4.5 flex-shrink-0', isActive ? 'text-[#0eadb9]' : 'text-slate-400')} />
-                      {!sidebarCollapsed && <span className="truncate">{label}</span>}
-                    </NavLink>
+                      <Icon
+                        className={cn(
+                          "h-4 w-4 shrink-0",
+                          active ? "text-blue-500" : "text-slate-500"
+                        )}
+                        strokeWidth={active ? 2.2 : 1.75}
+                      />
+                      {!collapsed && <span className="flex-1 tracking-wide">{label}</span>}
+                      {!collapsed && active && <ChevronRight className="h-3 w-3 text-blue-500" />}
+                    </Link>
                   </li>
-                )
+                );
               })}
             </ul>
           </div>
         ))}
       </nav>
 
-      {/* Persona Switcher Button at bottom */}
-      <div className="p-3 border-t border-[#e2e8f0]">
-        {!sidebarCollapsed ? (
-          <button
-            onClick={() => navigate('/')}
-            className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 hover:border-[#0eadb9]/50 hover:bg-[#e0f7f8]/50 transition-all text-xs font-semibold"
-          >
-            <div className="flex items-center gap-2">
-              <ArrowLeftRight className="w-4 h-4 text-[#0eadb9]" />
-              <span>Switch Persona</span>
-            </div>
-            <span className="text-[10px] text-slate-400 capitalize">({userRole})</span>
-          </button>
-        ) : (
-          <button
-            onClick={toggleSidebar}
-            className="w-10 h-10 mx-auto flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-            title="Expand sidebar"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        )}
+      {/* Logout Button */}
+      <div className="border-t border-slate-800 p-4 bg-slate-900">
+        <button
+          onClick={logout}
+          title={collapsed ? "Logout" : undefined}
+          className={cn(
+            "w-full flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-400 hover:bg-rose-950/30 hover:text-rose-400 transition-all duration-150",
+            collapsed && "justify-center"
+          )}
+        >
+          <LogOut className="h-4 w-4 shrink-0 text-slate-500" strokeWidth={1.75} />
+          {!collapsed && <span>Sign Out</span>}
+        </button>
       </div>
     </aside>
-  )
+  );
 }
