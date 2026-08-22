@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import type { UserRole } from "@/lib/roles";
-import { Lock, Mail, Eye, EyeOff, AlertCircle, ShieldAlert, User, Building2, Phone, CheckCircle2 } from "lucide-react";
+import { Lock, Mail, Eye, EyeOff, AlertCircle, Briefcase, User, Building2, Phone, CheckCircle2 } from "lucide-react";
 
 export default function SignUp() {
   const { registerUser, isLoading, user, isAuthenticated } = useAuth();
@@ -78,85 +78,85 @@ export default function SignUp() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between antialiased">
+    <div className="min-h-screen lg:h-screen flex flex-col justify-between overflow-y-auto lg:overflow-hidden bg-slate-50 antialiased font-sans text-base">
       {/* Top Header */}
-      <header className="w-full px-6 py-4 flex items-center justify-between bg-white border-b border-slate-200">
+      <header className="w-full px-6 sm:px-10 py-3 flex items-center justify-between bg-white border-b border-slate-200 shadow-xs shrink-0">
         <button
           onClick={() => navigate("/")}
-          className="btn-secondary px-3 py-1.5 text-xs shadow-none border-slate-200"
+          className="py-1.5 px-3.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm transition-colors border border-slate-200"
         >
           ← Back to Home
         </button>
 
-        <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate("/")}>
-          <div className="w-7 h-7 rounded bg-blue-600 flex items-center justify-center shadow-md">
-            <ShieldAlert className="w-4.5 h-4.5 text-white" strokeWidth={2.2} />
+        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
+          <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-600/25">
+            <Briefcase className="w-4.5 h-4.5" />
           </div>
-          <span className="text-sm font-bold text-slate-800 tracking-tight">
-            CareAuth <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest ml-0.5">AI</span>
+          <span className="text-lg font-extrabold text-slate-900 tracking-tight">
+            Auth<span className="text-blue-600">AI</span>
           </span>
         </div>
       </header>
 
       {/* Main Container */}
-      <div className="flex-1 flex items-center justify-center px-4 py-8 md:py-12">
-        <div className="max-w-4xl w-full grid grid-cols-1 lg:grid-cols-2 bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+      <div className="flex-1 flex items-center justify-center p-3 sm:p-4 overflow-y-auto lg:overflow-hidden">
+        <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden my-auto">
           
-          {/* Left Panel - Workspace Highlights */}
-          <div className="bg-slate-900 p-8 lg:p-10 flex flex-col justify-between text-slate-300">
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-blue-900/60 border border-blue-700/50 text-blue-300 text-[10px] font-bold uppercase tracking-wider mb-4">
-                Enterprise Account Registration
+          {/* Left Panel - Workspace Highlights (Rich Light Blue Gradient) */}
+          <div className="lg:col-span-5 bg-gradient-to-br from-blue-100/90 via-blue-50/70 to-slate-50 border-r border-blue-200/90 p-6 lg:p-8 flex flex-col justify-between text-slate-700">
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-600 text-white text-[11px] font-extrabold uppercase tracking-wider shadow-xs">
+                ENTERPRISE ACCOUNT REGISTRATION
               </div>
-              <h2 className="text-xl lg:text-2xl font-bold text-white tracking-tight leading-tight mb-3">
-                Join PriorAuth AI Workspace
+              <h2 className="text-xl lg:text-2xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                Join AuthAI Workspace
               </h2>
-              <p className="text-xs text-slate-400 leading-relaxed mb-6">
+              <p className="text-xs text-slate-600 leading-relaxed">
                 Create your verified account to access automated prior authorization triage, clinical policy companion, and transparent decision engines.
               </p>
             </div>
 
-            <div className="space-y-3.5">
+            <div className="space-y-3 my-5">
               {[
                 { title: "Healthcare Provider Workspace", desc: "Fast-track prior auth submissions with automated document extraction and status tracking." },
                 { title: "Insurance Payer Workspace", desc: "Review queue management, rule evaluation engines, and Weaviate policy RAG retrieval." },
                 { title: "HIPAA-Grade Security", desc: "Role-based access controls and complete audit trails for every transaction." }
               ].map((f, i) => (
-                <div key={i} className="flex gap-3 items-start bg-slate-850/50 border border-slate-800 p-3 rounded-lg">
-                  <CheckCircle2 className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
+                <div key={i} className="flex gap-2.5 items-start bg-white/90 border border-blue-200/80 p-3 rounded-xl shadow-xs">
+                  <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-white font-bold text-xs">{f.title}</p>
-                    <p className="text-slate-400 text-[10px] mt-0.5 leading-relaxed">{f.desc}</p>
+                    <p className="text-slate-900 font-extrabold text-xs">{f.title}</p>
+                    <p className="text-slate-500 text-[11px] mt-0.5 leading-snug">{f.desc}</p>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="pt-6 border-t border-slate-800 text-[11px] text-slate-400">
+            <div className="pt-4 border-t border-blue-200/80 text-xs text-slate-500">
               Already registered?{" "}
-              <Link to="/login" className="text-blue-400 font-semibold hover:underline">
+              <Link to="/login" className="text-blue-600 font-bold hover:underline">
                 Sign In to your account →
               </Link>
             </div>
           </div>
 
           {/* Right Panel - Sign Up Form */}
-          <div className="p-8 lg:p-10 flex flex-col justify-center bg-white">
-            <div className="mb-6">
-              <h1 className="text-lg font-bold text-slate-900">Create Your Account</h1>
+          <div className="lg:col-span-7 p-6 lg:p-8 flex flex-col justify-center bg-white">
+            <div className="mb-4">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Create Your Account</h1>
               <p className="text-xs text-slate-500 mt-1">
                 Select your role and enter your organization details below.
               </p>
             </div>
 
             {/* Role Selection Toggle */}
-            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-lg mb-6 border border-slate-200">
+            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl mb-4 border border-slate-200">
               <button
                 type="button"
                 onClick={() => setSelectedRole("provider")}
-                className={`py-2 px-3 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                className={`py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all ${
                   selectedRole === "provider"
-                    ? "bg-white text-teal-700 shadow-sm border border-slate-200"
+                    ? "bg-white text-teal-700 shadow-xs border border-slate-200"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
@@ -165,9 +165,9 @@ export default function SignUp() {
               <button
                 type="button"
                 onClick={() => setSelectedRole("reviewer")}
-                className={`py-2 px-3 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                className={`py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all ${
                   selectedRole === "reviewer"
-                    ? "bg-white text-blue-700 shadow-sm border border-slate-200"
+                    ? "bg-white text-blue-700 shadow-xs border border-slate-200"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
@@ -176,18 +176,18 @@ export default function SignUp() {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-3.5">
+            <form onSubmit={handleSubmit} className="space-y-3">
               {/* Full Name */}
               <div>
-                <label className="label">Full Name</label>
+                <label className="label text-xs font-bold text-slate-700 mb-1 block">Full Name</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder={selectedRole === "provider" ? "Dr. Sarah Jenkins" : "Michael Vance"}
-                    className="input pl-9 text-xs"
+                    className="input pl-10 py-2 text-xs sm:text-sm border-slate-300 focus:border-blue-600"
                     required
                   />
                 </div>
@@ -195,15 +195,15 @@ export default function SignUp() {
 
               {/* Email */}
               <div>
-                <label className="label">Email Address</label>
+                <label className="label text-xs font-bold text-slate-700 mb-1 block">Email Address</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={selectedRole === "provider" ? "s.jenkins@hospital.org" : "m.vance@payerhealth.com"}
-                    className="input pl-9 text-xs"
+                    className="input pl-10 py-2 text-xs sm:text-sm border-slate-300 focus:border-blue-600"
                     required
                   />
                 </div>
@@ -212,29 +212,29 @@ export default function SignUp() {
               {/* Organization & Phone (2 cols) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="label">Organization / Facility</label>
+                  <label className="label text-xs font-bold text-slate-700 mb-1 block">Organization / Facility</label>
                   <div className="relative">
-                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
                       type="text"
                       value={organization}
                       onChange={(e) => setOrganization(e.target.value)}
                       placeholder={selectedRole === "provider" ? "City General Hospital" : "BlueShield Health"}
-                      className="input pl-9 text-xs"
+                      className="input pl-10 py-2 text-xs sm:text-sm border-slate-300 focus:border-blue-600"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="label">Contact Phone</label>
+                  <label className="label text-xs font-bold text-slate-700 mb-1 block">Contact Phone</label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
                       type="text"
                       value={contact}
                       onChange={(e) => setContact(e.target.value)}
                       placeholder="(555) 019-2834"
-                      className="input pl-9 text-xs"
+                      className="input pl-10 py-2 text-xs sm:text-sm border-slate-300 focus:border-blue-600"
                     />
                   </div>
                 </div>
@@ -243,37 +243,37 @@ export default function SignUp() {
               {/* Passwords (2 cols) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="label">Password</label>
+                  <label className="label text-xs font-bold text-slate-700 mb-1 block">Password</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="input pl-9 pr-8 text-xs"
+                      className="input pl-10 pr-10 py-2 text-xs sm:text-sm border-slate-300 focus:border-blue-600"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                     >
-                      {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <label className="label">Confirm Password</label>
+                  <label className="label text-xs font-bold text-slate-700 mb-1 block">Confirm Password</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
                       type={showPassword ? "text" : "password"}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="input pl-9 text-xs"
+                      className="input pl-10 py-2 text-xs sm:text-sm border-slate-300 focus:border-blue-600"
                       required
                     />
                   </div>
@@ -282,9 +282,9 @@ export default function SignUp() {
 
               {/* Error Alert */}
               {formError && (
-                <div className="flex gap-2.5 p-3 rounded bg-rose-50 border border-rose-200">
+                <div className="flex gap-2 p-2.5 rounded-lg bg-rose-50 border border-rose-200">
                   <AlertCircle className="w-4 h-4 text-rose-700 shrink-0 mt-0.5" />
-                  <p className="text-xs text-rose-750">{formError}</p>
+                  <p className="text-xs text-rose-750 font-semibold">{formError}</p>
                 </div>
               )}
 
@@ -292,7 +292,7 @@ export default function SignUp() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="btn-primary w-full justify-center py-2.5 text-xs shadow-none mt-2"
+                className="w-full py-2.5 px-5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-blue-600/20 transition-all cursor-pointer mt-1"
               >
                 {isLoading ? "Creating Account..." : `Sign Up as ${selectedRole === "provider" ? "Provider" : "Payer"}`}
               </button>
@@ -302,7 +302,7 @@ export default function SignUp() {
                 type="button"
                 onClick={handleGoogleSignUp}
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition-colors shadow-sm mt-2 cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs sm:text-sm transition-colors shadow-xs cursor-pointer"
               >
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                   <path
@@ -326,9 +326,9 @@ export default function SignUp() {
               </button>
             </form>
 
-            <div className="mt-6 text-center text-xs text-slate-500">
+            <div className="mt-4 text-center text-xs text-slate-600">
               Already have an account?{" "}
-              <Link to="/login" className="font-semibold text-blue-600 hover:text-blue-700">
+              <Link to="/login" className="font-extrabold text-blue-600 hover:text-blue-700">
                 Sign In
               </Link>
             </div>
@@ -336,8 +336,9 @@ export default function SignUp() {
         </div>
       </div>
 
-      <footer className="w-full text-center py-4 text-[10px] text-slate-400 border-t border-slate-200 bg-white">
-        CareAuth AI · Prior Authorization Clinical Decision Support Platform
+      {/* Footer */}
+      <footer className="w-full text-center py-2.5 text-[11px] text-slate-400 border-t border-slate-200 bg-white shrink-0">
+        AuthAI · Prior Authorization Clinical Decision Support Platform
       </footer>
     </div>
   );

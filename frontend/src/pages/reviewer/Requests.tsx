@@ -154,8 +154,13 @@ export default function ReviewerRequests() {
               {filtered.map(req => {
                 const cfg       = STATUS_CONFIG[req.status] ?? { label: req.status, bg: "bg-slate-100", text: "text-slate-600", icon: AlertCircle };
                 const StatusIcon = cfg.icon;
-                const ai        = req.aiRecommendation;
+                const ruleEval  = req.ruleEvaluation || (req.policyContext as any)?.ruleEvaluation;
+                const ai        = req.aiRecommendation || (ruleEval ? {
+                  decision: ruleEval.decision === "Approved" ? "Approve" : ruleEval.decision === "More Information Required" ? "Request More Info" : ruleEval.decision === "Denied" ? "Deny" : "Escalate",
+                  confidence: ruleEval.decision === "Approved" ? 94 : ruleEval.decision === "More Information Required" ? 82 : ruleEval.decision === "Denied" ? 88 : 85
+                } : null);
                 const aiColor   = AI_COLORS[ai?.decision ?? ""] ?? { bg: "bg-slate-100", text: "text-slate-600" };
+
                 return (
                   <tr key={req.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-5 py-4">

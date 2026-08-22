@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import type { ChatMessage, PolicyReference } from "@/types";
 import { cn, formatRelativeTime } from "@/lib/utils";
-import { Send, Bot, User, FileText, Loader2, Sparkles } from "lucide-react";
+import { Send, Bot, User, FileText, Loader2, Sparkles, ChevronDown } from "lucide-react";
+
 
 const INITIAL_MESSAGES: ChatMessage[] = [
   {
@@ -43,7 +44,13 @@ export function ChatInterface() {
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [expandedSources, setExpandedSources] = useState<Record<string, boolean>>({});
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  const toggleSources = (id: string) => {
+    setExpandedSources((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -123,27 +130,51 @@ export function ChatInterface() {
                 {msg.content}
               </div>
 
-              {/* Sources */}
+              {/* Sources — Collapsible with toggle button */}
               {msg.sources && msg.sources.length > 0 && (
                 <div className="space-y-1.5 w-full">
-                  <p className="text-[11px] text-slate-400 px-1">Sources retrieved:</p>
-                  {msg.sources.map((src) => (
-                    <div
-                      key={src.id}
-                      className="flex items-start gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2"
-                    >
-                      <FileText className="mt-0.5 h-3.5 w-3.5 shrink-0 text-teal-500" />
-                      <div>
-                        <p className="text-[12px] font-medium text-slate-800">{src.title}</p>
-                        <p className="text-[11px] text-slate-500">{src.section}</p>
-                        <span className="mt-0.5 inline-block rounded-full bg-teal-100 px-1.5 py-0.5 text-[10px] font-medium text-teal-700">
-                          {src.relevanceScore}% match
-                        </span>
-                      </div>
+                  <button
+                    type="button"
+                    onClick={() => toggleSources(msg.id)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-teal-700 font-semibold text-[11px] transition-all cursor-pointer shadow-2xs"
+                  >
+                    <FileText className="h-3.5 w-3.5 text-teal-600" />
+                    <span>
+                      {expandedSources[msg.id]
+                        ? "Hide Policy Sources"
+                        : `View Policy Citations (${msg.sources.length})`}
+                    </span>
+                    <ChevronDown
+                      className={cn(
+                        "h-3.5 w-3.5 transition-transform duration-200",
+                        expandedSources[msg.id] ? "rotate-180" : ""
+                      )}
+                    />
+                  </button>
+
+                  {expandedSources[msg.id] && (
+                    <div className="space-y-1.5 pt-1 animate-in fade-in duration-200">
+                      <p className="text-[11px] font-semibold text-slate-500 px-1">Retrieved Sources:</p>
+                      {msg.sources.map((src) => (
+                        <div
+                          key={src.id}
+                          className="flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50/90 px-3 py-2 text-left"
+                        >
+                          <FileText className="mt-0.5 h-3.5 w-3.5 shrink-0 text-teal-600" />
+                          <div>
+                            <p className="text-[12px] font-semibold text-slate-800">{src.title}</p>
+                            <p className="text-[11px] text-slate-600">{src.section}</p>
+                            <span className="mt-1 inline-block rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-bold text-teal-800">
+                              {src.relevanceScore}% match
+                            </span>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
+
 
               <time className="px-1 text-[11px] text-slate-400">
                 {formatRelativeTime(msg.timestamp)}

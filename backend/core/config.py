@@ -37,7 +37,9 @@ class Settings(BaseSettings):
 
     # Gemini AI
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-3.5-flash-lite"
+    GEMINI_MODEL: str = "gemini-3.6-flash"
+
+
 
     # File uploads
     UPLOAD_DIR: str = "uploads"

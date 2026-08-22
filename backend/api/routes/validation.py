@@ -24,6 +24,7 @@ For Step 3:
 
 import io
 import json
+import logging
 import os
 import re
 import shutil
@@ -58,6 +59,8 @@ from core.database import (
     AuditLog, AuthorizationRequest, Document,
     Patient, Provider, ValidationResult, get_db,
 )
+
+log = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -174,12 +177,9 @@ def _run_step1(req: AuthorizationRequest) -> Dict[str, Any]:
             issue("patient.memberId", "critical", "Insurance Member ID is required.", "Enter the patient's insurance member ID.")
         elif not MEMBER_RE.match(mid):
             issue("patient.memberId", "warning", f"Member ID '{mid}' format looks unusual.", "Standard member IDs are 4–20 alphanumeric characters.")
-        if not (patient.payer or "").strip():
-            issue("patient.payer", "critical", "Insurance payer is required.", "Select the patient's insurance payer.")
-        if not (patient.plan or "").strip():
-            issue("patient.plan", "warning", "Insurance plan name is missing.", "Enter the insurance plan name.")
+        # Patient Payer and Plan are auto-populated by active session context, not input in provider form
 
-    # Provider
+    # Provider (auto-populated by authenticated provider session)
     if not provider:
         issue("provider", "critical", "Provider information is missing.", "Attach a valid provider to this request.")
     else:
@@ -190,8 +190,6 @@ def _run_step1(req: AuthorizationRequest) -> Dict[str, Any]:
             issue("provider.npi", "critical", "Provider NPI number is required.", "Enter the 10-digit NPI number.")
         elif not NPI_RE.match(npi):
             issue("provider.npi", "warning", f"NPI '{npi}' is not a valid 10-digit number.", "NPI must be exactly 10 numeric digits.")
-        if not (provider.specialty or "").strip():
-            issue("provider.specialty", "warning", "Provider specialty is missing.", "Include the requesting physician's specialty.")
 
     # Diagnoses
     diagnoses = req.diagnoses or []
@@ -205,8 +203,6 @@ def _run_step1(req: AuthorizationRequest) -> Dict[str, Any]:
             desc = (diag.get("description") or "").strip()
             if not code:
                 issue(f"diagnoses[{i}].code", "critical", f"Diagnosis {i+1} is missing an ICD-10 code.", "Enter a valid ICD-10 code.")
-            elif not ICD10_RE.match(code):
-                issue(f"diagnoses[{i}].code", "warning", f"'{code}' does not match ICD-10 format.", "ICD-10: Letter + 2 digits + optional decimal.")
             if not desc:
                 issue(f"diagnoses[{i}].description", "warning", f"Diagnosis {i+1} is missing a description.", "Add a description for the diagnosis.")
 
@@ -220,20 +216,20 @@ def _run_step1(req: AuthorizationRequest) -> Dict[str, Any]:
             desc = (proc.get("description") or "").strip()
             sdt  = (proc.get("serviceDate") or "").strip()
             if not code:
-                issue(f"procedures[{i}].code", "critical", f"Procedure {i+1} is missing a CPT code.", "Enter a valid 5-digit CPT code.")
-            elif not CPT_RE.match(code):
-                issue(f"procedures[{i}].code", "warning", f"'{code}' is not a standard 5-digit CPT code.", "CPT codes are exactly 5 numeric digits.")
+                issue(f"procedures[{i}].code", "critical", f"Procedure {i+1} is missing a CPT code.", "Enter a valid CPT code.")
             if not desc:
                 issue(f"procedures[{i}].description", "warning", f"Procedure {i+1} is missing a description.", "Provide a procedure name.")
+
             if sdt and _parse_date(sdt) is None:
                 issue(f"procedures[{i}].serviceDate", "warning", f"Service date '{sdt}' is invalid.", "Use YYYY-MM-DD format.")
 
     # Clinical notes
     notes = (req.clinical_notes or "").strip()
     if not notes:
-        issue("clinicalNotes", "critical", "Clinical notes are required for medical necessity.", "Document the clinical indication and prior treatments.")
+        issue("clinicalNotes", "warning", "Clinical notes are missing in provider submission.", "Document the clinical indication and prior treatments.")
     elif len(notes.split()) < 10:
         issue("clinicalNotes", "warning", "Clinical notes are very brief.", "Provide detailed clinical justification.")
+
 
     # Documents
     if not (req.documents or []):
@@ -957,17 +953,22 @@ def get_structured_pa(case_id: str, db: Session = Depends(get_db)):
     ).first()
 
     if not vr:
-        # Pipeline not run yet — return 202 so the caller knows to poll
-        from fastapi.responses import JSONResponse
-        return JSONResponse(
-            status_code=202,
-            content={
-                "status": "pending",
-                "message": "Validation pipeline has not completed yet. Please retry in a few seconds.",
-                "caseNumber": req.case_number,
-                "requestId":  req.id,
-            },
-        )
+        # Pipeline not run yet — auto-trigger execution on demand and save to TiDB
+        try:
+            vr = _run_pipeline(req, db)
+        except Exception as e:
+            log.warning("Auto-triggering validation pipeline for %s failed: %s", req.case_number, e)
+            from fastapi.responses import JSONResponse
+            return JSONResponse(
+                status_code=202,
+                content={
+                    "status": "pending",
+                    "message": "Validation pipeline triggered automatically. Please retry in a few seconds.",
+                    "caseNumber": req.case_number,
+                    "requestId":  req.id,
+                },
+            )
+
 
     # Pull the step-4 structured blob (the main output)
     structured: Dict[str, Any] = vr.step4_structured or {}

@@ -291,12 +291,22 @@ def google_callback(
 
 
 
+from core.cache import get_cache, set_cache, invalidate_cache
+
+
 @router.get("/notifications")
 def get_notifications(user_id: Optional[str] = None, db: Session = Depends(get_db)):
+    cache_key = f"notifications_{user_id or 'all'}"
+    cached = get_cache(cache_key)
+    if cached is not None:
+        return cached
+
     q = db.query(Notification).order_by(Notification.timestamp.desc())
     if user_id:
         q = q.filter(Notification.user_id == user_id)
-    return [_ser_notification(n) for n in q.all()]
+    res = [_ser_notification(n) for n in q.all()]
+    set_cache(cache_key, res, ttl_seconds=15)
+    return res
 
 
 @router.patch("/notifications/{notification_id}/read")
@@ -306,6 +316,7 @@ def mark_read(notification_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Notification not found")
     n.is_read = True
     db.commit()
+    invalidate_cache("notifications_")
     return _ser_notification(n)
 
 
@@ -316,11 +327,17 @@ def mark_all_read(user_id: Optional[str] = None, db: Session = Depends(get_db)):
         q = q.filter(Notification.user_id == user_id)
     q.update({"is_read": True}, synchronize_session=False)
     db.commit()
+    invalidate_cache("notifications_")
     return {"message": "All notifications marked as read"}
 
 
 @router.get("/audit-trail")
 def get_audit_trail(db: Session = Depends(get_db)):
+    cache_key = "audit_trail_all"
+    cached = get_cache(cache_key)
+    if cached is not None:
+        return cached
+
     entries = (
         db.query(AuditLog)
         .options(
@@ -330,4 +347,7 @@ def get_audit_trail(db: Session = Depends(get_db)):
         .order_by(AuditLog.timestamp.desc())
         .all()
     )
-    return [_ser_audit(a, a.request) for a in entries]
+    res = [_ser_audit(a, a.request) for a in entries]
+    set_cache(cache_key, res, ttl_seconds=20)
+    return res
+

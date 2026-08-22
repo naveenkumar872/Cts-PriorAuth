@@ -226,4 +226,10 @@ def get_evaluation(case_id: str, db: Session = Depends(get_db)):
     req = db.query(AuthorizationRequest).filter(AuthorizationRequest.id == case_id).first() or db.query(AuthorizationRequest).filter(AuthorizationRequest.case_number == case_id).first()
     if not req:
         raise HTTPException(status_code=404, detail="Authorization request not found")
-    return (req.policy_context or {}).get("ruleEvaluation") or {"status": "pending", "message": "Rule evaluation has not completed yet."}
+    
+    existing = (req.policy_context or {}).get("ruleEvaluation")
+    if existing:
+        return existing
+    
+    # Auto-trigger rule evaluation on demand and save to database
+    return _evaluate_and_store(req, db)

@@ -135,8 +135,9 @@ export const ROLE_NAV_GROUPS: Record<
       label: "Main",
       items: [
         { href: "/reviewer/dashboard", label: "Dashboard", icon: "LayoutDashboard" },
-        { href: "/reviewer/review-queue", label: "Review Queue", icon: "Stethoscope" },
+        { href: "/reviewer/review-queue", label: "Nurse Queue", icon: "Stethoscope" },
         { href: "/reviewer/requests", label: "All Requests", icon: "FileText" },
+
       ],
     },
     {
