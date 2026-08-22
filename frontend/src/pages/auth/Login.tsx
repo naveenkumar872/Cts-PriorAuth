@@ -97,11 +97,12 @@ export default function Login() {
                 ENTERPRISE PRIOR AUTH WORKSPACE
               </div>
               <h2 className="text-xl lg:text-2xl font-extrabold text-slate-900 tracking-tight leading-tight">
-                Autonomous Clinical Decision Support
+                Prior Authorization Platform
               </h2>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Evaluating medical necessity pathways using clinical natural language extraction, Weaviate vector policies, and deterministic rule engines.
+                Streamlined medical necessity evaluation and clinical workflow management for providers and payers.
               </p>
+
             </div>
 
             <div className="space-y-3 my-5">

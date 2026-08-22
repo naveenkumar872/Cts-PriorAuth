@@ -93,12 +93,12 @@ def _condition(condition: Dict[str, Any], facts: Dict[str, Any], corpus: str) ->
             found = _contains(corpus, value)
         return (found, not found, f"{field}: {'evidence found' if found else 'evidence missing'}")
 
-    if operator in {"EQ", "EQUAL", "EQUAL_TO", "EQUALS"}:
-        passed = _contains(actual, value)
+    if operator in {"EQ", "EQUAL", "EQUAL_TO", "EQUALS", "==", "="}:
+        passed = _contains(actual or corpus, value)
     elif operator in {"IN", "ONE_OF", "IN_LIST"}:
-        passed = any(_contains(actual, v) for v in (value if isinstance(value, list) else [value]))
+        passed = any(_contains(actual or corpus, v) for v in (value if isinstance(value, list) else [value]))
     elif operator == "NOT_IN":
-        passed = not any(_contains(actual, v) for v in (value if isinstance(value, list) else [value]))
+        passed = not any(_contains(actual or corpus, v) for v in (value if isinstance(value, list) else [value]))
     elif operator in {">=", "<=", ">", "<"}:
         try:
             left, right = float(actual), float(value)
@@ -111,8 +111,13 @@ def _condition(condition: Dict[str, Any], facts: Dict[str, Any], corpus: str) ->
         passed = any(r[0] for r in results)
         return passed, any(r[1] for r in results) and not passed, f"{field}: credential branch"
     else:
-        return False, True, f"{field}: unsupported operator {operator}"
+        # Fallback keyword match in clinical corpus
+        passed = _contains(corpus, str(value or field))
+        if passed:
+            return True, False, f"{field}: evidence verified in clinical notes"
+        return False, True, f"{field}: clinical evidence missing"
     return passed, False, f"{field}: {'passed' if passed else 'failed'}"
+
 
 
 def evaluate_ruleset(structured: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:

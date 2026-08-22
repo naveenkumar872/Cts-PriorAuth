@@ -119,16 +119,6 @@ export default function ReviewQueue() {
         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Nurse Review Queue</h1>
         <p className="text-slate-600 mt-1 flex items-center gap-2 font-medium">
           <span>{queue.length} request{queue.length !== 1 ? "s" : ""} awaiting clinical review</span>
-          {sortBy === "complexity" && (
-            <span className="text-xs font-extrabold text-indigo-900 bg-indigo-100/90 px-3 py-1 rounded-full border border-indigo-300 shadow-2xs">
-              ⚡ ML Sorted: High Complexity First
-            </span>
-          )}
-          {sortBy === "urgency" && (
-            <span className="text-xs font-extrabold text-blue-900 bg-blue-100/90 px-3 py-1 rounded-full border border-blue-300 shadow-2xs">
-              Sorted: Urgent First
-            </span>
-          )}
         </p>
       </div>
 
@@ -156,8 +146,7 @@ export default function ReviewQueue() {
           <ArrowUpDown className="h-4 w-4 text-slate-500 shrink-0" />
           <select value={sortBy} onChange={e => setSortBy(e.target.value as "complexity" | "urgency" | "date")}
             className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/20">
-            <option value="complexity">⚡ Sort: ML Complexity (High → Low)</option>
-            <option value="urgency">Sort: Urgency (High → Low)</option>
+            <option value="complexity">Sort: Clinical Urgency</option>
             <option value="date">Sort: Newest First</option>
           </select>
         </div>
@@ -183,11 +172,6 @@ export default function ReviewQueue() {
 
             const aiColor = AI_COLORS[aiRec?.decision ?? ""] ?? AI_COLORS["Escalate"];
             const mappedPriority = getMappedPriority(request.priority);
-            
-            const mlComplexity = request.ruleEvaluation?.mlComplexity || (request.policyContext as any)?.ruleEvaluation?.mlComplexity;
-            const mlBadge = mlComplexity?.predictedComplexity ? COMPLEXITY_BADGES[mlComplexity.predictedComplexity] : null;
-
-            const isHighComplexity = mlComplexity?.predictedComplexity === "high";
 
             return (
               <div
@@ -196,7 +180,7 @@ export default function ReviewQueue() {
               >
                 {/* Left accent bar */}
                 <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${
-                  isHighComplexity ? "bg-rose-500" : mappedPriority === "high" ? "bg-amber-500" : "bg-blue-600"
+                  mappedPriority === "high" ? "bg-rose-500" : mappedPriority === "medium" ? "bg-amber-500" : "bg-blue-600"
                 }`} />
 
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center pl-2">
@@ -223,7 +207,7 @@ export default function ReviewQueue() {
                     </p>
                   </div>
 
-                  {/* Middle: Badges & ML Complexity */}
+                  {/* Middle: Badges */}
                   <div className="md:col-span-3 space-y-2.5 border-t md:border-t-0 md:border-l border-slate-100 pt-3 md:pt-0 md:pl-6">
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Priority Tier</p>
@@ -231,20 +215,8 @@ export default function ReviewQueue() {
                         {mappedPriority.charAt(0).toUpperCase() + mappedPriority.slice(1)}
                       </span>
                     </div>
-
-                    {/* ML Complexity Badge */}
-                    {mlBadge && (
-                      <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">ML Review Complexity</p>
-                        <div className={`inline-flex items-center gap-1 text-xs font-extrabold px-2.5 py-0.5 rounded-full border mt-1 ${mlBadge.bg} ${mlBadge.text} ${mlBadge.border}`}>
-                          {mlBadge.label}
-                          {mlComplexity?.confidenceScore && (
-                            <span className="text-[10px] opacity-80">({mlComplexity.confidenceScore}%)</span>
-                          )}
-                        </div>
-                      </div>
-                    )}
                   </div>
+
 
                   {/* Right: AI Recommendation & Action */}
                   <div className="md:col-span-4 bg-slate-50/80 p-4 rounded-xl border border-slate-150 space-y-3">

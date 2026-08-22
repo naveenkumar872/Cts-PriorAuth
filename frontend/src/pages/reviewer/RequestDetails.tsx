@@ -1,12 +1,27 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import {
+  ReactFlow,
+  Background,
+  Controls,
+  MiniMap,
+  Handle,
+  Position,
+  BackgroundVariant,
+  type Node,
+  type Edge,
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+
 import {
   ArrowLeft, CheckCircle, XCircle, Clock, AlertCircle,
   User, Building, Brain, ChevronDown, ChevronUp,
   BookOpen, TrendingUp, TrendingDown, Minus, Eye, Download,
   Activity, FlaskConical, Code2, FileText, Loader2,
-  Sparkles, Search, RefreshCw, ChevronRight,
+  Sparkles, Search, RefreshCw, ChevronRight, GitBranch,
 } from "lucide-react";
+
+
 import { api } from "@/lib/api";
 import type { AuthorizationRequest, AuthorizationStatus, AIFactor, ClinicalDocument } from "@/types";
 import { DocumentPreviewModal, DOC_TYPE_CONFIG } from "@/components/ui/DocumentPreviewModal";
@@ -365,6 +380,253 @@ function FactorRow({ factor }: { factor: AIFactor }) {
   );
 }
 
+// ── Custom React Flow Graph Node Components ─────────────────────────────
+function CustomRootNode({ data }: { data: any }) {
+  return (
+    <div className="px-6 py-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white shadow-xl border border-blue-400/40 text-center min-w-[280px]">
+      <Handle type="source" position={Position.Bottom} className="!bg-blue-300 !w-3.5 !h-3.5 !-bottom-2" />
+      <div className="flex items-center justify-center gap-2 mb-1">
+        <FlaskConical className="h-4 w-4 text-blue-200" />
+        <span className="text-[10px] font-black uppercase tracking-widest text-blue-100">ROOT RULE ENGINE DECISION</span>
+      </div>
+      <p className="text-base font-black tracking-wide uppercase">{data.decision}</p>
+      {data.reason && <p className="text-[11px] font-medium text-blue-100 mt-1 line-clamp-2 max-w-xs mx-auto">{data.reason}</p>}
+    </div>
+  );
+}
+
+function CustomPathwayNode({ data }: { data: any }) {
+  const isPassed = data.passed;
+  const isUnknown = data.unknown;
+  
+  const bg = isPassed
+    ? "bg-emerald-50 border-emerald-300 text-emerald-950 shadow-emerald-500/10"
+    : isUnknown
+    ? "bg-amber-50 border-amber-300 text-amber-950 shadow-amber-500/10"
+    : "bg-rose-50 border-rose-300 text-rose-950 shadow-rose-500/10";
+
+  const badgeStyle = isPassed
+    ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+    : isUnknown
+    ? "bg-amber-100 text-amber-800 border-amber-300"
+    : "bg-rose-100 text-rose-800 border-rose-300";
+
+  const StatusIcon = isPassed ? CheckCircle : isUnknown ? AlertCircle : XCircle;
+
+  return (
+    <div className={`p-4 rounded-2xl border ${bg} shadow-md min-w-[280px] max-w-[300px]`}>
+      <Handle type="target" position={Position.Top} className="!bg-blue-500 !w-3 !h-3 !-top-1.5" />
+      <Handle type="source" position={Position.Bottom} className="!bg-slate-400 !w-3 !h-3 !-bottom-1.5" />
+      <div className="flex items-center justify-between gap-2 mb-1.5">
+        <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Criteria Pathway</span>
+        <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${badgeStyle}`}>
+          {isPassed ? "✅ Satisfied" : isUnknown ? "⚠️ Missing" : "❌ Not Satisfied"}
+        </span>
+      </div>
+      <div className="flex items-start gap-2.5">
+        <StatusIcon className={`h-4.5 w-4.5 shrink-0 mt-0.5 ${isPassed ? "text-emerald-600" : isUnknown ? "text-amber-600" : "text-rose-600"}`} />
+        <p className="text-xs font-black leading-snug capitalize text-slate-900">{data.label}</p>
+      </div>
+    </div>
+  );
+}
+
+function CustomConditionNode({ data }: { data: any }) {
+  const isCondPassed = data.isCondPassed;
+  const isCondUnknown = data.isCondUnknown;
+
+  const leafBadge = isCondPassed
+    ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+    : isCondUnknown
+    ? "bg-amber-100 text-amber-800 border-amber-300"
+    : "bg-rose-100 text-rose-800 border-rose-300";
+
+  return (
+    <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-sm hover:border-blue-400 transition-all min-w-[280px] max-w-[300px] space-y-1">
+      <Handle type="target" position={Position.Top} className="!bg-slate-400 !w-2.5 !h-2.5 !-top-1.5" />
+      <div className="flex items-center justify-between gap-2">
+        <p className="font-extrabold text-slate-900 capitalize text-xs truncate">{data.title}</p>
+        <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border shrink-0 ${leafBadge}`}>
+          {isCondPassed ? "Passed" : isCondUnknown ? "Evidence Needed" : "Failed"}
+        </span>
+      </div>
+      <p className="text-[11px] text-slate-500 font-medium line-clamp-2">{data.detail}</p>
+    </div>
+  );
+}
+
+const customNodeTypes = {
+  rootNode: CustomRootNode,
+  pathwayNode: CustomPathwayNode,
+  conditionNode: CustomConditionNode,
+};
+
+// ── Auto-Fitting Graph Flow Visualization Component ─────────────────────────────
+function RuleEvaluationConditionTree({ ruleEvaluation, policyName }: { ruleEvaluation: any; policyName?: string }) {
+  const pathways = ruleEvaluation.pathways ?? [];
+
+  const { nodes, edges } = useMemo(() => {
+    const n: Node[] = [];
+    const e: Edge[] = [];
+
+    // Root Node
+    const rootX = (pathways.length * 340) / 2 - 140;
+    n.push({
+      id: "root",
+      type: "rootNode",
+      position: { x: Math.max(100, rootX), y: 20 },
+      data: { decision: ruleEvaluation.decision, reason: ruleEvaluation.reason },
+    });
+
+    pathways.forEach((pathway: any, pIdx: number) => {
+      const pathwayId = `pathway-${pIdx}`;
+      const px = pIdx * 340;
+      const py = 200;
+
+      n.push({
+        id: pathwayId,
+        type: "pathwayNode",
+        position: { x: px, y: py },
+        data: {
+          label: pathway.pathwayId ? pathway.pathwayId.replace(/_/g, " ") : `Criteria Pathway ${pIdx + 1}`,
+          passed: pathway.passed,
+          unknown: pathway.unknown,
+        },
+      });
+
+      // Edge from Root to Pathway
+      e.push({
+        id: `e-root-${pathwayId}`,
+        source: "root",
+        target: pathwayId,
+        type: "smoothstep",
+        animated: true,
+        style: { stroke: pathway.passed ? "#10b981" : pathway.unknown ? "#f59e0b" : "#ef4444", strokeWidth: 2.5 },
+      });
+
+      // Deduplicate conditions per pathway to eliminate identical duplicate node boxes
+      const rawConditions = pathway.conditions || [];
+      const seenFields = new Set<string>();
+      const uniqueConditions: any[] = [];
+
+      rawConditions.forEach((cond: any) => {
+        const str = typeof cond === "string" ? cond : JSON.stringify(cond);
+        const fieldKey = str.split(":")[0]?.trim().toLowerCase();
+        if (!seenFields.has(fieldKey)) {
+          seenFields.add(fieldKey);
+          uniqueConditions.push(cond);
+        }
+      });
+
+      uniqueConditions.forEach((cond: any, cIdx: number) => {
+        const condId = `cond-${pIdx}-${cIdx}`;
+        const cx = px;
+        const cy = 360 + cIdx * 110;
+
+        const rawText = typeof cond === "string" ? cond : JSON.stringify(cond);
+        const parts = rawText.split(":");
+        const fieldName = parts[0]?.replace(/_/g, " ") ?? "condition";
+        let detailText = parts.slice(1).join(":").trim();
+        if (detailText.includes("unsupported operator")) detailText = "clinical notes evidence check";
+
+        const isCondPassed = rawText.includes(": passed") || rawText.includes("evidence found") || rawText.includes("verified");
+        const isCondUnknown = rawText.includes("missing") || rawText.includes("unknown");
+
+        n.push({
+          id: condId,
+          type: "conditionNode",
+          position: { x: cx, y: cy },
+          data: {
+            title: fieldName,
+            detail: detailText,
+            isCondPassed,
+            isCondUnknown,
+          },
+        });
+
+        // Edge from Pathway to Condition
+        e.push({
+          id: `e-${pathwayId}-${condId}`,
+          source: pathwayId,
+          target: condId,
+          type: "smoothstep",
+          style: { stroke: isCondPassed ? "#10b981" : isCondUnknown ? "#f59e0b" : "#94a3b8", strokeWidth: 1.5 },
+        });
+      });
+
+    });
+
+    return { nodes: n, edges: e };
+  }, [ruleEvaluation, pathways]);
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+      {/* Top Header Bar */}
+      <div className="flex items-center justify-between gap-3 flex-wrap border-b border-slate-100 pb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2.5 rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-500/20">
+            <GitBranch className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="text-base font-extrabold text-slate-900 tracking-tight">Clinical Decision Graph Node Diagram</h3>
+            <p className="text-xs text-slate-500 font-semibold">Interactive graph node visualization (auto-fits to screen, wheel zoom disabled for clean scrolling)</p>
+          </div>
+        </div>
+        {policyName && (
+          <span className="text-xs font-black text-blue-700 bg-blue-50 px-3.5 py-1.5 rounded-full border border-blue-200 shadow-2xs">
+            📋 {policyName}
+          </span>
+        )}
+      </div>
+
+      {/* ── REACT FLOW GRAPH CANVAS ── */}
+      <div className="h-[620px] w-full rounded-2xl border border-slate-200 bg-slate-50/50 overflow-hidden shadow-inner relative">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={customNodeTypes}
+          fitView
+          fitViewOptions={{ padding: 0.15 }}
+          zoomOnScroll={false}
+          zoomOnPinch={false}
+          panOnScroll={false}
+          preventScrolling={false}
+          minZoom={0.1}
+          maxZoom={1.5}
+          className="bg-slate-50/50"
+        >
+          <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} color="#cbd5e1" />
+          <Controls className="!bg-white !border-slate-200 !shadow-md !rounded-xl" />
+          <MiniMap className="!bg-white !border-slate-200 !rounded-xl !shadow-md" nodeColor={(n) => n.type === "rootNode" ? "#2563eb" : n.type === "pathwayNode" ? "#3b82f6" : "#94a3b8"} />
+        </ReactFlow>
+      </div>
+
+      {/* Missing Information Summary */}
+      {(ruleEvaluation.missingInformation ?? []).length > 0 && (
+        <div className="p-4 rounded-2xl bg-amber-50/90 border border-amber-200 text-amber-900 space-y-2 shadow-2xs">
+          <div className="flex items-center gap-2 text-xs font-extrabold text-amber-950">
+            <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
+            <span>Graph Nodes Requiring Missing Clinical Evidence ({ruleEvaluation.missingInformation.length}):</span>
+          </div>
+          <div className="flex flex-wrap gap-2 pt-1">
+            {ruleEvaluation.missingInformation.map((item: string, i: number) => (
+              <span key={i} className="text-xs px-3 py-1 rounded-xl border border-amber-300 bg-white text-amber-900 font-extrabold shadow-2xs">
+                📌 {item.replace(/_/g, " ")}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+
+
+
+
+
 export default function ReviewerRequestDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -377,7 +639,8 @@ export default function ReviewerRequestDetails() {
   const [submitted, setSubmitted]   = useState(false);
   const [showAuditLog, setShowAuditLog] = useState(false);
   const [previewDoc, setPreviewDoc] = useState<ClinicalDocument | null>(null);
-  const [activeTab, setActiveTab] = useState<"decision" | "preprocessing" | "evidence" | "documents">("decision");
+  const [activeTab, setActiveTab] = useState<"decision" | "preprocessing" | "tree" | "evidence" | "documents">("decision");
+
 
 
   useEffect(() => {
@@ -481,7 +744,9 @@ export default function ReviewerRequestDetails() {
       <div className="flex items-center gap-2 border-b border-slate-200 bg-white p-2 rounded-2xl shadow-xs overflow-x-auto scrollbar-none">
         {[
           { id: "decision", label: "Overview & Decision", icon: CheckCircle, badge: isPending ? "Action Required" : null },
-          { id: "preprocessing", label: "Rule Engine & Preprocessing", icon: FlaskConical },
+          { id: "preprocessing", label: "Rule Engine Evaluation", icon: Activity },
+          { id: "tree", label: "Rule Condition Tree", icon: GitBranch },
+
           { id: "evidence", label: "Policy Evidence & RAG", icon: Sparkles },
           { id: "documents", label: "Documents & Audit Trail", icon: FileText, count: request.documents?.length || 0 },
         ].map((tab) => {
@@ -513,6 +778,7 @@ export default function ReviewerRequestDetails() {
           );
         })}
       </div>
+
 
 
       {/* ── TAB 1: OVERVIEW & DECISION WORKSPACE ── */}
@@ -689,76 +955,10 @@ export default function ReviewerRequestDetails() {
         </div>
       )}
 
-      {/* ── TAB 2: RULE ENGINE & PREPROCESSING ── */}
+      {/* ── TAB 2: STRUCTURED PREPROCESSING ── */}
       {activeTab === "preprocessing" && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          {/* Rule-Based Evaluation Pathways Card */}
-          {request.ruleEvaluation && (
-            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-              <div className="flex items-center gap-2 mb-4">
-                <FlaskConical className="h-4 w-4 text-blue-600" />
-                <h3 className="text-sm font-bold text-slate-900">Deterministic Rule Engine Evaluation</h3>
-                {request.policyContext?.policyName && (
-                  <span className="ml-auto text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
-                    {request.policyContext.policyName}
-                  </span>
-                )}
-              </div>
-
-              {/* Decision badge + reason */}
-              <div className={`flex items-start justify-between gap-3 p-3.5 rounded-xl mb-3 border ${
-                request.ruleEvaluation.decision === "Approved"
-                  ? "bg-emerald-50 border-emerald-200 text-emerald-900"
-                  : request.ruleEvaluation.decision === "Not Approved"
-                  ? "bg-rose-50 border-rose-200 text-rose-900"
-                  : request.ruleEvaluation.decision === "Nurse Review Required"
-                  ? "bg-indigo-50 border-indigo-200 text-indigo-900"
-                  : "bg-amber-50 border-amber-200 text-amber-900"
-              }`}>
-                <span className="text-xs font-bold">{request.ruleEvaluation.decision}</span>
-                <span className="text-xs font-medium text-right flex-1">{request.ruleEvaluation.reason}</span>
-              </div>
-
-              {/* Pathway results */}
-              {(request.ruleEvaluation.pathways ?? []).length > 0 && (
-                <div className="space-y-1.5 mb-3">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Pathways Evaluated</p>
-                  {request.ruleEvaluation.pathways.slice(0, 6).map((p, i) => (
-                    <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs border ${
-                      p.passed ? "bg-emerald-50 text-emerald-700 border-emerald-100" : p.unknown ? "bg-amber-50 text-amber-700 border-amber-100" : "bg-slate-50 text-slate-600 border-slate-200"
-                    }`}>
-                      {p.passed ? <CheckCircle className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
-                        : p.unknown ? <AlertCircle className="h-3.5 w-3.5 shrink-0 text-amber-600" />
-                        : <XCircle className="h-3.5 w-3.5 shrink-0 text-rose-600" />}
-                      <span className="font-bold truncate">{p.pathwayId?.replace(/_/g, " ")}</span>
-                      <span className="ml-auto shrink-0 font-bold">
-                        {p.passed ? "Passed" : p.unknown ? "Unknown" : "Failed"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Missing information */}
-              {(request.ruleEvaluation.missingInformation ?? []).length > 0 && (
-                <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200">
-                  <p className="text-xs font-bold text-amber-900 mb-1.5">
-                    Missing Information Required ({request.ruleEvaluation.missingInformation.length})
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {request.ruleEvaluation.missingInformation.map((item, i) => (
-                      <span key={i} className="text-xs px-2.5 py-1 rounded-md border border-amber-200 bg-white text-amber-900 font-bold">
-                        {item.replace(/_/g, " ")}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
           <StructuredPAPanel caseId={request.id} />
-
           {request.clinicalNotes && (
             <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
               <h3 className="text-sm font-bold text-slate-900 mb-2">Submitted Clinical Notes</h3>
@@ -770,13 +970,31 @@ export default function ReviewerRequestDetails() {
         </div>
       )}
 
-      {/* ── TAB 3: POLICY EVIDENCE & RAG ── */}
+      {/* ── TAB 3: DEDICATED RULE CONDITION TREE ── */}
+      {activeTab === "tree" && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {request.ruleEvaluation ? (
+            <RuleEvaluationConditionTree
+              ruleEvaluation={request.ruleEvaluation}
+              policyName={request.policyContext?.policyName}
+            />
+          ) : (
+            <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-xs space-y-2">
+              <GitBranch className="h-10 w-10 text-slate-300 mx-auto" />
+              <h3 className="text-sm font-bold text-slate-800">No Rule Engine Evaluation Tree Generated</h3>
+              <p className="text-xs text-slate-500 font-medium">Evaluation tree will be rendered after the rule engine processes clinical criteria.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── TAB 4: POLICY EVIDENCE & RAG ── */}
       {activeTab === "evidence" && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          {/* Policy Evidence & LLM Explanation Panel */}
           <PolicyEvidencePanel caseId={request.id} caseNumber={request.caseNumber} />
         </div>
       )}
+
 
 
       {/* ── TAB 4: DOCUMENTS & AUDIT TRAIL ── */}
