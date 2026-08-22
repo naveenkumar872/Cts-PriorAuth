@@ -1,0 +1,104 @@
+{
+  "policy_id": "KNE-12279267",
+  "policy_name": "Knee Arthroscopy Procedures",
+  "rule_sets": [
+    {
+      "rule_set_id": "knee_arthroscopy_and_joint_procedures",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "29867",
+            "29870",
+            "29871",
+            "29873",
+            "29874",
+            "29875",
+            "29876",
+            "29877",
+            "29880",
+            "29881",
+            "29882",
+            "29883",
+            "29884",
+            "29885",
+            "29886",
+            "29887",
+            "29888",
+            "29889",
+            "27416",
+            "29866",
+            "29879",
+            "27412",
+            "J7330",
+            "S2112"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "standard_coverage_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "medical_necessity_guideline",
+              "operator": "EQUALS",
+              "value": "MCG Knee Arthroscopy KP-S-705 09012025"
+            },
+            {
+              "field": "clinical_notes_period",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months"
+            },
+            {
+              "field": "clinical_notes_source",
+              "operator": "IN",
+              "value": [
+                "requesting provider",
+                "specialist"
+              ]
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    },
+    {
+      "rule_set_id": "allogeneic_meniscal_transplant",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "29868"
+          ]
+        }
+      },
+      "pathways": [],
+      "exclusions": [
+        {
+          "exclusion_id": "not_covered_allogeneic_meniscal_transplant",
+          "description": "Allogeneic Meniscal Transplant is considered not covered per MCG Meniscal Allograft Transplant (A-0216) guidelines."
+        }
+      ]
+    },
+    {
+      "rule_set_id": "medicare_members_exclusions",
+      "match_criteria": {
+        "member_type": {
+          "operator": "EQUALS",
+          "value": "Medicare"
+        }
+      },
+      "pathways": [],
+      "exclusions": [
+        {
+          "exclusion_id": "ncd_150_9_exclusion",
+          "description": "Arthroscopic Lavage and Arthroscopic Debridement for the Osteoarthritic Knee (NCD 150.9) is not covered by the Medicare program."
+        }
+      ]
+    }
+  ]
+}

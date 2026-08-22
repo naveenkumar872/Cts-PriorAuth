@@ -1,0 +1,146 @@
+{
+  "policy_id": "BAL-80870156",
+  "policy_name": "Balloon Dilation of the Eustachian Tube",
+  "rule_sets": [
+    {
+      "rule_set_id": "etbd_ruleset",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "69705",
+            "69706"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "non_medicare_etbd_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "frequency_limit",
+              "operator": "EQUAL",
+              "value": 1,
+              "unit": "once per lifetime"
+            },
+            {
+              "field": "age",
+              "operator": "OR",
+              "value": [
+                {
+                  "operator": ">=",
+                  "value": 18,
+                  "unit": "years"
+                },
+                {
+                  "operator": "BETWEEN",
+                  "value": [
+                    8,
+                    17
+                  ],
+                  "unit": "years",
+                  "notes": "May be considered on a case-by-case basis, for example if they have failed other options such as tympanostomy tubes and adenoidectomy"
+                }
+              ]
+            },
+            {
+              "field": "chronic_ear_symptoms_duration",
+              "operator": ">=",
+              "value": 12,
+              "unit": "months",
+              "notes": "Continuous symptoms consistent with eustachian tube dysfunction, which may include: aural fullness, aural pressure, otalgia, hearing loss, autophony, intolerance to barometric changes"
+            },
+            {
+              "field": "medical_management_allergic_rhinitis_or_rhinosinusitis",
+              "operator": "EQUAL",
+              "value": "failed",
+              "duration": {
+                "value": 6,
+                "unit": "weeks"
+              },
+              "required_treatments": [
+                "nasal steroid spray",
+                "second generation antihistamine",
+                "decongestant"
+              ],
+              "exception": "unless contraindicated"
+            },
+            {
+              "field": "medical_management_reflux",
+              "operator": "EQUAL",
+              "value": "failed_if_history_or_suspected",
+              "duration": {
+                "value": 6,
+                "unit": "weeks"
+              },
+              "required_treatments": [
+                "antacids",
+                "Proton pump inhibitor",
+                "H2 blocker"
+              ],
+              "exception": "unless contraindicated"
+            },
+            {
+              "field": "prior_evaluation",
+              "operator": "EQUAL",
+              "value": "nasal endoscopy"
+            },
+            {
+              "field": "prior_findings_one_of",
+              "operator": "OR",
+              "value": [
+                {
+                  "logic": "ALL",
+                  "conditions": [
+                    {
+                      "field": "prior_tympanogram",
+                      "operator": "IN",
+                      "value": [
+                        "Type B",
+                        "Type C"
+                      ]
+                    },
+                    {
+                      "field": "tympanic_membrane_most_recent_exam",
+                      "operator": "IN",
+                      "value": [
+                        "retracted membrane",
+                        "effusion",
+                        "perforation"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "field": "prior_tympanostomy_tube_placements_or_myringotomy",
+                  "operator": ">=",
+                  "value": 3,
+                  "notes": "myringotomy procedures if infection were present"
+                }
+              ]
+            },
+            {
+              "field": "history_of_tympanostomy_or_myringotomy_improvement",
+              "operator": "EQUAL",
+              "value": "improved",
+              "notes": "If patient has a history of tympanostomy tube placement or myringotomy, symptoms of eustachian tube obstruction improved following the procedure"
+            },
+            {
+              "field": "required_documentation",
+              "operator": "EQUAL",
+              "value": "Last 6 months of clinical notes from requesting provider &/or specialist"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "other_causes_of_aural_fullness",
+          "description": "The patient does not have any other causes of aural fullness such as: Temporomandibular joint disorders, Extrinsic obstruction of the eustachian tube, Superior semicircular canal dehiscence, Endolymphatic hydrops"
+        }
+      ]
+    }
+  ]
+}

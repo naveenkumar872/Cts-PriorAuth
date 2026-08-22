@@ -1,0 +1,147 @@
+{
+  "policy_id": "OBS-08355266",
+  "policy_name": "Observation Level of Care",
+  "rule_sets": [
+    {
+      "rule_set_id": "observation_care_rules",
+      "match_criteria": {
+        "service_name": {
+          "operator": "IN",
+          "value": [
+            "Observation Care",
+            "Observation Services",
+            "Observation Level of Care"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "standard_observation_requirements",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "physician_order_specification",
+              "operator": "IN",
+              "value": [
+                "admit to observation",
+                "observation status"
+              ]
+            },
+            {
+              "field": "physician_order_signature_type",
+              "operator": "EQUAL",
+              "value": "signed electronically"
+            },
+            {
+              "field": "clinical_purpose",
+              "operator": "IN",
+              "value": [
+                "evaluate a patient's condition",
+                "determine the need for a possible inpatient admission"
+              ]
+            },
+            {
+              "field": "ordered_by",
+              "operator": "IN",
+              "value": [
+                "physician",
+                "individual authorized by State licensure law and hospital staff bylaws"
+              ]
+            }
+          ]
+        },
+        {
+          "pathway_id": "conversion_to_inpatient",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "conversion_medical_necessity",
+              "operator": "EQUAL",
+              "value": "met and documented at the time of conversion"
+            },
+            {
+              "field": "conversion_physician_order_specification",
+              "operator": "EQUAL",
+              "value": "admit to inpatient status"
+            },
+            {
+              "field": "conversion_physician_order_signature_type",
+              "operator": "EQUAL",
+              "value": "signed electronically"
+            },
+            {
+              "field": "conversion_timing",
+              "operator": "EQUAL",
+              "value": "prior to discharge"
+            }
+          ]
+        },
+        {
+          "pathway_id": "moon_notification_requirement",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "patient_insurance_type",
+              "operator": "IN",
+              "value": [
+                "Original Medicare",
+                "Medicare Advantage"
+              ]
+            },
+            {
+              "field": "observation_duration",
+              "operator": ">",
+              "value": 24,
+              "unit": "hours"
+            },
+            {
+              "field": "moon_delivery_timing",
+              "operator": "<=",
+              "value": 36,
+              "unit": "hours",
+              "anchor": "after observation services as an outpatient begin"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "convenience_exclusion",
+          "description": "Use of observation as a convenience of the patient, the patient's family, or a physician is not appropriate.",
+          "examples": [
+            "decision to keep the patient overnight due to transportation issues",
+            "procedure could not be scheduled in a timely manner"
+          ]
+        },
+        {
+          "exclusion_id": "duration_limit_exclusion",
+          "description": "Retention in observation care for 48 hours or longer without being admitted as an inpatient, unless a coverage determination is requested and approved.",
+          "conditions": [
+            {
+              "field": "observation_duration",
+              "operator": ">=",
+              "value": 48,
+              "unit": "hours"
+            },
+            {
+              "field": "inpatient_admission_status",
+              "operator": "EQUAL",
+              "value": "not admitted"
+            }
+          ]
+        },
+        {
+          "exclusion_id": "post_discharge_status_change",
+          "description": "The physician may not change the patient's status (inpatient vs. observation) after discharge.",
+          "conditions": [
+            {
+              "field": "status_change_timing",
+              "operator": "EQUAL",
+              "value": "after discharge"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

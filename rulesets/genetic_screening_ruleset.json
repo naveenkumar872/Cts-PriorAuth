@@ -1,0 +1,439 @@
+{
+  "policy_id": "GEN-65536645",
+  "policy_name": "Genetic Screening & Testing",
+  "rule_sets": [
+    {
+      "rule_set_id": "chromosomal_microarray_testing",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "81228",
+            "81229"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "prenatal_or_fetal_demise",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "clinical_indication",
+              "operator": "IN",
+              "value": "undergoing invasive prenatal genetic testing or recurrent (two or more) intrauterine fetal demise"
+            },
+            {
+              "field": "genetic_counseling",
+              "operator": "EQUALS",
+              "value": "performed"
+            }
+          ]
+        },
+        {
+          "pathway_id": "general_pediatric_evaluation",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "requested_by_specialist",
+              "operator": "IN",
+              "value": [
+                "medical geneticist",
+                "pediatric neurologist",
+                "neurodevelopment pediatrician"
+              ]
+            },
+            {
+              "field": "genetic_counseling",
+              "operator": "EQUALS",
+              "value": "performed"
+            },
+            {
+              "field": "potential_to_affect_clinical_management",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "patient_clinical_features",
+              "operator": "SOME",
+              "value": [
+                "Multiple anomalies not specific to a well-delineated genetic syndrome",
+                "Apparently non-syndromic developmental delay/intellectual disability",
+                "Autism spectrum disorder",
+                "Dysmorphic facial features",
+                "Abnormal growth not otherwise explained"
+              ]
+            }
+          ]
+        },
+        {
+          "pathway_id": "parental_testing",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "offspring_finding",
+              "operator": "EQUALS",
+              "value": "chromosomal deletion or duplication identified"
+            },
+            {
+              "field": "parental_testing_purpose",
+              "operator": "SOME",
+              "value": [
+                "necessary to guide a reproductive decision",
+                "necessary to determine the clinical significance of the chromosome abnormality found in the child"
+              ]
+            },
+            {
+              "field": "expected_impact",
+              "operator": "EQUALS",
+              "value": "directly affect clinical management of the child"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Chromosomal microarray testing to confirm the diagnosis of a disorder or syndrome that is routinely diagnosed based on clinical evaluation alone."
+      ]
+    },
+    {
+      "rule_set_id": "spinal_muscular_atrophy_carrier_testing",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "81329"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "sma_carrier_screening",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "patient_status",
+              "operator": "EQUALS",
+              "value": "prospective biologic parent with the capacity and intention to reproduce"
+            },
+            {
+              "field": "frequency_limit",
+              "operator": "EQUALS",
+              "value": 1,
+              "unit": "per lifetime"
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    },
+    {
+      "rule_set_id": "confirm_mdx_prostate_cancer",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "81551"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "confirm_mdx_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "ordered_by",
+              "operator": "EQUALS",
+              "value": "treating urologist"
+            },
+            {
+              "field": "life_expectancy",
+              "operator": ">",
+              "value": 10,
+              "unit": "years"
+            },
+            {
+              "field": "previous_biopsy_within_12_months",
+              "operator": "IN",
+              "value": [
+                "negative",
+                "atypical small acinar proliferation",
+                "ASAP"
+              ]
+            },
+            {
+              "field": "age_psa_threshold",
+              "operator": "OR",
+              "value": [
+                "Age 40-49 and PSA > 2.5 ng/ml",
+                "Age 50-59 and PSA > 3.5 ng/ml",
+                "Age 60-69 and PSA > 4.5 ng/ml",
+                "Age >= 70 and PSA > 6.5 ng/ml"
+              ]
+            },
+            {
+              "field": "frequency_limit",
+              "operator": "EQUALS",
+              "value": 1,
+              "unit": "per lifetime"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Serial testing",
+        "Concurrent testing with multiple assays"
+      ]
+    },
+    {
+      "rule_set_id": "prolaris_prostate_cancer",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "81541"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "prolaris_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "confirmed_prostate_cancer_on_biopsy",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "ordered_by",
+              "operator": "EQUALS",
+              "value": "treating urologist"
+            },
+            {
+              "field": "nccn_risk_category",
+              "operator": "IN",
+              "value": [
+                "low-risk",
+                "favorable intermediate-risk",
+                "unfavorable intermediate-risk"
+              ]
+            },
+            {
+              "field": "life_expectancy",
+              "operator": ">",
+              "value": 10,
+              "unit": "years"
+            },
+            {
+              "field": "clinical_scenario",
+              "operator": "SOME",
+              "value": [
+                "has not received treatment for prostate cancer and is a candidate for active surveillance or definitive therapy",
+                "has intermediate-risk prostate cancer when deciding whether to add androgen-deprivation therapy to radiation",
+                "is appropriate for conservative management and yet would be eligible for definitive therapy",
+                "is appropriate for radiation therapy and yet would be eligible for the addition of a brachytherapy boost",
+                "is appropriate for radiation therapy with short-term ADT yet would be eligible for the use of long-term ADT",
+                "is appropriate for radiation with standard ADT yet would be eligible for systemic therapy intensification using next generation androgen signaling inhibitors or chemotherapy"
+              ]
+            },
+            {
+              "field": "prostatectomy_performed",
+              "operator": "EQUALS",
+              "value": false
+            },
+            {
+              "field": "frequency_limit",
+              "operator": "EQUALS",
+              "value": 1,
+              "unit": "per lifetime"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Patients with radical prostatectomy",
+        "Very low risk patients",
+        "Serial testing",
+        "Concurrent testing with multiple assays"
+      ]
+    },
+    {
+      "rule_set_id": "thygenext_thyramir_thyroid",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "0245U",
+            "0018U"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "thyroid_nodule_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "nodule_diameter_on_ultrasound",
+              "operator": ">=",
+              "value": 1,
+              "unit": "cm"
+            },
+            {
+              "field": "indeterminate_cytology_on_fna",
+              "operator": "IN",
+              "value": [
+                "Atypia of undetermined significance (Bethesda category III)",
+                "Follicular lesion of undetermined significance (Bethesda category III)",
+                "Follicular neoplasm or suspicious for follicular neoplasm (Bethesda category IV, excluding Hurthle cell type)"
+              ]
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Hurthle cell type"
+      ]
+    },
+    {
+      "rule_set_id": "oncotype_dx_breast",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "81519",
+            "S3854"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "oncotype_breast_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "axillary_node_biopsy",
+              "operator": "IN",
+              "value": [
+                "negative for tumor",
+                "positive only for micrometastasis"
+              ]
+            },
+            {
+              "field": "micrometastasis_diameter",
+              "operator": "<=",
+              "value": 2,
+              "unit": "mm"
+            },
+            {
+              "field": "diagnosis",
+              "operator": "EQUALS",
+              "value": "newly diagnosed invasive ductal carcinoma of breast, stage I or II"
+            },
+            {
+              "field": "testing_purpose",
+              "operator": "EQUALS",
+              "value": "guide decision making regarding adjuvant chemotherapy"
+            },
+            {
+              "field": "patient_gender",
+              "operator": "EQUALS",
+              "value": "female"
+            },
+            {
+              "field": "estrogen_receptor_status",
+              "operator": "EQUALS",
+              "value": "positive"
+            },
+            {
+              "field": "her2_receptor_status",
+              "operator": "EQUALS",
+              "value": "negative"
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    },
+    {
+      "rule_set_id": "warfarin_sensitivity_dna_test",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "81227",
+            "81355",
+            "G9143"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "warfarin_sensitivity_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "prior_warfarin_doses",
+              "operator": "<=",
+              "value": 5
+            },
+            {
+              "field": "frequency_limit",
+              "operator": "EQUALS",
+              "value": 1,
+              "unit": "per lifetime"
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    },
+    {
+      "rule_set_id": "cystic_fibrosis_carrier_testing",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "81220"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "cf_carrier_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "patient_status",
+              "operator": "EQUALS",
+              "value": "prospective biologic parent with the capacity and intention to reproduce"
+            },
+            {
+              "field": "mutation_panel",
+              "operator": "EQUALS",
+              "value": "targeted mutation analysis of 23 CFTR mutations"
+            },
+            {
+              "field": "frequency_limit",
+              "operator": "EQUALS",
+              "value": 1,
+              "unit": "per lifetime"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Any testing beyond the 23 gene CFTR mutations recommended by ACMG"
+      ]
+    }
+  ]
+}

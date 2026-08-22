@@ -1,0 +1,81 @@
+{
+  "policy_id": "CAR-06402812",
+  "policy_name": "Cardiac Rehabilitation",
+  "rule_sets": [
+    {
+      "rule_set_id": "cardiac_rehabilitation_ruleset",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "93797",
+            "93798",
+            "G0422",
+            "G0423",
+            "S9472"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_members_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "==",
+              "value": "Medicare"
+            },
+            {
+              "field": "clinical_guideline_compliance",
+              "operator": "COMPLIES_WITH",
+              "value": "Medicare Claims Processing Manual Chapter 32, Section 140"
+            },
+            {
+              "field": "clinical_guideline_compliance",
+              "operator": "COMPLIES_WITH",
+              "value": "National Coverage Determinations (NCD) Cardiac Rehabilitation Programs for Chronic Heart Failure (20.10.1)"
+            },
+            {
+              "field": "clinical_guideline_compliance",
+              "operator": "COMPLIES_WITH",
+              "value": "Noridian LCA A54070 Billing and Coding Outpatient Cardiac Rehabilitation"
+            }
+          ]
+        },
+        {
+          "pathway_id": "non_medicare_members_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "==",
+              "value": "Non-Medicare"
+            },
+            {
+              "field": "clinical_guideline_compliance",
+              "operator": "COMPLIES_WITH",
+              "value": "Cardiac Rehabilitation (KP-0358) MCG"
+            },
+            {
+              "field": "documentation_submitted",
+              "operator": "CONTAINS",
+              "value": "Last 6 months of cardiology notes",
+              "unit": "months",
+              "value_numerical": 6
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "field": "program_type",
+          "operator": "==",
+          "value": "cardiac rehabilitation facility and home based",
+          "reason": "Does not meet the Kaiser Permanente Medical Technology Assessment Criteria"
+        }
+      ]
+    }
+  ]
+}

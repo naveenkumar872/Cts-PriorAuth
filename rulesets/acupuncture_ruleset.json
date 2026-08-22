@@ -1,0 +1,354 @@
+{
+  "policy_id": "ACU-75891551",
+  "policy_name": "Acupuncture",
+  "rule_sets": [
+    {
+      "rule_set_id": "medicare_acupuncture_coverage",
+      "policy_segment": "For Medicare Members",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "97810",
+            "97811",
+            "97813",
+            "97814"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_initial_chronic_low_back_pain_coverage",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQ",
+              "value": "Medicare"
+            },
+            {
+              "field": "diagnosis",
+              "operator": "EQ",
+              "value": "chronic low back pain"
+            },
+            {
+              "field": "chronic_low_back_pain_duration",
+              "operator": ">=",
+              "value": 12,
+              "unit": "weeks"
+            },
+            {
+              "field": "chronic_low_back_pain_cause",
+              "operator": "EQ",
+              "value": "nonspecific in that it has no identifiable systemic cause (i.e., not associated with metastatic, inflammatory, infectious, etc. disease)"
+            },
+            {
+              "field": "chronic_low_back_pain_not_associated_with",
+              "operator": "NOT_IN",
+              "value": [
+                "surgery",
+                "pregnancy"
+              ]
+            },
+            {
+              "field": "treatment_limit",
+              "operator": "<=",
+              "value": 12,
+              "unit": "treatments",
+              "time_period": "90-day period"
+            },
+            {
+              "field": "provider_credential_requirements",
+              "operator": "MEETS_ONE_OF",
+              "sub_conditions": [
+                {
+                  "logic": "ALL",
+                  "conditions": [
+                    {
+                      "field": "provider_type",
+                      "operator": "EQ",
+                      "value": "Physician",
+                      "definition": "as defined in 1861(r)(1)"
+                    },
+                    {
+                      "field": "provider_state_requirements",
+                      "operator": "EQ",
+                      "value": "in accordance with applicable state requirements"
+                    }
+                  ]
+                },
+                {
+                  "logic": "ALL",
+                  "conditions": [
+                    {
+                      "field": "provider_type",
+                      "operator": "IN",
+                      "value": [
+                        "Physician assistant",
+                        "Nurse practitioner/clinical nurse specialist",
+                        "Auxiliary personnel"
+                      ],
+                      "definition": "as identified in 1861(aa)(5)"
+                    },
+                    {
+                      "field": "provider_state_requirements",
+                      "operator": "EQ",
+                      "value": "meet all applicable state requirements"
+                    },
+                    {
+                      "field": "provider_degree",
+                      "operator": "EQ",
+                      "value": "A masters or doctoral level degree in acupuncture or Oriental Medicine from a school accredited by the Accreditation Commission on Acupuncture and Oriental Medicine (ACAOM)"
+                    },
+                    {
+                      "field": "provider_license",
+                      "operator": "EQ",
+                      "value": "current, full, active, and unrestricted license to practice acupuncture in a State, Territory, or Commonwealth (i.e. Puerto Rico) of the United States, or District of Columbia"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "field": "auxiliary_personnel_supervision",
+              "operator": "EQ",
+              "value": "under the appropriate level of supervision of a physician, physician assistant, or nurse practitioner/clinical nurse specialist required by our regulations at 42 CFR §§ 410.26 and 410.27"
+            }
+          ]
+        },
+        {
+          "pathway_id": "medicare_additional_chronic_low_back_pain_sessions",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQ",
+              "value": "Medicare"
+            },
+            {
+              "field": "diagnosis",
+              "operator": "EQ",
+              "value": "chronic low back pain"
+            },
+            {
+              "field": "chronic_low_back_pain_duration",
+              "operator": ">=",
+              "value": 12,
+              "unit": "weeks"
+            },
+            {
+              "field": "chronic_low_back_pain_cause",
+              "operator": "EQ",
+              "value": "nonspecific in that it has no identifiable systemic cause (i.e., not associated with metastatic, inflammatory, infectious, etc. disease)"
+            },
+            {
+              "field": "chronic_low_back_pain_not_associated_with",
+              "operator": "NOT_IN",
+              "value": [
+                "surgery",
+                "pregnancy"
+              ]
+            },
+            {
+              "field": "demonstrated_improvement",
+              "operator": "EQ",
+              "value": "true"
+            },
+            {
+              "field": "additional_sessions_limit",
+              "operator": "<=",
+              "value": 8,
+              "unit": "sessions"
+            },
+            {
+              "field": "annual_treatment_limit",
+              "operator": "<=",
+              "value": 20,
+              "unit": "treatments",
+              "time_period": "annually",
+              "exception": "unless otherwise allowed by the member’s contract"
+            },
+            {
+              "field": "documentation_baseline_peg_score",
+              "operator": "EQ",
+              "value": "documented at first visit"
+            },
+            {
+              "field": "documentation_improvement_sustained",
+              "operator": "EQ",
+              "value": "sustained across 2 assessments made 1-4 weeks apart"
+            },
+            {
+              "field": "documentation_improvement_criteria",
+              "operator": "ONE_OF",
+              "value": [
+                "30% improvement from baseline PEG* score (documented at visit 10-12)",
+                "≥ 2-point improvement on a 0 to 10 point scale like the PEG",
+                "Physician attestation of functional improvement and/or analgesic use reduction"
+              ]
+            },
+            {
+              "field": "treatment_continuation_condition",
+              "operator": "EQ",
+              "value": "Treatment must be discontinued if the patient is not improving or is regressing."
+            },
+            {
+              "field": "provider_credential_requirements",
+              "operator": "MEETS_ONE_OF",
+              "sub_conditions": [
+                {
+                  "logic": "ALL",
+                  "conditions": [
+                    {
+                      "field": "provider_type",
+                      "operator": "EQ",
+                      "value": "Physician",
+                      "definition": "as defined in 1861(r)(1)"
+                    },
+                    {
+                      "field": "provider_state_requirements",
+                      "operator": "EQ",
+                      "value": "in accordance with applicable state requirements"
+                    }
+                  ]
+                },
+                {
+                  "logic": "ALL",
+                  "conditions": [
+                    {
+                      "field": "provider_type",
+                      "operator": "IN",
+                      "value": [
+                        "Physician assistant",
+                        "Nurse practitioner/clinical nurse specialist",
+                        "Auxiliary personnel"
+                      ],
+                      "definition": "as identified in 1861(aa)(5)"
+                    },
+                    {
+                      "field": "provider_state_requirements",
+                      "operator": "EQ",
+                      "value": "meet all applicable state requirements"
+                    },
+                    {
+                      "field": "provider_degree",
+                      "operator": "EQ",
+                      "value": "A masters or doctoral level degree in acupuncture or Oriental Medicine from a school accredited by the Accreditation Commission on Acupuncture and Oriental Medicine (ACAOM)"
+                    },
+                    {
+                      "field": "provider_license",
+                      "operator": "EQ",
+                      "value": "current, full, active, and unrestricted license to practice acupuncture in a State, Territory, or Commonwealth (i.e. Puerto Rico) of the United States, or District of Columbia"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "field": "auxiliary_personnel_supervision",
+              "operator": "EQ",
+              "value": "under the appropriate level of supervision of a physician, physician assistant, or nurse practitioner/clinical nurse specialist required by our regulations at 42 CFR §§ 410.26 and 410.27"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "field": "condition",
+          "operator": "NOT_EQ",
+          "value": "chronic low back pain",
+          "note": "All types of acupuncture for any condition other than chronic low back pain are non-covered by Medicare but may be covered as a supplemental benefit."
+        }
+      ]
+    },
+    {
+      "rule_set_id": "non_medicare_acupuncture_coverage",
+      "policy_segment": "For Non-Medicare Members",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "97810",
+            "97811",
+            "97813",
+            "97814"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "non_medicare_general_coverage",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "NOT_EQ",
+              "value": "Medicare"
+            },
+            {
+              "field": "condition_symptoms",
+              "operator": "EQ",
+              "value": "present on a daily basis resulting in functional limitations (decreased ability to perform activities of daily living)"
+            },
+            {
+              "field": "condition_resolution",
+              "operator": "EQ",
+              "value": "has not resolved within a typical time frame of a self-limited illness or injury"
+            },
+            {
+              "field": "established_documented_diagnosis",
+              "operator": "ONE_OF",
+              "value": [
+                "Chronic arthritis",
+                "Fibromyalgia (The patient has an established, documented diagnosis of fibromyalgia consistent with the 1990 American College of Rheumatology Criteria.)",
+                "Chronic myofascial pain (Clinical conditions that frequently fall into this category include cervicalgia, chronic neck and back pain, lumbago, muscular tension headaches, plantar fasciitis, and thoracic outlet syndrome.)",
+                "Chronic neuropathic pain",
+                "Chronic headaches",
+                "Dysmenorrhea",
+                "Hyperemesis with pregnancy",
+                "Nausea and vomiting associated with chemotherapy",
+                "Chronic pain secondary to cancer",
+                "Other medical conditions that have responded to an initial course of acupuncture with expectation of continued functional improvement."
+              ]
+            },
+            {
+              "field": "documentation_baseline_functional_limitations",
+              "operator": "EQ",
+              "value": "documented baseline measurable functional limitations related directly to one of the above diagnoses"
+            },
+            {
+              "field": "treatment_plan",
+              "operator": "EQ",
+              "value": "defined treatment plan with measurable and progressive functional improvement"
+            },
+            {
+              "field": "acupuncture_for_flares",
+              "operator": "EQ",
+              "value": "covered for flares of pain when acupuncture has provided clinical improvement in the past"
+            },
+            {
+              "field": "prior_authorization_required",
+              "operator": "EQ",
+              "value": "Authorizations for covered acupuncture treatments beyond eight visits (per condition that is not specifically excluded by the member contract) require prior approval by the health plan."
+            },
+            {
+              "field": "documentation_required_for_medical_necessity",
+              "operator": "EQ",
+              "value": "Last 6 months of clinical notes from requesting provider &/or specialist"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "field": "treatment_type",
+          "operator": "EQ",
+          "value": "Maintenance therapy in the absence of progressive functional improvement",
+          "note": "Maintenance therapy in the absence of progressive functional improvement is not an indication for coverage."
+        }
+      ]
+    }
+  ]
+}

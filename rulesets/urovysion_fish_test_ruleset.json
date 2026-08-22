@@ -1,0 +1,135 @@
+{
+  "policy_id": "URO-73591817",
+  "policy_name": "UroVysion FISH Test",
+  "rule_sets": [
+    {
+      "rule_set_id": "non_medicare_members",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "88120",
+            "88121"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "suspected_or_prior_bladder_cancer_with_atypical_cytology",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUALS",
+              "value": "Non-Medicare"
+            },
+            {
+              "logic": "ANY",
+              "conditions": [
+                {
+                  "field": "clinical_condition",
+                  "operator": "EQUALS",
+                  "value": "suspected new diagnosis of bladder cancer"
+                },
+                {
+                  "field": "clinical_condition",
+                  "operator": "EQUALS",
+                  "value": "known prior history of bladder cancer"
+                }
+              ]
+            },
+            {
+              "field": "atypical_cytology",
+              "operator": "EQUALS",
+              "value": "present"
+            },
+            {
+              "field": "cystoscopy_result",
+              "operator": "EQUALS",
+              "value": "normal"
+            },
+            {
+              "field": "upper_tract_imaging_result",
+              "operator": "EQUALS",
+              "value": "normal"
+            },
+            {
+              "field": "clinical_notes_history",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months"
+            },
+            {
+              "field": "clinical_notes_source",
+              "operator": "IN",
+              "value": [
+                "requesting provider",
+                "specialist"
+              ]
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "screening_for_bladder_cancer",
+          "description": "Screening for bladder cancer"
+        },
+        {
+          "exclusion_id": "evaluation_of_hematuria",
+          "description": "Evaluation of hematuria"
+        },
+        {
+          "exclusion_id": "bta_stat_test",
+          "description": "BTA Stat test for any indication"
+        },
+        {
+          "exclusion_id": "nmp22_test",
+          "description": "NMP22 test for any indication"
+        },
+        {
+          "exclusion_id": "aura_tek_fdp_test",
+          "description": "Aura-Tek FDP test for any indication"
+        }
+      ]
+    },
+    {
+      "rule_set_id": "medicare_members",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "88120",
+            "88121"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_reference_guidelines",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUALS",
+              "value": "Medicare"
+            },
+            {
+              "field": "local_coverage_determination",
+              "operator": "EQUALS",
+              "value": "Bladder/Urothelial Tumor Markers (L36680)"
+            },
+            {
+              "field": "local_coverage_article",
+              "operator": "EQUALS",
+              "value": "Billing and Coding: Lab: Bladder/Urothelial Tumor Markers (A55029)"
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    }
+  ]
+}

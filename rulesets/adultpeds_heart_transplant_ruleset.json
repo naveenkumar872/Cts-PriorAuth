@@ -1,0 +1,467 @@
+{
+  "policy_id": "ADU-75972062",
+  "policy_name": "Heart Transplantation",
+  "rule_sets": [
+    {
+      "rule_set_id": "heart_transplant_rules",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "33940",
+            "33944",
+            "33945"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_member_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUAL",
+              "value": "Medicare"
+            },
+            {
+              "field": "national_coverage_determination",
+              "operator": "EQUAL",
+              "value": "Heart Transplants (260.9)"
+            }
+          ]
+        },
+        {
+          "pathway_id": "non_medicare_member_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "NOT_EQUAL",
+              "value": "Medicare"
+            },
+            {
+              "field": "clinical_notes_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months",
+              "description": "Last 6 months of clinical notes from requesting provider &/or specialist"
+            },
+            {
+              "field": "tobacco_free_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months",
+              "description": "Candidates for thoracic organ transplants must be free from tobacco use for the previous six (6) months"
+            },
+            {
+              "field": "substance_abuse_free_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months",
+              "description": "Candidates with a history of substance abuse must be free from alcohol and other substance abuse for six (6) months"
+            },
+            {
+              "field": "substance_abuse_program_evaluation",
+              "operator": "EQUAL",
+              "value": true,
+              "description": "Must have been evaluated by a substance abuse program"
+            },
+            {
+              "field": "recidivism_risk",
+              "operator": "EQUAL",
+              "value": "low",
+              "description": "The risk of recidivism must be addressed and considered to be low"
+            },
+            {
+              "field": "social_support_system",
+              "operator": "EQUAL",
+              "value": "adequate",
+              "description": "Candidates must have adequate social support systems"
+            },
+            {
+              "field": "medical_treatment_adherence",
+              "operator": "EQUAL",
+              "value": "proven_record",
+              "description": "Display a proven record of adherence to medical treatment"
+            },
+            {
+              "field": "caregiver_availability",
+              "operator": "EQUAL",
+              "value": true,
+              "description": "Patient must have a care giver or care givers who are physically and cognitively able to assist the patient with self-care activities and are available to travel within short notice to the KP approved transplant Center of Excellence"
+            },
+            {
+              "field": "travel_willingness_and_ability",
+              "operator": "EQUAL",
+              "value": true,
+              "description": "Patients must be willing and able to travel within short notice to the KP approved transplant Center of Excellence and, if necessary, return for treatment of complications"
+            }
+          ],
+          "indications": {
+            "logic": "ANY",
+            "conditions": [
+              {
+                "field": "end_stage_heart_disease",
+                "operator": "EQUAL",
+                "value": true,
+                "sub_conditions_logic": "ANY",
+                "sub_conditions": [
+                  {
+                    "field": "functional_class",
+                    "operator": "IN",
+                    "value": [
+                      "III",
+                      "IV"
+                    ]
+                  },
+                  {
+                    "field": "correctable_by_medical_or_surgical_therapies",
+                    "operator": "EQUAL",
+                    "value": false
+                  },
+                  {
+                    "field": "vo2_max_not_on_beta_blocker",
+                    "operator": "<=",
+                    "value": 14,
+                    "unit": "ml/kg/min"
+                  },
+                  {
+                    "field": "vo2_max_on_beta_blocker",
+                    "operator": "<=",
+                    "value": 12,
+                    "unit": "ml/kg/min"
+                  },
+                  {
+                    "field": "vo2_max_adjusted_for_lean_body_mass_with_bmi_gt_30",
+                    "operator": "<",
+                    "value": 19,
+                    "unit": "ml/kg/min"
+                  },
+                  {
+                    "field": "vo2_max_percentage_of_age_predicted_maximum",
+                    "operator": "<",
+                    "value": 50,
+                    "unit": "percent"
+                  },
+                  {
+                    "field": "ve_vco2_ratio_with_sub_maximal_cpet_rer_lt_1_05",
+                    "operator": ">",
+                    "value": 35
+                  },
+                  {
+                    "field": "cardiac_index",
+                    "operator": "<",
+                    "value": 2,
+                    "unit": "L/min/m2"
+                  }
+                ]
+              },
+              {
+                "field": "unable_to_wean_from_mechanical_or_inotropic_support",
+                "operator": "EQUAL",
+                "value": true
+              },
+              {
+                "field": "amyloid_cardiomyopathy",
+                "operator": "EQUAL",
+                "value": true,
+                "sub_conditions_logic": "ANY",
+                "sub_conditions": [
+                  {
+                    "field": "ttr_amyloid",
+                    "operator": "EQUAL",
+                    "value": true
+                  },
+                  {
+                    "field": "al_amyloidosis_without_significant_extra_cardiac_involvement",
+                    "operator": "EQUAL",
+                    "value": true
+                  }
+                ]
+              },
+              {
+                "field": "refractory_life_threatening_arrhythmias",
+                "operator": "EQUAL",
+                "value": true
+              }
+            ]
+          }
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "uncontrollable_active_infection",
+          "field": "uncontrollable_active_infection",
+          "operator": "EQUAL",
+          "value": true
+        },
+        {
+          "exclusion_id": "malignancy_moderate_to_high_recurrence_risk",
+          "field": "malignancy_recurrence_risk",
+          "operator": "IN",
+          "value": [
+            "moderate",
+            "high"
+          ]
+        },
+        {
+          "exclusion_id": "significant_irreversible_neurologic_dysfunction",
+          "field": "significant_irreversible_neurologic_dysfunction",
+          "operator": "EQUAL",
+          "value": true
+        },
+        {
+          "exclusion_id": "active_psychological_or_psychiatric_conditions",
+          "field": "active_psychological_or_psychiatric_conditions_preventing_adherence",
+          "operator": "EQUAL",
+          "value": true
+        },
+        {
+          "exclusion_id": "social_behaviors_preventing_adherence",
+          "field": "social_behaviors_preventing_adherence",
+          "operator": "EQUAL",
+          "value": true
+        },
+        {
+          "exclusion_id": "severe_uncontrolled_or_poorly_controlled_hypertension",
+          "field": "severe_uncontrolled_or_poorly_controlled_hypertension",
+          "operator": "EQUAL",
+          "value": true
+        },
+        {
+          "exclusion_id": "clinically_significant_vascular_disease",
+          "field": "clinically_significant_vascular_disease_not_correctable_by_intervention",
+          "operator": "EQUAL",
+          "value": true
+        },
+        {
+          "exclusion_id": "pulmonary_hypertension_not_reversible_adults",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "age_group",
+              "operator": "EQUAL",
+              "value": "adult"
+            },
+            {
+              "field": "pulmonary_hypertension_reversible_by_drug_manipulation",
+              "operator": "EQUAL",
+              "value": false
+            },
+            {
+              "logic": "ANY",
+              "conditions": [
+                {
+                  "field": "pvr",
+                  "operator": ">",
+                  "value": 4,
+                  "unit": "Wood units",
+                  "description": "PVR > 4-6 Wood units"
+                },
+                {
+                  "field": "transpulmonary_gradient",
+                  "operator": ">",
+                  "value": 15,
+                  "unit": "mm Hg"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "exclusion_id": "pulmonary_hypertension_not_reversible_children",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "age_group",
+              "operator": "EQUAL",
+              "value": "child"
+            },
+            {
+              "field": "pulmonary_hypertension_reversible_by_drug_manipulation",
+              "operator": "EQUAL",
+              "value": false
+            },
+            {
+              "field": "pvr",
+              "operator": ">",
+              "value": 9,
+              "unit": "Wood units"
+            }
+          ]
+        },
+        {
+          "exclusion_id": "severe_pulmonary_disease",
+          "field": "severe_pulmonary_disease_after_optimal_treatment_of_severe_heart_failure",
+          "operator": "EQUAL",
+          "value": true
+        },
+        {
+          "exclusion_id": "severe_hepatic_disease",
+          "field": "severe_hepatic_disease_after_optimal_treatment_of_severe_heart_failure",
+          "operator": "EQUAL",
+          "value": true
+        },
+        {
+          "exclusion_id": "kidney_disease",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "combined_or_staged_heart_kidney_transplant_evaluation",
+              "operator": "EQUAL",
+              "value": false
+            },
+            {
+              "logic": "ANY",
+              "conditions": [
+                {
+                  "field": "creatinine_clearance",
+                  "operator": "<",
+                  "value": 34,
+                  "unit": "ml/kg/min",
+                  "description": "after optimal treatment of heart failure"
+                },
+                {
+                  "field": "gfr",
+                  "operator": "<",
+                  "value": 30,
+                  "unit": "ml/min",
+                  "description": "after optimal treatment of heart failure"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "exclusion_id": "active_or_progressive_cns_disease",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "active_and_or_progressive_central_nervous_system_disease",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "completely_recovered_embolic_stroke",
+              "operator": "EQUAL",
+              "value": false
+            }
+          ]
+        },
+        {
+          "exclusion_id": "cachexia_or_malnutrition",
+          "logic": "ANY",
+          "conditions": [
+            {
+              "field": "bmi",
+              "operator": "<",
+              "value": 19,
+              "unit": "kg/m2"
+            },
+            {
+              "field": "ideal_body_weight_percentage",
+              "operator": "<",
+              "value": 80,
+              "unit": "percent"
+            }
+          ]
+        },
+        {
+          "exclusion_id": "obesity",
+          "logic": "ANY",
+          "conditions": [
+            {
+              "field": "bmi",
+              "operator": ">",
+              "value": 35,
+              "unit": "kg/m2"
+            },
+            {
+              "field": "ideal_body_weight_percentage",
+              "operator": ">",
+              "value": 140,
+              "unit": "percent"
+            }
+          ]
+        },
+        {
+          "exclusion_id": "diabetes_with_severe_end_organ_damage",
+          "field": "diabetes_with_complications_resulting_in_severe_end_organ_damage",
+          "operator": "EQUAL",
+          "value": true
+        },
+        {
+          "exclusion_id": "auto_or_acquired_immune_disease",
+          "field": "auto_or_acquired_immune_disease_with_multi_organ_manifestation",
+          "operator": "EQUAL",
+          "value": true
+        },
+        {
+          "exclusion_id": "acute_pulmonary_embolus",
+          "field": "acute_pulmonary_embolus",
+          "operator": "EQUAL",
+          "value": true
+        },
+        {
+          "exclusion_id": "active_peptic_ulcer_disease",
+          "field": "active_peptic_ulcer_disease",
+          "operator": "EQUAL",
+          "value": true
+        },
+        {
+          "exclusion_id": "severe_symptomatic_osteoporosis",
+          "field": "severe_symptomatic_osteoporosis",
+          "operator": "EQUAL",
+          "value": true
+        },
+        {
+          "exclusion_id": "age_over_70",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "age",
+              "operator": ">",
+              "value": 70,
+              "unit": "years"
+            },
+            {
+              "field": "carefully_selected_patient",
+              "operator": "EQUAL",
+              "value": false
+            }
+          ]
+        },
+        {
+          "exclusion_id": "al_amyloidosis_with_significant_extra_cardiac_manifestations",
+          "field": "al_amyloidosis_with_significant_extra_cardiac_manifestations",
+          "operator": "EQUAL",
+          "value": true
+        },
+        {
+          "exclusion_id": "viral_hepatitis_without_hepatology_consultation",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "viral_hepatitis",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "hepatology_consultation_completed",
+              "operator": "EQUAL",
+              "value": false
+            }
+          ]
+        },
+        {
+          "exclusion_id": "other_limiting_co_morbid_condition",
+          "field": "co_morbid_condition_limiting_life_expectancy_or_quality_of_life",
+          "operator": "EQUAL",
+          "value": true
+        }
+      ]
+    }
+  ]
+}

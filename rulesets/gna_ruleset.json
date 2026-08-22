@@ -1,0 +1,190 @@
+{
+  "policy_id": "GNA-40654483",
+  "policy_name": "Non-Surgical procedures for Knee Pain",
+  "rule_sets": [
+    {
+      "rule_set_id": "medicare_members",
+      "match_criteria": {
+        "member_type": {
+          "operator": "EQUAL",
+          "value": "Medicare"
+        },
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "64454",
+            "64624",
+            "64640"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_coverage_pathway",
+          "logic": "OR",
+          "conditions": [
+            {
+              "field": "local_coverage_determination",
+              "operator": "EQUAL",
+              "value": "Nerve Blockade for Treatment of Chronic Pain and Neuropathy (L35456)"
+            },
+            {
+              "field": "local_coverage_article",
+              "operator": "EQUAL",
+              "value": "Billing and Coding: Nerve Blockade for Treatment of Chronic Pain and Neuropathy (A56034)"
+            },
+            {
+              "field": "kpwa_medical_policy",
+              "operator": "EQUAL",
+              "value": "Genicular Nerve Ablation for Knee Osteoarthritis (Non-Medicare criteria) due to absence of NCD, LCD, or other coverage guidance"
+            }
+          ]
+        }
+      ],
+      "applicable_icd_codes": [
+        "M25.561",
+        "M25.562"
+      ]
+    },
+    {
+      "rule_set_id": "non_medicare_members_genicular_nerve",
+      "match_criteria": {
+        "member_type": {
+          "operator": "EQUAL",
+          "value": "Non-Medicare"
+        },
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "64454",
+            "64624",
+            "64640"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "neurolysis_genicular_nerve_mcg",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "clinical_guideline",
+              "operator": "EQUAL",
+              "value": "MCG A-1047"
+            }
+          ]
+        },
+        {
+          "pathway_id": "thermal_gnrfa_alternative_to_surgery",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "procedure_intent",
+              "operator": "EQUAL",
+              "value": "ablation is being done as an alternative to surgery"
+            },
+            {
+              "field": "review_requirement",
+              "operator": "EQUAL",
+              "value": "Requires review"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "surgical_anesthesia_exception",
+          "description": "Genicular nerve ablation done during surgical procedures for anesthesia, such as total knee replacement or ligament and tendon repair, does not require review."
+        }
+      ]
+    },
+    {
+      "rule_set_id": "genicular_artery_embolization_of_the_knee",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "37242",
+            "36245",
+            "36246",
+            "36247",
+            "36248"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "gae_for_knee_hemarthrosis",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "diagnosis_code",
+              "operator": "IN",
+              "value": [
+                "M25.061",
+                "M25.062",
+                "M25.069"
+              ]
+            },
+            {
+              "field": "prior_event",
+              "operator": "EQUAL",
+              "value": "following knee surgery"
+            },
+            {
+              "field": "prior_treatment",
+              "operator": "EQUAL",
+              "value": "failed conservative therapies (which may include some or all of the following: ice, immobilization, compression, saline lavage, corticosteroid instillation, and selective COX-2 inhibitors such as Celecoxib)"
+            },
+            {
+              "field": "diagnostic_finding",
+              "operator": "EQUAL",
+              "value": "synovial hyper-vascularity has been demonstrated by angiography"
+            },
+            {
+              "field": "documentation_requirement",
+              "operator": "EQUAL",
+              "value": "Last 6 months of clinical notes from requesting provider &/or specialist"
+            }
+          ]
+        },
+        {
+          "pathway_id": "gae_for_knee_osteoarthritis",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "diagnosis_code",
+              "operator": "IN",
+              "value": [
+                "M17.0",
+                "M17.10",
+                "M17.11",
+                "M17.12",
+                "M17.2",
+                "M17.30",
+                "M17.31",
+                "M17.32",
+                "M17.4",
+                "M17.5",
+                "M17.9"
+              ]
+            },
+            {
+              "field": "clinical_evidence",
+              "operator": "EQUAL",
+              "value": "There is insufficient evidence in the published medical literature to show that this service/therapy is as safe as standard services/therapies and/or provides better long-term outcomes than current standard services/therapies."
+            },
+            {
+              "field": "documentation_requirement",
+              "operator": "EQUAL",
+              "value": "Last 6 months of clinical notes from requesting provider &/or specialist"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,231 @@
+{
+  "policy_id": "BHS-24488792",
+  "policy_name": "Clinical Review Criteria: Neuropsychological Testing / Psychological Testing",
+  "rule_sets": [
+    {
+      "rule_set_id": "neuropsychological_testing",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "96116",
+            "96121",
+            "96132",
+            "96133",
+            "96136",
+            "96137",
+            "96138",
+            "96139",
+            "96146"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_members",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_plan_type",
+              "operator": "EQUAL",
+              "value": "Medicare"
+            },
+            {
+              "field": "cms_coverage_manual_guideline",
+              "operator": "EQUAL",
+              "value": "Chapter 15, Section 80.2 - Psychological Tests and Neuropsychological Tests"
+            }
+          ]
+        },
+        {
+          "pathway_id": "non_medicare_mcg_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_plan_type",
+              "operator": "NOT_EQUAL",
+              "value": "Medicare"
+            },
+            {
+              "field": "mcg_guideline_adherence",
+              "operator": "EQUAL",
+              "value": "Neuropsychological Testing (B-805-T)"
+            }
+          ]
+        },
+        {
+          "pathway_id": "clinical_indications_neuropsychological_testing",
+          "logic": "ANY",
+          "conditions": [
+            {
+              "field": "clinical_presentation",
+              "operator": "EQUAL",
+              "value": "Presence of a significant cognitive deficit, mental status abnormality, behavioral change, or memory loss that requires quantification, monitoring of change, diagnostic clarification, differentiation of cause (e.g., organic cognitive vs. psychiatric disease) and determination of the patient's ability to function"
+            },
+            {
+              "field": "clinical_presentation",
+              "operator": "EQUAL",
+              "value": "Presence of a known neurological disease or condition (i.e. dementia, CVA, traumatic brain injury, multiple sclerosis, Parkinson's, etc.) and testing is needed to determine the impact of the disease or condition on brain functioning and the patient’s ability to function in his or her personal situation"
+            },
+            {
+              "field": "clinical_presentation",
+              "operator": "EQUAL",
+              "value": "Medically complex, not well understood case with memory and cognitive deficits as significant presenting concerns and/or barriers to effective functioning"
+            },
+            {
+              "field": "clinical_presentation",
+              "operator": "EQUAL",
+              "value": "Further assessment of a patient with persisting cognitive symptoms or complaints is needed where a range of previous workups including but not limited to a Neurology consult, brain imaging, Mini-mental State Examination (MMSE), a previous Clinical Psychological evaluation and so forth have been negative or non-contributory"
+            },
+            {
+              "field": "clinical_presentation",
+              "operator": "EQUAL",
+              "value": "As part of pre and post procedure evaluation for deep brain stimulation procedure for Parkinson’s Disease"
+            },
+            {
+              "field": "clinical_presentation",
+              "operator": "EQUAL",
+              "value": "Cognitive, memory and behavioral concerns have been present for extended period of time, there are significant medical complications, and/or previous assessments (psychological evaluation, neurology consult) have been unable to clarify diagnosis or functioning status of patient"
+            },
+            {
+              "field": "clinical_presentation",
+              "operator": "EQUAL",
+              "value": "Pre-surgical evaluation for deep brain stimulation for Parkinson’s Disease"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "learning_disabilities",
+          "description": "Learning disabilities"
+        },
+        {
+          "exclusion_id": "contract_exclusions",
+          "description": "Any of the exclusions found in the member's contract"
+        }
+      ],
+      "documentation_requirements": [
+        {
+          "requirement_id": "cognitive_deficit_notes",
+          "description": "Last 6 months of PCP or specialty notes that describe the member's cognitive deficits",
+          "duration": 6,
+          "unit": "months"
+        }
+      ]
+    },
+    {
+      "rule_set_id": "psychological_testing",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "90791",
+            "96130",
+            "96131",
+            "96136",
+            "96137",
+            "96138",
+            "96139",
+            "96146"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_members",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_plan_type",
+              "operator": "EQUAL",
+              "value": "Medicare"
+            },
+            {
+              "field": "cms_coverage_manual_guideline",
+              "operator": "EQUAL",
+              "value": "Chapter 15, Section 80.2 - Psychological Tests and Neuropsychological Tests"
+            }
+          ]
+        },
+        {
+          "pathway_id": "non_medicare_mcg_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_plan_type",
+              "operator": "NOT_EQUAL",
+              "value": "Medicare"
+            },
+            {
+              "field": "mcg_guideline_adherence",
+              "operator": "EQUAL",
+              "value": "Psychological Testing (B-807-T)"
+            }
+          ]
+        },
+        {
+          "pathway_id": "clinical_indications_psychological_testing",
+          "logic": "ANY",
+          "conditions": [
+            {
+              "field": "clinical_presentation",
+              "operator": "EQUAL",
+              "value": "Differential diagnosis of behavioral or psychiatric conditions when the member's history and symptomatology are not readily attributable to a particular psychiatric diagnosis and the questions to be answered by testing could not be resolved by a psychiatric/diagnostic interview, observation in therapy, or an assessment for level of care at a mental health or substance abuse facility"
+            },
+            {
+              "field": "clinical_presentation",
+              "operator": "EQUAL",
+              "value": "Develop treatment recommendations after the member has been tried on various medications and/or psychotherapy, has not progressed in treatment, and continues to be symptomatic"
+            },
+            {
+              "field": "clinical_presentation",
+              "operator": "EQUAL",
+              "value": "A patient has had a recent mild traumatic brain injury (i.e. concussion) and a screening of his/her cognitive status is desired early on after the injury to answer more immediate questions about cognitive and emotional functioning as well as ability to return to accustomed life's activities at that time"
+            },
+            {
+              "field": "clinical_presentation",
+              "operator": "EQUAL",
+              "value": "There has been a recent change in patient’s memory (i.e. within past six months) or changes in memory have been present for extended period of time and it is not significant or complex"
+            },
+            {
+              "field": "clinical_presentation",
+              "operator": "EQUAL",
+              "value": "Majority of Pre-surgical evaluations (spinal cord stimulator, complex spine surgery, bariatric surgery)"
+            },
+            {
+              "field": "clinical_presentation",
+              "operator": "EQUAL",
+              "value": "If the primary concern is differential diagnosis (is it bipolar. is it psychosis, is there a personality disorder present)"
+            },
+            {
+              "field": "clinical_presentation",
+              "operator": "EQUAL",
+              "value": "There is the presence of cognitive and/or memory concerns and it has not been present for extended period of time (i.e. greater than six months), and there is not the presence of other complicated medical conditions"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "learning_disabilities",
+          "description": "Learning disabilities"
+        },
+        {
+          "exclusion_id": "contract_exclusions",
+          "description": "Any of the exclusions found in the member's contract"
+        }
+      ],
+      "documentation_requirements": [
+        {
+          "requirement_id": "cognitive_deficit_notes",
+          "description": "Last 6 months of PCP or specialty notes that describe the member's cognitive deficits",
+          "duration": 6,
+          "unit": "months"
+        }
+      ]
+    }
+  ]
+}

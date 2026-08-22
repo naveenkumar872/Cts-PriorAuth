@@ -1,0 +1,695 @@
+{
+  "policy_id": "FER-24236618",
+  "policy_name": "Fertility Services",
+  "rule_sets": [
+    {
+      "rule_set_id": "diagnostic_services_evaluating_infertility",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "54500",
+            "54505",
+            "54800",
+            "55200",
+            "55300",
+            "55550",
+            "58340",
+            "58345",
+            "58350",
+            "58540",
+            "58560",
+            "58700",
+            "58740",
+            "58752",
+            "58770",
+            "58920",
+            "74740",
+            "76831",
+            "89300",
+            "89310",
+            "89320",
+            "89321",
+            "89322",
+            "89325",
+            "89329",
+            "89330",
+            "89331",
+            "G0027",
+            "Q0115",
+            "S3655"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "infertility_unprotected_intercourse_under_35",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_has_si_rider_or_evidence_of_coverage",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "member_age",
+              "operator": "<",
+              "value": 35,
+              "unit": "years"
+            },
+            {
+              "field": "duration_of_frequent_unprotected_heterosexual_intercourse",
+              "operator": ">=",
+              "value": 12,
+              "unit": "months"
+            },
+            {
+              "field": "history_of_voluntary_sterilization",
+              "operator": "==",
+              "value": false
+            }
+          ]
+        },
+        {
+          "pathway_id": "infertility_unprotected_intercourse_35_and_older",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_has_si_rider_or_evidence_of_coverage",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "member_age",
+              "operator": ">=",
+              "value": 35,
+              "unit": "years"
+            },
+            {
+              "field": "duration_of_frequent_unprotected_heterosexual_intercourse",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months"
+            },
+            {
+              "field": "history_of_voluntary_sterilization",
+              "operator": "==",
+              "value": false
+            }
+          ]
+        },
+        {
+          "pathway_id": "infertility_artificial_insemination_under_35",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_has_si_rider_or_evidence_of_coverage",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "member_age",
+              "operator": "<",
+              "value": 35,
+              "unit": "years"
+            },
+            {
+              "field": "cycles_of_artificial_insemination",
+              "operator": ">=",
+              "value": 6,
+              "unit": "cycles"
+            },
+            {
+              "field": "medically_supervised_cycles_of_artificial_insemination",
+              "operator": ">=",
+              "value": 3,
+              "unit": "cycles"
+            },
+            {
+              "field": "history_of_voluntary_sterilization",
+              "operator": "==",
+              "value": false
+            }
+          ]
+        },
+        {
+          "pathway_id": "infertility_artificial_insemination_35_and_older",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_has_si_rider_or_evidence_of_coverage",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "member_age",
+              "operator": ">=",
+              "value": 35,
+              "unit": "years"
+            },
+            {
+              "field": "medically_supervised_cycles_of_artificial_insemination",
+              "operator": ">=",
+              "value": 3,
+              "unit": "cycles"
+            },
+            {
+              "field": "history_of_voluntary_sterilization",
+              "operator": "==",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Reproductive services after voluntary sterilization of a male or female partner (e.g., tubal ligation, vasectomy), including tubal reanastomosis, vas reanastomosis, sperm extraction, artificial insemination and in vitro fertilization",
+        "Long-term cryopreservation (i.e., apart from real-time efforts to conceive)",
+        "Costs related to donor genetic material used for artificial insemination or invitro fertilization",
+        "Services for the purpose of surrogacy",
+        "Routine use of pre-implantation genetic testing (with IVF)"
+      ],
+      "documentation_requirements": [
+        "Last 6 months of clinical notes from requesting provider &/or specialist"
+      ]
+    },
+    {
+      "rule_set_id": "artificial_insemination",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "58321",
+            "58322",
+            "58323",
+            "89260",
+            "89261",
+            "89268",
+            "S4035"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "ai_natal_female_no_male_partner",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_has_si_rider_not_specifically_excluding_ai",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "lifetime_maximum_exceeded",
+              "operator": "==",
+              "value": false
+            },
+            {
+              "field": "natal_female_without_male_partner",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "ai_male_partner_unable_to_participate",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_has_si_rider_not_specifically_excluding_ai",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "lifetime_maximum_exceeded",
+              "operator": "==",
+              "value": false
+            },
+            {
+              "field": "male_partner_unable_to_participate_due_to_physical_condition",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "erectile_dysfunction_responsive_to_medical_therapy",
+              "operator": "==",
+              "value": false
+            }
+          ]
+        },
+        {
+          "pathway_id": "ai_unprotected_intercourse_under_35",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_has_si_rider_not_specifically_excluding_ai",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "lifetime_maximum_exceeded",
+              "operator": "==",
+              "value": false
+            },
+            {
+              "field": "member_age",
+              "operator": "<",
+              "value": 35,
+              "unit": "years"
+            },
+            {
+              "field": "duration_of_frequent_unprotected_heterosexual_intercourse",
+              "operator": ">=",
+              "value": 12,
+              "unit": "months"
+            }
+          ]
+        },
+        {
+          "pathway_id": "ai_unprotected_intercourse_35_and_older",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_has_si_rider_not_specifically_excluding_ai",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "lifetime_maximum_exceeded",
+              "operator": "==",
+              "value": false
+            },
+            {
+              "field": "member_age",
+              "operator": ">=",
+              "value": 35,
+              "unit": "years"
+            },
+            {
+              "field": "duration_of_frequent_unprotected_heterosexual_intercourse",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months"
+            }
+          ]
+        },
+        {
+          "pathway_id": "ai_infectious_disease",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_has_si_rider_not_specifically_excluding_ai",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "lifetime_maximum_exceeded",
+              "operator": "==",
+              "value": false
+            },
+            {
+              "field": "documentation_of_infectious_disease_making_unprotected_heterosexual_intercourse_unsafe",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "ai_heritable_genetic_trait",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_has_si_rider_not_specifically_excluding_ai",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "lifetime_maximum_exceeded",
+              "operator": "==",
+              "value": false
+            },
+            {
+              "field": "documentation_of_heritable_genetic_trait_in_male_partner_jeopardizing_offspring",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "intends_to_use_donor_genetic_material_without_same_risk",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Reproductive services after voluntary sterilization of a male or female partner (e.g., tubal ligation, vasectomy), including tubal reanastomosis, vas reanastomosis, sperm extraction, artificial insemination and in vitro fertilization",
+        "Long-term cryopreservation (i.e., apart from real-time efforts to conceive)",
+        "Costs related to donor genetic material used for artificial insemination or invitro fertilization",
+        "Services for the purpose of surrogacy",
+        "Routine use of pre-implantation genetic testing (with IVF)"
+      ],
+      "documentation_requirements": [
+        "Last 6 months of clinical notes from requesting provider &/or specialist"
+      ]
+    },
+    {
+      "rule_set_id": "in_vitro_fertilization",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "58970",
+            "58974",
+            "76948",
+            "89250",
+            "89251",
+            "89253",
+            "89254",
+            "89255",
+            "89257",
+            "89258",
+            "89259",
+            "89264",
+            "89272",
+            "89335",
+            "89337",
+            "89352",
+            "89353",
+            "89354",
+            "89356",
+            "S4011",
+            "S4015",
+            "S4016",
+            "S4017",
+            "S4018",
+            "S4020",
+            "S4021",
+            "S4027",
+            "S4028",
+            "S4030",
+            "S4031",
+            "S4037",
+            "S4040",
+            "58976",
+            "S4014",
+            "S4013",
+            "55870",
+            "89280",
+            "89281"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "ivf_unprotected_intercourse_under_35",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_has_si_rider_not_specifically_excluding_ivf",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "lifetime_maximum_exceeded",
+              "operator": "==",
+              "value": false
+            },
+            {
+              "field": "member_age",
+              "operator": "<",
+              "value": 35,
+              "unit": "years"
+            },
+            {
+              "field": "duration_of_frequent_unprotected_heterosexual_intercourse",
+              "operator": ">=",
+              "value": 12,
+              "unit": "months"
+            }
+          ]
+        },
+        {
+          "pathway_id": "ivf_unprotected_intercourse_35_and_older",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_has_si_rider_not_specifically_excluding_ivf",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "lifetime_maximum_exceeded",
+              "operator": "==",
+              "value": false
+            },
+            {
+              "field": "member_age",
+              "operator": ">=",
+              "value": 35,
+              "unit": "years"
+            },
+            {
+              "field": "duration_of_frequent_unprotected_heterosexual_intercourse",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months"
+            }
+          ]
+        },
+        {
+          "pathway_id": "ivf_male_factor_infertility",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_has_si_rider_not_specifically_excluding_ivf",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "lifetime_maximum_exceeded",
+              "operator": "==",
+              "value": false
+            },
+            {
+              "field": "previously_diagnosed_male_factor_infertility_expected_to_prevent_conception",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "mild_to_moderately_reduced_sperm_count_or_motility",
+              "operator": "==",
+              "value": false
+            }
+          ]
+        },
+        {
+          "pathway_id": "ivf_artificial_insemination_under_35",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_has_si_rider_not_specifically_excluding_ivf",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "lifetime_maximum_exceeded",
+              "operator": "==",
+              "value": false
+            },
+            {
+              "field": "member_age",
+              "operator": "<",
+              "value": 35,
+              "unit": "years"
+            },
+            {
+              "field": "cycles_of_artificial_insemination",
+              "operator": ">=",
+              "value": 6,
+              "unit": "cycles"
+            },
+            {
+              "field": "medically_supervised_cycles_of_artificial_insemination",
+              "operator": ">=",
+              "value": 3,
+              "unit": "cycles"
+            }
+          ]
+        },
+        {
+          "pathway_id": "ivf_artificial_insemination_35_and_older",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_has_si_rider_not_specifically_excluding_ivf",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "lifetime_maximum_exceeded",
+              "operator": "==",
+              "value": false
+            },
+            {
+              "field": "member_age",
+              "operator": ">=",
+              "value": 35,
+              "unit": "years"
+            },
+            {
+              "field": "medically_supervised_cycles_of_artificial_insemination",
+              "operator": ">=",
+              "value": 3,
+              "unit": "cycles"
+            }
+          ]
+        },
+        {
+          "pathway_id": "ivf_female_factor_infertility",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_has_si_rider_not_specifically_excluding_ivf",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "lifetime_maximum_exceeded",
+              "operator": "==",
+              "value": false
+            },
+            {
+              "field": "previously_diagnosed_female_factor_infertility_expected_to_prevent_conception",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "ivf_preimplantation_genetic_testing",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_has_si_rider_not_specifically_excluding_ivf",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "lifetime_maximum_exceeded",
+              "operator": "==",
+              "value": false
+            },
+            {
+              "field": "member_has_coverage_and_meets_criteria_for_preimplantation_genetic_testing",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Reproductive services after voluntary sterilization of a male or female partner (e.g., tubal ligation, vasectomy), including tubal reanastomosis, vas reanastomosis, sperm extraction, artificial insemination and in vitro fertilization",
+        "Long-term cryopreservation (i.e., apart from real-time efforts to conceive)",
+        "Costs related to donor genetic material used for artificial insemination or invitro fertilization",
+        "Services for the purpose of surrogacy",
+        "Routine use of pre-implantation genetic testing (with IVF)"
+      ],
+      "documentation_requirements": [
+        "Last 6 months of clinical notes from requesting provider &/or specialist"
+      ]
+    },
+    {
+      "rule_set_id": "surgical_procedures_fallopian_tubes",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "55400",
+            "58750",
+            "58760",
+            "58672",
+            "58673"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "surgical_therapy_fallopian_tubes",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_has_si_rider_or_evidence_of_coverage",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "meets_definition_of_infertility",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "imaging_confirms_scarring_of_fallopian_tubes_or_prior_surgery_not_for_voluntary_sterilization",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "member_intends_to_become_pregnant_once_patency_reestablished",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "history_of_voluntary_tubal_ligation_for_sterilization",
+              "operator": "==",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Reproductive services after voluntary sterilization of a male or female partner (e.g., tubal ligation, vasectomy), including tubal reanastomosis, vas reanastomosis, sperm extraction, artificial insemination and in vitro fertilization",
+        "Long-term cryopreservation (i.e., apart from real-time efforts to conceive)",
+        "Costs related to donor genetic material used for artificial insemination or invitro fertilization",
+        "Services for the purpose of surrogacy",
+        "Routine use of pre-implantation genetic testing (with IVF)"
+      ],
+      "documentation_requirements": [
+        "Last 6 months of clinical notes from requesting provider &/or specialist"
+      ]
+    },
+    {
+      "rule_set_id": "considered_not_covered",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "89342",
+            "89343",
+            "89344",
+            "89346",
+            "S4023",
+            "S4025",
+            "S4026"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "not_covered_unless_stated_in_rider_or_contract",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_rider_or_contract_specifically_covers_these_services",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    }
+  ]
+}

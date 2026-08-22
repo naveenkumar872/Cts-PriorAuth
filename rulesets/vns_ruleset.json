@@ -1,0 +1,359 @@
+{
+  "policy_id": "VNS-87023963",
+  "policy_name": "Procedural Treatments for Epilepsy",
+  "rule_sets": [
+    {
+      "rule_set_id": "deep_brain_stimulation_for_epilepsy",
+      "match_criteria": {
+        "service_name": {
+          "operator": "EQUAL",
+          "value": "Deep Brain Stimulation for Epilepsy"
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "dbs_initial_implantation",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "individual_age",
+              "operator": ">=",
+              "value": 18,
+              "unit": "years"
+            },
+            {
+              "field": "device_fda_approved",
+              "operator": "EQUAL",
+              "value": "PMA or 510k only"
+            },
+            {
+              "field": "diagnosis",
+              "operator": "EQUAL",
+              "value": "partial onset seizures (e.g., motor focal seizures, complex focal seizures, or secondary generalized seizures)"
+            },
+            {
+              "field": "average_disabling_partial_onset_seizures_per_month",
+              "operator": ">=",
+              "value": 3,
+              "unit": "seizures"
+            },
+            {
+              "field": "seizure_frequency_duration_months",
+              "operator": "EQUAL",
+              "value": 3,
+              "unit": "consecutive months"
+            },
+            {
+              "field": "diagnostic_testing_epileptogenic_foci",
+              "operator": "<=",
+              "value": 2,
+              "unit": "foci"
+            },
+            {
+              "field": "failed_antiepileptic_medications",
+              "operator": ">=",
+              "value": 2,
+              "unit": "medications"
+            },
+            {
+              "field": "other_surgical_treatments_failed_or_contraindicated",
+              "operator": "EQUAL",
+              "value": "Failure of, contraindication to, or not a candidate for other surgical treatments for epilepsy including focal resective epilepsy surgery and Vagus Nerve Stimulator"
+            }
+          ]
+        },
+        {
+          "pathway_id": "dbs_replacement_revision",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "individual_age",
+              "operator": ">=",
+              "value": 18,
+              "unit": "years"
+            },
+            {
+              "field": "device_fda_approved",
+              "operator": "EQUAL",
+              "value": "PMA or 510k only"
+            },
+            {
+              "field": "diagnosis",
+              "operator": "EQUAL",
+              "value": "partial onset seizures (e.g., motor focal seizures, complex focal seizures, or secondary generalized seizures)"
+            },
+            {
+              "field": "average_disabling_partial_onset_seizures_per_month",
+              "operator": ">=",
+              "value": 3,
+              "unit": "seizures"
+            },
+            {
+              "field": "seizure_frequency_duration_months",
+              "operator": "EQUAL",
+              "value": 3,
+              "unit": "consecutive months"
+            },
+            {
+              "field": "diagnostic_testing_epileptogenic_foci",
+              "operator": "<=",
+              "value": 2,
+              "unit": "foci"
+            },
+            {
+              "field": "failed_antiepileptic_medications",
+              "operator": ">=",
+              "value": 2,
+              "unit": "medications"
+            },
+            {
+              "field": "other_surgical_treatments_failed_or_contraindicated",
+              "operator": "EQUAL",
+              "value": "Failure of, contraindication to, or not a candidate for other surgical treatments for epilepsy including focal resective epilepsy surgery and Vagus Nerve Stimulator"
+            },
+            {
+              "field": "existing_neurostimulator_lead_monitor_under_warranty",
+              "operator": "EQUAL",
+              "value": false
+            },
+            {
+              "field": "existing_neurostimulator_lead_monitor_can_be_repaired",
+              "operator": "EQUAL",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "All other indications besides focal epilepsy meeting the specified criteria"
+      ]
+    },
+    {
+      "rule_set_id": "implantable_vagus_nerve_stimulator",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "61885",
+            "61886",
+            "61888",
+            "64553",
+            "64568",
+            "64569"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "adjunctive_treatment_for_epilepsy",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "diagnosis",
+              "operator": "EQUAL",
+              "value": "Epilepsy"
+            },
+            {
+              "field": "medical_necessity_review_required",
+              "operator": "EQUAL",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Mental Health Diagnoses (per MCG B-821-T)",
+        "All other non-Mental Health Diagnoses besides epilepsy (per MCG A-0424)"
+      ]
+    },
+    {
+      "rule_set_id": "non_invasive_vagus_nerve_stimulator",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "E0735",
+            "E1399"
+          ]
+        }
+      },
+      "pathways": [],
+      "exclusions": [
+        "Transcutaneous Vagus Nerve Stimulation (e.g., gammaCore Sapphire) is not covered per MCG guidelines (MCG A-0998) and is considered Not Medically Necessary"
+      ]
+    },
+    {
+      "rule_set_id": "responsive_neurostimulation",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "61850",
+            "61860",
+            "61863",
+            "61864",
+            "61889",
+            "61891",
+            "61892",
+            "61880"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "rns_initial_implantation",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "individual_age",
+              "operator": ">=",
+              "value": 18,
+              "unit": "years"
+            },
+            {
+              "field": "device_fda_approved",
+              "operator": "EQUAL",
+              "value": "PMA or 510k only"
+            },
+            {
+              "field": "diagnosis",
+              "operator": "EQUAL",
+              "value": "partial onset seizures (e.g., motor focal seizures, complex focal seizures, or secondary generalized seizures)"
+            },
+            {
+              "field": "average_disabling_partial_onset_seizures_per_month",
+              "operator": ">=",
+              "value": 3,
+              "unit": "seizures"
+            },
+            {
+              "field": "seizure_frequency_duration_months",
+              "operator": "EQUAL",
+              "value": 3,
+              "unit": "consecutive months"
+            },
+            {
+              "field": "diagnostic_testing_epileptogenic_foci",
+              "operator": "<=",
+              "value": 2,
+              "unit": "foci"
+            },
+            {
+              "field": "failed_antiepileptic_medications",
+              "operator": ">=",
+              "value": 2,
+              "unit": "medications"
+            },
+            {
+              "field": "other_surgical_treatments_failed_or_contraindicated",
+              "operator": "EQUAL",
+              "value": "Failure of, contraindication to, or not a candidate for other surgical treatments for epilepsy including focal resective epilepsy surgery and Vagus Nerve Stimulator"
+            },
+            {
+              "field": "has_specific_seizure_foci_count",
+              "operator": "<",
+              "value": 3,
+              "unit": "foci"
+            },
+            {
+              "field": "presence_of_primary_generalized_epilepsy",
+              "operator": "EQUAL",
+              "value": false
+            },
+            {
+              "field": "presence_of_rapidly_progressive_neurologic_disorder",
+              "operator": "EQUAL",
+              "value": false
+            }
+          ]
+        },
+        {
+          "pathway_id": "rns_replacement_revision",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "individual_age",
+              "operator": ">=",
+              "value": 18,
+              "unit": "years"
+            },
+            {
+              "field": "device_fda_approved",
+              "operator": "EQUAL",
+              "value": "PMA or 510k only"
+            },
+            {
+              "field": "diagnosis",
+              "operator": "EQUAL",
+              "value": "partial onset seizures (e.g., motor focal seizures, complex focal seizures, or secondary generalized seizures)"
+            },
+            {
+              "field": "average_disabling_partial_onset_seizures_per_month",
+              "operator": ">=",
+              "value": 3,
+              "unit": "seizures"
+            },
+            {
+              "field": "seizure_frequency_duration_months",
+              "operator": "EQUAL",
+              "value": 3,
+              "unit": "consecutive months"
+            },
+            {
+              "field": "diagnostic_testing_epileptogenic_foci",
+              "operator": "<=",
+              "value": 2,
+              "unit": "foci"
+            },
+            {
+              "field": "failed_antiepileptic_medications",
+              "operator": ">=",
+              "value": 2,
+              "unit": "medications"
+            },
+            {
+              "field": "other_surgical_treatments_failed_or_contraindicated",
+              "operator": "EQUAL",
+              "value": "Failure of, contraindication to, or not a candidate for other surgical treatments for epilepsy including focal resective epilepsy surgery and Vagus Nerve Stimulator"
+            },
+            {
+              "field": "has_specific_seizure_foci_count",
+              "operator": "<",
+              "value": 3,
+              "unit": "foci"
+            },
+            {
+              "field": "presence_of_primary_generalized_epilepsy",
+              "operator": "EQUAL",
+              "value": false
+            },
+            {
+              "field": "presence_of_rapidly_progressive_neurologic_disorder",
+              "operator": "EQUAL",
+              "value": false
+            },
+            {
+              "field": "existing_neurostimulator_lead_monitor_under_warranty",
+              "operator": "EQUAL",
+              "value": false
+            },
+            {
+              "field": "existing_neurostimulator_lead_monitor_can_be_repaired",
+              "operator": "EQUAL",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "3 or more specific seizure foci",
+        "Presence of primary generalized epilepsy",
+        "Presence of a rapidly progressive neurologic disorder",
+        "All other indications (considered investigational)"
+      ]
+    }
+  ]
+}

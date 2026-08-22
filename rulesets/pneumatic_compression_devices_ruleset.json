@@ -1,0 +1,93 @@
+{
+  "policy_id": "PNE-56503272",
+  "policy_name": "Pneumatic Compression Devices",
+  "rule_sets": [
+    {
+      "rule_set_id": "medically_necessary_pcds",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "E0650",
+            "E0651",
+            "E0652",
+            "E0655",
+            "E0656",
+            "E0657",
+            "E0660",
+            "E0665",
+            "E0666",
+            "E0667",
+            "E0668",
+            "E0669",
+            "E0670",
+            "E0671",
+            "E0672",
+            "E0673"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "coverage_requirements",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "clinical_notes",
+              "operator": "EQUALS",
+              "value": "Last 6 months of clinical notes from requesting provider &/or specialist",
+              "unit": "months",
+              "value_numerical": 6
+            },
+            {
+              "field": "radiology_notes",
+              "operator": "EQUALS",
+              "value": "Last 6 months of radiology notes if applicable",
+              "unit": "months",
+              "value_numerical": 6
+            },
+            {
+              "field": "medical_necessity_guidelines",
+              "operator": "COMPLIES_WITH",
+              "value": "Must meet medical necessity as outlined in LCD L33829 and NCD 280.6"
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    },
+    {
+      "rule_set_id": "not_medically_necessary_pcds",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "E0675",
+            "E0676",
+            "A4600"
+          ]
+        }
+      },
+      "pathways": [],
+      "exclusions": [
+        {
+          "exclusion_id": "pad_treatment_exclusion",
+          "description": "Pneumatic compression for the indication of Peripheral Arterial Disease (PAD) (E0675) has generally not been considered medically necessary.",
+          "applicable_codes": [
+            "E0675"
+          ]
+        },
+        {
+          "exclusion_id": "vte_prophylaxis_exclusion",
+          "description": "Pneumatic compression for VTE prophylaxis (E0676, A4600) in the outpatient setting has generally not been considered medically necessary and is statutorily non-covered under Social Security Act Section 1862(a)(1)(A).",
+          "applicable_codes": [
+            "E0676",
+            "A4600"
+          ]
+        }
+      ]
+    }
+  ]
+}

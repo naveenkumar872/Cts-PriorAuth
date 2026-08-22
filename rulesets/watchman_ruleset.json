@@ -1,0 +1,116 @@
+{
+  "policy_id": "WAT-77694605",
+  "policy_name": "Left Atrial Appendage (LAA) Closure Therapy",
+  "rule_sets": [
+    {
+      "rule_set_id": "percutaneous_laa_closure",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "33340"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "percutaneous_laac_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "CHA2DS2-VASc score",
+              "operator": ">=",
+              "value": 3,
+              "unit": "score"
+            },
+            {
+              "field": "suitability_for_short_term_warfarin",
+              "operator": "EQUALS",
+              "value": "suitable",
+              "unit": "boolean"
+            },
+            {
+              "field": "ability_to_take_long_term_oral_anticoagulation",
+              "operator": "EQUALS",
+              "value": "unable to take long term oral anticoagulation (neither Warfarin nor DOACs)",
+              "unit": "boolean"
+            },
+            {
+              "field": "multidisciplinary_heart_team_evaluation",
+              "operator": "EQUALS",
+              "value": "documented collaborative recommendation for LAA occlusion",
+              "unit": "boolean"
+            },
+            {
+              "field": "hospital_programs",
+              "operator": "CONTAINS_ALL",
+              "value": "established cardiac surgery, structural heart disease, and electrophysiology (EP) programs",
+              "unit": "string"
+            },
+            {
+              "field": "shared_decision_making_interaction",
+              "operator": "EQUALS",
+              "value": "documented interaction with independent non-interventional cardiologist using evidence-based decision tool on oral anticoagulation in patients with NVAF prior to LAAC",
+              "unit": "boolean"
+            },
+            {
+              "field": "performing_provider_specialty",
+              "operator": "IN",
+              "value": "interventional cardiologist, electrophysiologist, or cardiovascular surgeon",
+              "unit": "string"
+            },
+            {
+              "field": "provider_training_criteria",
+              "operator": "EQUALS",
+              "value": "meets accepted CMS criteria for training/implantation",
+              "unit": "boolean"
+            },
+            {
+              "field": "registry_enrollment_and_participation",
+              "operator": "EQUALS",
+              "value": "patient enrolled in, and MDT and hospital participate in a prospective, national, audited registry",
+              "unit": "boolean"
+            },
+            {
+              "field": "clinical_notes_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months"
+            },
+            {
+              "field": "radiology_notes_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Devices not approved by the FDA for percutaneous LAA closure (e.g., LARIAT or PLAATO devices)"
+      ]
+    },
+    {
+      "rule_set_id": "non_percutaneous_laa_exclusion",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "33267",
+            "33268",
+            "33269"
+          ]
+        }
+      },
+      "pathways": [],
+      "exclusions": [
+        "Exclusion of left atrial appendage, open, any method (33267)",
+        "Exclusion of left atrial appendage, open, performed at the time of other sternotomy or thoracotomy procedure(s) (33268)",
+        "Exclusion of left atrial appendage, thoracoscopic, any method (33269)",
+        "Devices used during surgical procedures (non-percutaneous) to occlude the LAA (e.g., AtriClip is not medically necessary)"
+      ]
+    }
+  ]
+}

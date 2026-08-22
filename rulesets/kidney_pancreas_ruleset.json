@@ -1,0 +1,208 @@
+{
+  "policy_id": "KID-26349233",
+  "policy_name": "Patient Referral Guidelines: Kidney/Pancreas Transplant",
+  "rule_sets": [
+    {
+      "rule_set_id": "spk_transplant_referral",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "50300",
+            "50320",
+            "50323",
+            "50325",
+            "50327",
+            "50328",
+            "50329",
+            "50340",
+            "50360",
+            "50365",
+            "50370",
+            "50380",
+            "50547",
+            "48550",
+            "48551",
+            "48552",
+            "48554",
+            "48556",
+            "S2065"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "type_1_diabetes_mellitus_spk",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "diagnosis",
+              "operator": "EQUAL",
+              "value": "Type 1 diabetes mellitus with or approaching end stage renal disease"
+            },
+            {
+              "field": "type_1_dm_verification",
+              "operator": "IN",
+              "value": [
+                "stimulated C-peptide testing",
+                "presence of antibodies to glutamic acid decarboxylase",
+                "presence of antibodies to islet cell",
+                "presence of antibodies to insulin"
+              ]
+            },
+            {
+              "field": "endocrinologist_management_duration",
+              "operator": ">=",
+              "value": 12,
+              "unit": "months",
+              "notes": "Optimally and intensively managed by an endocrinologist"
+            },
+            {
+              "field": "age",
+              "operator": "BETWEEN",
+              "value": [
+                18,
+                55
+              ],
+              "unit": "years",
+              "notes": "Except under special clinical circumstances"
+            },
+            {
+              "field": "kidney_transplant_candidate",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "estimated_gfr",
+              "operator": "<",
+              "value": 20,
+              "unit": "ml/min",
+              "notes": "Calculated by the CKD-EPI creatinine equation (2021) refitted without race or the CKD-EPI creatinine-cystatin equation (2012) refitted without race to be listed on UNOS waiting list"
+            }
+          ]
+        },
+        {
+          "pathway_id": "type_2_diabetes_mellitus_spk",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "diagnosis",
+              "operator": "IN",
+              "value": [
+                "Type 2 Diabetes Mellitus",
+                "Type 1.5 DM"
+              ]
+            },
+            {
+              "field": "c_peptide_level",
+              "operator": "EQUAL",
+              "value": "low"
+            },
+            {
+              "field": "bmi",
+              "operator": "<",
+              "value": 28
+            },
+            {
+              "field": "insulin_requirement",
+              "operator": "EQUAL",
+              "value": "low dose"
+            },
+            {
+              "field": "renal_status",
+              "operator": "IN",
+              "value": [
+                "end stage renal disease",
+                "advanced CKD"
+              ]
+            },
+            {
+              "field": "age",
+              "operator": "BETWEEN",
+              "value": [
+                18,
+                55
+              ],
+              "unit": "years",
+              "notes": "Except under special clinical circumstances"
+            },
+            {
+              "field": "kidney_transplant_candidate",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "estimated_gfr",
+              "operator": "<",
+              "value": 20,
+              "unit": "ml/min",
+              "notes": "Calculated by the CKD-EPI creatinine equation (2021) refitted without race or the CKD-EPI creatinine-cystatin equation (2012) refitted without race to be listed on UNOS waiting list"
+            }
+          ]
+        }
+      ],
+      "general_requirements": [
+        {
+          "requirement": "Adequate social support systems and proven record of adherence to medical treatment"
+        },
+        {
+          "requirement": "Willing and able to travel within short notice to the KP approved transplant Center of Excellence and return for treatment of complications"
+        },
+        {
+          "requirement": "Caregiver or caregivers physically and cognitively able to assist with self-care activities and available to travel within short notice to the KP approved transplant Center of Excellence"
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "active_infection",
+          "description": "Uncontrollable active infection"
+        },
+        {
+          "exclusion_id": "substance_abuse",
+          "description": "History of substance abuse within the previous six (6) months without evaluation by a substance abuse program and low risk of recidivism",
+          "exceptions": [
+            "Case-by-case exceptions"
+          ]
+        },
+        {
+          "exclusion_id": "neurologic_psychological_social_barriers",
+          "description": "Presence of significant irreversible neurologic dysfunction, active psychological and/or psychiatric conditions, and/or other social behaviors that prevent adherence with a complex medical regimen"
+        },
+        {
+          "exclusion_id": "cardiovascular_pulmonary_disease",
+          "description": "Significant irreversible coronary artery disease and/or left ventricular dysfunction, and irreversible pulmonary disease"
+        },
+        {
+          "exclusion_id": "peripheral_vascular_disease",
+          "description": "Irreversible peripheral vascular disease, including carotid vascular disease",
+          "exceptions": [
+            "Amputation alone is not a contraindication"
+          ]
+        },
+        {
+          "exclusion_id": "uncontrolled_hypertension",
+          "description": "Uncontrolled hypertension"
+        }
+      ],
+      "relative_contraindications": [
+        {
+          "contraindication_id": "high_bmi",
+          "field": "bmi",
+          "operator": ">=",
+          "value": 35,
+          "notes": "Patients may be referred to the COE for individual consideration and concurrently referred for weight loss intervention"
+        },
+        {
+          "contraindication_id": "malnourishment",
+          "description": "Cachexia and/or malnourishment"
+        }
+      ],
+      "documentation_requirements": [
+        {
+          "document_name": "Final summary report from multidisciplinary transplant team"
+        }
+      ]
+    }
+  ]
+}

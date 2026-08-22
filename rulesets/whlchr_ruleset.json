@@ -1,0 +1,558 @@
+{
+  "policy_id": "WHL-41865792",
+  "policy_name": "Mobility Assistive Devices",
+  "rule_sets": [
+    {
+      "rule_set_id": "manual_wheelchair_and_power_assist",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "E0986"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "mcg_manual_wheelchair_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "guideline_reference",
+              "operator": "EQUALS",
+              "value": "Manual Wheelchair (KP-0354 02012026) MCG"
+            }
+          ]
+        }
+      ],
+      "documentation_requirements": [
+        "Most recent note from requesting provider",
+        "Most recent Physical Therapy mobility assessment (for a patient 18 and under, therapy evaluation cannot be solely done by a school-based therapist. Wheelchairs are only covered for use inside the home and the therapist must complete an onsite visit in the home to determine accessibility requirements.)",
+        "If recent discharge from SNF/IPR, include therapy notes",
+        "Specialty evaluation as indicated in the criteria",
+        "Vendor assessment and itemized codes if applicable"
+      ]
+    },
+    {
+      "rule_set_id": "scooters",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "E1230",
+            "K0800",
+            "K0801",
+            "K0802",
+            "K0806",
+            "K0807",
+            "K0808",
+            "K0812"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "mcg_scooter_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "guideline_reference",
+              "operator": "EQUALS",
+              "value": "Scooter (KP-0352 02012026) (MCG)"
+            }
+          ]
+        }
+      ],
+      "documentation_requirements": [
+        "Most recent comprehensive note from requesting provider in which the power mobility device is discussed",
+        "Most recent Physical Therapy mobility assessment if available",
+        "If recent discharge from SNF/IPR, include therapy notes",
+        "Vendor assessment and itemized codes if applicable"
+      ]
+    },
+    {
+      "rule_set_id": "power_wheelchair",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "E1239",
+            "K0010",
+            "K0012",
+            "K0813",
+            "K0814",
+            "K0815",
+            "K0816",
+            "K0820",
+            "K0821",
+            "K0822",
+            "K0823",
+            "K0824",
+            "K0825",
+            "K0826",
+            "K0827",
+            "K0828",
+            "K0829",
+            "K0835",
+            "K0836",
+            "K0837",
+            "K0838",
+            "K0839",
+            "K0840",
+            "K0841",
+            "K0842",
+            "K0843",
+            "K0848",
+            "K0849",
+            "K0850",
+            "K0851",
+            "K0852",
+            "K0853",
+            "K0854",
+            "K0855",
+            "K0856",
+            "K0857",
+            "K0858",
+            "K0859",
+            "K0860",
+            "K0861",
+            "K0862",
+            "K0863",
+            "K0864",
+            "K0868",
+            "K0869",
+            "K0870",
+            "K0871",
+            "K0877",
+            "K0878",
+            "K0879",
+            "K0880",
+            "K0884",
+            "K0885",
+            "K0886",
+            "K0890",
+            "K0891",
+            "K0898",
+            "K0899"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "power_wheelchair_coverage_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "personal_mobility_deficit_impairing_mradl_in_home",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "mobility_limitation_significance",
+              "operator": "IN",
+              "value": [
+                "Prevents the patient from accomplishing the MRADLs entirely",
+                "Places the patient at reasonably determined heightened risk of morbidity or mortality secondary to the attempts to participate in MRADLs",
+                "Prevents the patient from completing the MRADLs within a reasonable time frame"
+              ]
+            },
+            {
+              "field": "other_limitations_ameliorated_by_mae",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "patient_or_caregiver_safe_operation_capability_and_willingness",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "manual_wheelchair_or_pov_does_not_meet_needs",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "home_provides_adequate_access_maneuvering_space_and_surfaces",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "face_to_face_evaluation_by_prescribing_physician_within_past_days",
+              "operator": "<=",
+              "value": 90,
+              "unit": "days"
+            },
+            {
+              "field": "onsite_home_evaluation_report_available",
+              "operator": "EQUALS",
+              "value": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rule_set_id": "associated_special_parts",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "E0974",
+            "E0973",
+            "K0017",
+            "K0018",
+            "K0020",
+            "E2209",
+            "E1226",
+            "E0990",
+            "K0046",
+            "K0047",
+            "K0053",
+            "K0195",
+            "E1009",
+            "E1010",
+            "E2201",
+            "E2202",
+            "E2203",
+            "E2204",
+            "E2340",
+            "E2341",
+            "E2342",
+            "E2343",
+            "E2351",
+            "E1028",
+            "E1002",
+            "E1003",
+            "E1004",
+            "E1005",
+            "E1006",
+            "E1007",
+            "E1008",
+            "E0950"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "anti_rollback_device",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "service_code",
+              "operator": "EQUALS",
+              "value": "E0974"
+            },
+            {
+              "field": "patient_propels_self_and_needs_device_due_to_ramps",
+              "operator": "EQUALS",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "adjustable_arm_height",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "service_code",
+              "operator": "IN",
+              "value": [
+                "E0973",
+                "K0017",
+                "K0018",
+                "K0020"
+              ]
+            },
+            {
+              "field": "requires_different_arm_height_than_nonadjustable",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "hours_per_day_in_wheelchair",
+              "operator": ">=",
+              "value": 2,
+              "unit": "hours"
+            }
+          ]
+        },
+        {
+          "pathway_id": "arm_trough",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "service_code",
+              "operator": "EQUALS",
+              "value": "E2209"
+            },
+            {
+              "field": "clinical_condition",
+              "operator": "IN",
+              "value": [
+                "quadriplegia",
+                "hemiplegia",
+                "uncontrolled arm movements"
+              ]
+            }
+          ]
+        },
+        {
+          "pathway_id": "fully_reclining_back",
+          "logic": "ANY",
+          "conditions": [
+            {
+              "field": "service_code",
+              "operator": "EQUALS",
+              "value": "E1226"
+            },
+            {
+              "field": "clinical_condition",
+              "operator": "IN",
+              "value": [
+                "quadriplegia",
+                "fixed hip angle",
+                "trunk casts",
+                "lower extremity casts",
+                "trunk braces",
+                "lower extremity braces",
+                "excess extensor tone of trunk muscles"
+              ]
+            },
+            {
+              "field": "needs_to_rest_in_recumbent_position_frequency",
+              "operator": ">=",
+              "value": 2,
+              "unit": "times per day"
+            }
+          ]
+        },
+        {
+          "pathway_id": "elevating_leg_rests",
+          "logic": "ANY",
+          "conditions": [
+            {
+              "field": "service_code",
+              "operator": "IN",
+              "value": [
+                "E0990",
+                "K0046",
+                "K0047",
+                "K0053",
+                "K0195"
+              ]
+            },
+            {
+              "field": "has_musculoskeletal_condition_cast_or_brace_preventing_90_degree_flexion_at_knee",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "has_significant_edema_of_lower_extremities_requiring_elevated_leg_rest",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "meets_criteria_for_and_has_reclining_back",
+              "operator": "EQUALS",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "mechanically_linked_or_power_leg_elevation",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "service_code",
+              "operator": "IN",
+              "value": [
+                "E1009",
+                "E1010"
+              ]
+            },
+            {
+              "field": "meets_criteria_for_elevating_leg_rest",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "receiving_covered_power_seating_system",
+              "operator": "EQUALS",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "non_standard_seat_frame",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "service_code",
+              "operator": "IN",
+              "value": [
+                "E2201",
+                "E2202",
+                "E2203",
+                "E2204",
+                "E2340",
+                "E2341",
+                "E2342",
+                "E2343"
+              ]
+            },
+            {
+              "field": "patient_dimensions_justify_need",
+              "operator": "EQUALS",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "electronic_interface",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "service_code",
+              "operator": "EQUALS",
+              "value": "E2351"
+            },
+            {
+              "field": "has_covered_speech_generating_device",
+              "operator": "EQUALS",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "swingaway_retractable_removable_hardware",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "service_code",
+              "operator": "EQUALS",
+              "value": "E1028"
+            },
+            {
+              "field": "needed_to_move_component_for_slide_transfer",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "sole_reason_is_to_move_close_to_desks_or_surfaces",
+              "operator": "EQUALS",
+              "value": false
+            }
+          ]
+        },
+        {
+          "pathway_id": "tilt_or_recline_seating_systems",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "service_code",
+              "operator": "IN",
+              "value": [
+                "E1002",
+                "E1003",
+                "E1004",
+                "E1005",
+                "E1006",
+                "E1007",
+                "E1008"
+              ]
+            },
+            {
+              "field": "has_documented_weak_upper_extremity_strength_or_disease_leading_to_it",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "at_risk_for_skin_breakdown_due_to_inability_to_reposition_body",
+              "operator": "EQUALS",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "wheelchair_accessory_tray",
+          "logic": "ANY",
+          "conditions": [
+            {
+              "field": "service_code",
+              "operator": "EQUALS",
+              "value": "E0950"
+            },
+            {
+              "field": "has_approval_for_wheelchair",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "documentation_of_current_wheelchair_use",
+              "operator": "EQUALS",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "service_code": "E2298",
+          "reason": "Power seat elevation feature is not primarily medical in nature"
+        },
+        {
+          "service_code": "E2301",
+          "reason": "Power standing feature is not primarily medical in nature"
+        },
+        {
+          "service_code": "E2331",
+          "reason": "Attendant control is not primarily medical in nature"
+        },
+        {
+          "service_code": "E2310",
+          "reason": "Electrical connection device with sole function of connection for power seat elevation or power stand is not primarily medical in nature"
+        },
+        {
+          "service_code": "E2311",
+          "reason": "Electrical connection device with sole function of connection for power seat elevation or power stand is not primarily medical in nature"
+        },
+        {
+          "service_code": "E0968",
+          "reason": "Commode seat, wheelchair is not covered"
+        },
+        {
+          "service_code": "K0011",
+          "reason": "Stair-climbing wheelchairs, computerized or gyroscopic mobility systems are not covered"
+        },
+        {
+          "service_code": "E1031",
+          "reason": "Transport chairs or rollabout chairs are not covered"
+        },
+        {
+          "service_code": "E1037",
+          "reason": "Transport chairs or rollabout chairs are not covered"
+        },
+        {
+          "service_code": "E1038",
+          "reason": "Transport chairs or rollabout chairs are not covered"
+        },
+        {
+          "service_code": "E1039",
+          "reason": "Transport chairs or rollabout chairs are not covered"
+        },
+        {
+          "service_code": "K0830",
+          "reason": "Seat elevator wheelchairs are not covered"
+        },
+        {
+          "service_code": "K0831",
+          "reason": "Seat elevator wheelchairs are not covered"
+        }
+      ]
+    }
+  ]
+}

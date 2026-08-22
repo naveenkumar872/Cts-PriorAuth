@@ -1,0 +1,298 @@
+{
+  "policy_id": "LOW-78369771",
+  "policy_name": "Lower Limb Prosthesis",
+  "rule_sets": [
+    {
+      "rule_set_id": "lower_limb_prosthesis_coverage",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "L5010",
+            "L5020",
+            "L5050",
+            "L5060",
+            "L5100",
+            "L5105",
+            "L5150",
+            "L5160",
+            "L5200",
+            "L5210",
+            "L5220",
+            "L5230",
+            "L5250",
+            "L5270",
+            "L5280",
+            "L5301",
+            "L5312",
+            "L5321",
+            "L5331",
+            "L5341",
+            "L5400",
+            "L5410",
+            "L5420",
+            "L5430",
+            "L5500",
+            "L5505",
+            "L5510",
+            "L5520",
+            "L5530",
+            "L5535",
+            "L5540",
+            "L5560",
+            "L5570",
+            "L5580",
+            "L5585",
+            "L5590",
+            "L5595",
+            "L5600",
+            "L5610",
+            "L5611",
+            "L5613",
+            "L5614",
+            "L5616",
+            "L5617",
+            "L5618",
+            "L5620",
+            "L5622",
+            "L5624",
+            "L5626",
+            "L5628",
+            "L5629",
+            "L5630",
+            "L5631",
+            "L5632",
+            "L5634",
+            "L5636",
+            "L5637",
+            "L5638",
+            "L5639",
+            "L5640",
+            "L5642",
+            "L5643",
+            "L5644",
+            "L5645",
+            "L5646",
+            "L5647",
+            "L5648",
+            "L5649",
+            "L5650",
+            "L5651",
+            "L5652",
+            "L5653",
+            "L5654",
+            "L5655",
+            "L5656",
+            "L5657",
+            "L5658",
+            "L5661",
+            "L5665",
+            "L5666",
+            "L5668",
+            "L5670",
+            "L5671",
+            "L5672",
+            "L5673",
+            "L5676",
+            "L5677",
+            "L5678",
+            "L5679",
+            "L5680",
+            "L5681",
+            "L5682",
+            "L5683",
+            "L5684",
+            "L5686",
+            "L5688",
+            "L5690",
+            "L5692",
+            "L5694",
+            "L5695",
+            "L5696",
+            "L5697",
+            "L5698",
+            "L5699",
+            "L5700",
+            "L5701",
+            "L5702",
+            "L5703",
+            "L5704",
+            "L5705",
+            "L5706",
+            "L5707",
+            "L5710",
+            "L5711",
+            "L5712",
+            "L5714",
+            "L5716",
+            "L5718",
+            "L5722",
+            "L5724",
+            "L5726",
+            "L5728",
+            "L5780",
+            "L5781",
+            "L5782",
+            "L5785",
+            "L5790",
+            "L5795",
+            "L5810",
+            "L5811",
+            "L5812",
+            "L5814",
+            "L5816",
+            "L5818",
+            "L5822",
+            "L5824",
+            "L5826",
+            "L5827",
+            "L5828",
+            "L5830",
+            "L5840",
+            "L5841",
+            "L5845",
+            "L5848",
+            "L5850",
+            "L5855",
+            "L5856",
+            "L5857",
+            "L5858",
+            "L5859",
+            "L5910",
+            "L5920",
+            "L5925",
+            "L5930",
+            "L5940",
+            "L5950",
+            "L5960",
+            "L5961",
+            "L5962",
+            "L5964",
+            "L5966",
+            "L5968",
+            "L5969",
+            "L5970",
+            "L5971",
+            "L5972",
+            "L5973",
+            "L5974",
+            "L5975",
+            "L5976",
+            "L5978",
+            "L5979",
+            "L5980",
+            "L5981",
+            "L5982",
+            "L5984",
+            "L5985",
+            "L5986",
+            "L5987",
+            "L5988",
+            "L5990",
+            "L5991",
+            "L5999"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "non_medicare_evaluation_and_documentation",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "evaluated_by_independent_qualified_professional",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "clinical_notes_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months"
+            },
+            {
+              "field": "clinical_notes_sources",
+              "operator": "CONTAINS",
+              "value": "requesting provider &/or specialist, including the Prosthetics & Orthotics practitioner"
+            }
+          ]
+        },
+        {
+          "pathway_id": "shb_1669_prosthetic_limbs_and_custom_orthotic_braces",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "plan_issued_or_renewed_on_or_after",
+              "operator": ">=",
+              "value": "2026-01-01"
+            },
+            {
+              "field": "medically_necessary_for",
+              "operator": "IN",
+              "value": [
+                "Completing activities of daily living",
+                "Essential job-related activities",
+                "Performing physical activities, including but not limited to running, biking, swimming, and strength training, for maximizing the enrollee's lower limb function, upper limb function, or both"
+              ]
+            }
+          ]
+        },
+        {
+          "pathway_id": "replacement_medical_necessity",
+          "logic": "ANY",
+          "conditions": [
+            {
+              "field": "change_in_physiological_condition_of_patient",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "irreparable_change_in_condition_of_device_or_part",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "repair_cost_percentage_of_replacement_cost",
+              "operator": ">",
+              "value": 60,
+              "unit": "percent"
+            }
+          ]
+        },
+        {
+          "pathway_id": "replacement_age_confirmation_requirement",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "device_or_part_age",
+              "operator": "<",
+              "value": 3,
+              "unit": "years"
+            },
+            {
+              "field": "confirmation_from_prescribing_health_care_provider",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "not_medically_necessary_codes",
+          "match_criteria": {
+            "service_code": {
+              "coding_system": "HCPCS",
+              "operator": "IN",
+              "value": [
+                "L5615",
+                "L5926"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

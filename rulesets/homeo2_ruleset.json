@@ -1,0 +1,115 @@
+{
+  "policy_id": "HOM-43892221",
+  "policy_name": "Home Oxygen Therapy for Chronic Use",
+  "rule_sets": [
+    {
+      "rule_set_id": "home_oxygen_therapy_rules",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "E0424",
+            "E0425",
+            "E0430",
+            "E0431",
+            "E0433",
+            "E0434",
+            "E0435",
+            "E0439",
+            "E0440",
+            "E0441",
+            "E0442",
+            "E0443",
+            "E0444",
+            "E0447",
+            "E1390",
+            "E1391",
+            "E1392",
+            "E1405",
+            "E1406",
+            "K0738"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_members",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "==",
+              "value": "Medicare"
+            },
+            {
+              "field": "clinical_notes_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months",
+              "description": "Last 6 months of clinical notes from requesting provider and/or specialist (palliative care, primary care, pulmonary care)"
+            },
+            {
+              "field": "pulse_oximetry_or_activity_log_present",
+              "operator": "==",
+              "value": true,
+              "description": "Most recent Pulse Oximetry documentation and/or most recent at rest and/or activity log"
+            },
+            {
+              "field": "medicare_coverage_criteria_met",
+              "operator": "==",
+              "value": true,
+              "description": "Meets criteria in CMS Coverage Manuals Medicare Claims Processing Manual Chapter 20 Section 30.6, NCD 240.2, NCD 240.2.1, NCA CAG-00296R3, LCD L33797, and LCA A52514"
+            }
+          ]
+        },
+        {
+          "pathway_id": "non_medicare_members",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "==",
+              "value": "Non-Medicare"
+            },
+            {
+              "field": "clinical_notes_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months",
+              "description": "Last 6 months of clinical notes from requesting provider and/or specialist (palliative care, primary care, pulmonary care)"
+            },
+            {
+              "field": "pulse_oximetry_or_activity_log_present",
+              "operator": "==",
+              "value": true,
+              "description": "Most recent Pulse Oximetry documentation and/or most recent at rest and/or activity log"
+            },
+            {
+              "field": "mcg_guideline_kp_0343_met",
+              "operator": "==",
+              "value": true,
+              "description": "Meets Home Oxygen (KP-0343) MCG clinical guidelines"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "monitoring_devices_exclusion",
+          "description": "Oximeters (E0445) and replacement probes (A4606) are denied as non-covered because they are monitoring devices that provide information to physicians to assist in managing the beneficiary's treatment.",
+          "match_criteria": {
+            "service_code": {
+              "coding_system": "HCPCS",
+              "operator": "IN",
+              "value": [
+                "E0445",
+                "A4606"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

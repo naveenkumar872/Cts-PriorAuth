@@ -1,0 +1,679 @@
+{
+  "policy_id": "PET-29759726",
+  "policy_name": "Clinical Review Criteria: Positron Emission Tomography (PET) Scan",
+  "rule_sets": [
+    {
+      "rule_set_id": "non_medicare_pet_scan_rules",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "78811",
+            "78812",
+            "78813",
+            "78814",
+            "78815",
+            "78816",
+            "78608",
+            "78609",
+            "78429",
+            "78459",
+            "78430",
+            "78491",
+            "78492",
+            "78431",
+            "78432",
+            "78433",
+            "78434",
+            "A9515",
+            "A9526",
+            "A9552",
+            "A9555",
+            "A9586",
+            "A9587",
+            "A9588",
+            "A9580",
+            "A9592",
+            "A9593",
+            "A9594",
+            "A9595",
+            "A9596",
+            "A9597",
+            "A9598",
+            "A9601",
+            "Q9982",
+            "Q9983",
+            "G0235",
+            "G0252",
+            "G0219"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "solitary_pulmonary_nodule_solid_or_part_solid",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "oncology_diagnosis_confirmed",
+              "operator": "==",
+              "value": false
+            },
+            {
+              "field": "nodule_type",
+              "operator": "IN",
+              "value": [
+                "Solid",
+                "Part Solid"
+              ]
+            },
+            {
+              "field": "newly_discovered_without_known_prior_malignancy",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "concurrent_thoracic_ct_performed",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "single_indeterminate_or_possibly_malignant_lesion_diameter",
+              "operator": ">",
+              "value": 0.8,
+              "unit": "cm"
+            },
+            {
+              "field": "ground_glass_opacities_or_nodules",
+              "operator": "==",
+              "value": false
+            },
+            {
+              "field": "purpose_of_scan",
+              "operator": "==",
+              "value": "determine likelihood of malignancy in order to plan management of care"
+            }
+          ]
+        },
+        {
+          "pathway_id": "breast_cancer_staging",
+          "logic": "OR",
+          "conditions": [
+            {
+              "field": "breast_cancer_stage",
+              "operator": "IN",
+              "value": [
+                "Stage III",
+                "Stage IV"
+              ]
+            },
+            {
+              "field": "conventional_imaging_equivocal",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "rationale_provided_by_tumor_board_of_breast_cancer_experts",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "cervical_cancer_initial_staging",
+          "logic": "OR",
+          "conditions": [
+            {
+              "field": "cervical_cancer_stage",
+              "operator": "==",
+              "value": "Stage 1A"
+            },
+            {
+              "field": "conventional_imaging_inconclusive",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "cervical_cancer_stage",
+              "operator": ">=",
+              "value": "Stage 1B1"
+            },
+            {
+              "field": "needed_for_treatment_planning",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "cervical_cancer_post_treatment_evaluation",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "time_since_treatment_completion",
+              "operator": "BETWEEN",
+              "value": [
+                3,
+                6
+              ],
+              "unit": "months"
+            },
+            {
+              "field": "treated_with_radiation_or_chemoradiation_including_stage_1B3",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "higher_stage_II_IV_with_risk_factors_positive_nodes_parametrial_extension_or_positive_margins",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "three_month_follow_up_after_previous_indeterminate_pet_ct",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "cervical_cancer_surveillance",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "cervical_cancer_stage",
+              "operator": "==",
+              "value": "Stage IVB"
+            },
+            {
+              "field": "conventional_imaging_performed",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "results_would_change_clinical_management",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "uterine_cancer_treatment_planning",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "required_for_treatment_planning_with_radiation_therapy",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "colorectal_cancer_initial_staging",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "colorectal_cancer_indication",
+              "operator": "==",
+              "value": "initial staging"
+            },
+            {
+              "field": "metastatic_adenocarcinoma_of_large_bowel",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "potentially_surgically_curable_metastatic_disease",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "colorectal_cancer_restaging",
+          "logic": "OR",
+          "conditions": [
+            {
+              "field": "post_operative_cea_or_lfts_remain_elevated_and_other_imaging_negative",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "evaluation_of_potentially_resectable_metastatic_lesion_to_confirm_resectability_and_absence_of_other_disease_sites",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "differentiating_local_tumor_recurrence_from_post_operative_or_post_radiation_scarring",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "esophageal_cancer_staging_and_restaging",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "metastatic_disease_on_chest_abdominal_ct",
+              "operator": "==",
+              "value": false
+            },
+            {
+              "field": "candidate_for_aggressive_therapy",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "gastric_ge_junction_cancer_staging_and_restaging",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "cancer_stage",
+              "operator": "!=",
+              "value": "T1"
+            },
+            {
+              "field": "metastatic_disease_on_chest_abdominal_ct",
+              "operator": "==",
+              "value": false
+            },
+            {
+              "field": "candidate_for_aggressive_therapy",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "head_and_neck_cancer_staging",
+          "logic": "OR",
+          "conditions": [
+            {
+              "field": "head_and_neck_cancer_stage",
+              "operator": "IN",
+              "value": [
+                "Stage III",
+                "Stage IV",
+                "T3",
+                "T4",
+                ">=N1"
+              ]
+            },
+            {
+              "field": "primary_site",
+              "operator": "IN",
+              "value": [
+                "oral cavity",
+                "oropharynx",
+                "glottic larynx",
+                "supraglottic larynx",
+                "hypopharynx",
+                "ethmoid sinus"
+              ]
+            },
+            {
+              "field": "head_and_neck_cancer_stage",
+              "operator": "IN",
+              "value": [
+                "Stage III",
+                "Stage IV"
+              ]
+            },
+            {
+              "field": "primary_site",
+              "operator": "IN",
+              "value": [
+                "nasopharynx",
+                "paranasal sinus",
+                "maxillary sinus"
+              ]
+            },
+            {
+              "field": "purpose_of_scan",
+              "operator": "==",
+              "value": "evaluation of distant metastases"
+            },
+            {
+              "field": "head_and_neck_cancer_stage",
+              "operator": "==",
+              "value": "Stage II"
+            },
+            {
+              "field": "primary_site",
+              "operator": "==",
+              "value": "nasopharynx"
+            },
+            {
+              "field": "lymph_node_positive",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "head_and_neck_cancer_restaging",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "purpose_of_scan",
+              "operator": "==",
+              "value": "post-treatment evaluation"
+            },
+            {
+              "field": "time_since_radiation_completed",
+              "operator": ">=",
+              "value": 12,
+              "unit": "weeks"
+            }
+          ]
+        },
+        {
+          "pathway_id": "lung_cancer_non_small_cell_initial_staging",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "lung_cancer_type",
+              "operator": "==",
+              "value": "Non-small cell"
+            },
+            {
+              "field": "cancer_stage",
+              "operator": "IN",
+              "value": [
+                "Stage I",
+                "Stage II",
+                "Stage III A",
+                "Stage III B"
+              ]
+            },
+            {
+              "field": "active_treatment_planned",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "lung_cancer_non_small_cell_radiation_planning",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "significant_atelectasis",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "iv_contrast_contraindicated",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "improved_targeting_sought",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "lung_cancer_small_cell_initial_staging",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "lung_cancer_type",
+              "operator": "==",
+              "value": "Small Cell"
+            },
+            {
+              "field": "cancer_stage",
+              "operator": "==",
+              "value": "limited-stage"
+            },
+            {
+              "field": "potential_surgical_candidate_or_combined_modality_approach_planned",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "multiple_myeloma_fdg_pet_ct",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "initial_whole_body_low_dose_ct_or_mri_non_diagnostic",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "thyroid_cancer_localization",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "histology",
+              "operator": "IN",
+              "value": [
+                "papillary thyroid carcinoma",
+                "follicular thyroid carcinoma"
+              ]
+            },
+            {
+              "field": "previously_treated_with_thyroidectomy_and_radioiodine_ablation",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "thyroid_globulin_tg_antibody_positive_stimulated_or_on_suppression",
+              "operator": ">",
+              "value": 10
+            },
+            {
+              "field": "negative_structural_imaging_ultrasound_and_ct",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "thyroid_cancer_aggressive_staging_or_follow_up",
+          "logic": "OR",
+          "conditions": [
+            {
+              "field": "aggressive_tumors_confirmed_by_histology",
+              "operator": "IN",
+              "value": [
+                "Hurthle cell",
+                "poorly differentiated",
+                "anaplastic"
+              ]
+            },
+            {
+              "field": "aggressive_behavior_confirmed_metastasis_showing_progression_on_structural_imaging_or_rising_tg_level_despite_prior_treatment",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "myocardial_viability_fdg_pet",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "potential_candidate_for_cabg_or_stent",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "spect_inconclusive_or_contraindicated_due_to_bmi_greater_than_40",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "dobutamine_stress_echocardiogram_inconclusive_or_contraindicated",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "cardiac_mri_contraindicated_or_non_diagnostic",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "cardiac_sarcoidosis_initial_diagnosis",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "suspected_or_known_cardiac_sarcoidosis",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "mri_cannot_be_performed_or_non_diagnostic_or_positive_with_subsequent_pet_for_active_myocardial_inflammation",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "cardiac_sarcoidosis_serial_evaluation",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "serial_evaluation_while_on_treatment_frequency",
+              "operator": ">=",
+              "value": 3,
+              "unit": "months"
+            }
+          ]
+        },
+        {
+          "pathway_id": "beta_amyloid_pet_dementia",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "candidate_for_monoclonal_antibody_therapy",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "lumbar_puncture_indeterminate_or_contraindicated",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "breast_cancer_non_covered_scenarios",
+          "conditions": [
+            {
+              "field": "breast_cancer_stage",
+              "operator": "IN",
+              "value": [
+                "Stage I",
+                "Stage II"
+              ]
+            },
+            {
+              "field": "initial_diagnosis_of_breast_cancer",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "staging_of_axillary_lymph_nodes",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "routine_surveillance_or_monitoring_for_treatment_response",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "exclusion_id": "colorectal_cancer_non_covered_scenarios",
+          "conditions": [
+            {
+              "field": "colorectal_cancer_surveillance",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "monitoring_therapy_progress",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "exclusion_id": "head_and_neck_lip_cancer_exclusion",
+          "conditions": [
+            {
+              "field": "primary_site",
+              "operator": "==",
+              "value": "lip"
+            },
+            {
+              "field": "head_and_neck_cancer_stage",
+              "operator": "!=",
+              "value": "Stage III"
+            }
+          ]
+        },
+        {
+          "exclusion_id": "head_and_neck_salivary_cancer_exclusion",
+          "conditions": [
+            {
+              "field": "primary_site",
+              "operator": "==",
+              "value": "salivary"
+            }
+          ]
+        },
+        {
+          "exclusion_id": "lung_cancer_non_small_cell_serial_scans",
+          "conditions": [
+            {
+              "field": "serial_pet_scans_to_follow_response_to_therapy",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "exclusion_id": "lung_cancer_small_cell_routine_follow_up",
+          "conditions": [
+            {
+              "field": "routine_follow_up_after_initial_therapy",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "exclusion_id": "prostate_cancer_unproven_services",
+          "conditions": [
+            {
+              "field": "service_name",
+              "operator": "IN",
+              "value": [
+                "C-11 Acetate PET for Diagnosing Primary and Metastatic Prostate Cancer",
+                "18F Fluoro-Estradiol PET (FES-PET) to Measure Estrogen Receptor Expression - Breast Cancer",
+                "18F-NaF PET for the Detection of Bone Metastases",
+                "Positron Emission Mammography (PEM)"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

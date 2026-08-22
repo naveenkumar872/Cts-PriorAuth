@@ -1,0 +1,122 @@
+{
+  "policy_id": "THE-58104909",
+  "policy_name": "Radioembolization & Chemoembolization Procedures",
+  "rule_sets": [
+    {
+      "rule_set_id": "yttrium_90_microsphere_radioembolization",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "C2616",
+            "Q3001",
+            "S2095",
+            "37243",
+            "75894"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "metastatic_colorectal_cancer",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "clinical_condition",
+              "operator": "EQUALS",
+              "value": "Unresectable metastatic liver tumors from primary colorectal cancer (CRC)"
+            }
+          ]
+        },
+        {
+          "pathway_id": "neuroendocrine_tumors",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "clinical_condition",
+              "operator": "EQUALS",
+              "value": "Unresectable liver-only or liver-dominant metastases from neuroendocrine tumors (NET)"
+            },
+            {
+              "field": "disease_distribution",
+              "operator": "EQUALS",
+              "value": "diffuse (defined as tumor tissue spread throughout the affected organ)"
+            },
+            {
+              "field": "symptomatic",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "prior_treatment_failure",
+              "operator": "EQUALS",
+              "value": "systemic therapy with octreotide to control carcinoid syndrome (e.g., debilitating flushing, wheezing and diarrhea)"
+            }
+          ]
+        },
+        {
+          "pathway_id": "primary_hepatocellular_carcinoma",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "clinical_condition",
+              "operator": "EQUALS",
+              "value": "Unresectable primary hepatocellular carcinoma (HCC)"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Yttrium-90 (90Y) microsphere radioembolization is not covered for any other indication because its clinical utility has not been established."
+      ],
+      "documentation_requirements": [
+        {
+          "description": "Last 6 months of clinical notes from requesting provider &/or specialist",
+          "time_period": {
+            "value": 6,
+            "unit": "months"
+          }
+        }
+      ]
+    },
+    {
+      "rule_set_id": "transcatheter_arterial_chemoembolization_tace",
+      "pathways": [
+        {
+          "pathway_id": "tace_before_december_2026",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "effective_date",
+              "operator": "<",
+              "value": "2026-12-01",
+              "note": "Code is being reviewed for medical necessity but silent for this specific treatment."
+            }
+          ]
+        },
+        {
+          "pathway_id": "tace_after_december_2026",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "effective_date",
+              "operator": ">=",
+              "value": "2026-12-01",
+              "guideline_reference": "Transcatheter Arterial Chemoembolization (TACE) A-1075 MCG"
+            }
+          ]
+        }
+      ],
+      "documentation_requirements": [
+        {
+          "description": "Last 6 months of clinical notes from requesting provider &/or specialist",
+          "time_period": {
+            "value": 6,
+            "unit": "months"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "policy_id": "SHO-88077308",
+  "policy_name": "Extracorporeal Shock Wave Therapy (ESWT)",
+  "rule_sets": [
+    {
+      "rule_set_id": "eswt_policy_rules",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "28890",
+            "0101T",
+            "0102T",
+            "0512T",
+            "0513T"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "documentation_review_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "clinical_notes_period",
+              "operator": "EQUALS",
+              "value": 6,
+              "unit": "months"
+            },
+            {
+              "field": "clinical_notes_source",
+              "operator": "IN",
+              "value": [
+                "requesting provider",
+                "specialist"
+              ]
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "not_medically_necessary_services",
+          "description": "Considered Not Medically Necessary",
+          "service_codes": [
+            "28890",
+            "0101T",
+            "0102T",
+            "0512T",
+            "0513T"
+          ]
+        }
+      ]
+    }
+  ]
+}

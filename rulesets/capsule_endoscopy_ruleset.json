@@ -1,0 +1,111 @@
+{
+  "policy_id": "CAP-54044156",
+  "policy_name": "Capsule Endoscopy",
+  "rule_sets": [
+    {
+      "rule_set_id": "capsule_endoscopy_rules",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "91110",
+            "91111",
+            "91113"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_colon_pathology",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "==",
+              "value": "Medicare"
+            },
+            {
+              "field": "pathology_location",
+              "operator": "==",
+              "value": "known or suspected colon pathology"
+            },
+            {
+              "field": "applicable_guideline",
+              "operator": "==",
+              "value": "LCD: Colon Capsule Endoscopy (CCE) (L38824) and LCA: Billing and Coding: Colon Capsule Endoscopy (CCE) (A58436)"
+            }
+          ]
+        },
+        {
+          "pathway_id": "medicare_outside_colon_pathology",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "==",
+              "value": "Medicare"
+            },
+            {
+              "field": "pathology_location",
+              "operator": "==",
+              "value": "known or suspected pathology outside the colon"
+            },
+            {
+              "field": "applicable_guideline",
+              "operator": "==",
+              "value": "KPWA Clinical Review Criteria Capsule Endoscopy (Non-Medicare criteria)"
+            }
+          ]
+        },
+        {
+          "pathway_id": "non_medicare_members",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "==",
+              "value": "Non-Medicare"
+            },
+            {
+              "field": "applicable_guideline",
+              "operator": "==",
+              "value": "Capsule Endoscopy (KP-0134 08012024) MCG"
+            }
+          ]
+        },
+        {
+          "pathway_id": "documentation_requirements",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "clinical_notes_duration",
+              "operator": ">=",
+              "value": 12,
+              "unit": "months"
+            },
+            {
+              "field": "clinical_notes_source",
+              "operator": "IN",
+              "value": [
+                "requesting provider",
+                "specialist (gastroenterology)"
+              ]
+            },
+            {
+              "field": "lab_work",
+              "operator": "==",
+              "value": "Most recent lab works"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "patency_capsule",
+          "description": "Patency Capsule (Given AGILE Patency System) is excluded due to insufficient evidence in the published medical literature to show that this service/therapy is as safe as standard services/therapies and/or provides better long-term outcomes than current standard services/therapies."
+        }
+      ]
+    }
+  ]
+}

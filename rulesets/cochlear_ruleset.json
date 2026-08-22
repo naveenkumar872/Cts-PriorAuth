@@ -1,0 +1,91 @@
+{
+  "policy_id": "COC-39961534",
+  "policy_name": "Cochlear Implant",
+  "rule_sets": [
+    {
+      "rule_set_id": "standard_cochlear_implant",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "69930",
+            "L8614",
+            "L8619",
+            "L8627",
+            "L8628"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_members",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "==",
+              "value": "Medicare"
+            },
+            {
+              "field": "national_coverage_determination",
+              "operator": "==",
+              "value": "Cochlear Implantation (50.3)"
+            }
+          ]
+        },
+        {
+          "pathway_id": "non_medicare_members",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "==",
+              "value": "Non-Medicare"
+            },
+            {
+              "field": "clinical_guideline",
+              "operator": "==",
+              "value": "MCG Cochlear Implant (KP-0177 12012022v2)"
+            },
+            {
+              "field": "documentation_required",
+              "operator": "CONTAINS",
+              "value": "Most recent audiogram/hearing test"
+            },
+            {
+              "field": "documentation_required",
+              "operator": "CONTAINS",
+              "value": "Most recent clinical notes from requesting provider &/or specialist (otolaryngology, ENT)"
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    },
+    {
+      "rule_set_id": "hybrid_cochlear_implant",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "L8614"
+          ]
+        },
+        "service_description": {
+          "operator": "CONTAINS",
+          "value": "Hybrid"
+        }
+      },
+      "pathways": [],
+      "exclusions": [
+        {
+          "exclusion_id": "hybrid_cochlear_implant_exclusion",
+          "description": "Cochlear implantation with a hybrid cochlear implant/hearing aid device that includes the hearing aid integrated into the external sound processor of the cochlear implant, including but not limited to the Nucleus® Hybrid™ L24 Cochlear Implant System, is considered Not Covered.",
+          "rationale": "There is insufficient evidence in the published medical literature to show that this service/therapy is as safe as standard services/therapies and/or provides better long-term outcomes than current standard services/therapies."
+        }
+      ]
+    }
+  ]
+}

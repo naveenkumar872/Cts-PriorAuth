@@ -1,0 +1,70 @@
+{
+  "policy_id": "LIG-71700160",
+  "policy_name": "Light Therapy, for Seasonal Affective Disorder (SAD)",
+  "rule_sets": [
+    {
+      "rule_set_id": "non_medicare_members_ruleset",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "E0203",
+            "A4634"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "documentation_review_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "clinical_notes_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months",
+              "description": "Last 6 months of clinical notes from requesting provider and/or specialist"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "insufficient_evidence_exclusion",
+          "description": "There is insufficient evidence in the published medical literature to show that this service/therapy is as safe as standard services/therapies and/or provides better long-term outcomes than current standard services/therapies."
+        },
+        {
+          "exclusion_id": "medical_technology_assessment_criteria_exclusion",
+          "description": "The use of light therapy in the treatment of Seasonal Affective Disorder (SAD) does not meet the Kaiser Permanente Medical Technology Assessment Criteria."
+        },
+        {
+          "exclusion_id": "hcpcs_not_covered",
+          "description": "HCPCS codes E0203 (Therapeutic lightbox, minimum 10,000 lux, table top model) and A4634 (Replacement bulb for therapeutic light box, tabletop model) are considered not covered."
+        }
+      ]
+    },
+    {
+      "rule_set_id": "medicare_members_ruleset",
+      "match_criteria": {
+        "member_type": {
+          "operator": "EQUALS",
+          "value": "Medicare"
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_coverage_determination",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "local_coverage_determinations",
+              "operator": "EQUALS",
+              "value": "See the Noridian Non-Covered Items for HCPC code E0203"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

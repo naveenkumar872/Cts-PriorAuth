@@ -1,0 +1,77 @@
+{
+  "policy_id": "FAC-77466132",
+  "policy_name": "Facet Joint Procedures for Pain",
+  "rule_sets": [
+    {
+      "rule_set_id": "facet_injections_medial_branch_blocks_and_neurotomy",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "64490",
+            "64491",
+            "64492",
+            "64493",
+            "64494",
+            "64495",
+            "77003",
+            "64633",
+            "64634",
+            "64635",
+            "64636"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medically_necessary_requirements",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "clinical_notes_from_requesting_provider_and_or_specialist_including_pt_notes",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months"
+            },
+            {
+              "field": "noridian_local_coverage_determination_l38801_criteria",
+              "operator": "EQUALS",
+              "value": "MET"
+            },
+            {
+              "field": "billing_and_coding_facet_joint_interventions_a58403_criteria",
+              "operator": "EQUALS",
+              "value": "MET"
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    },
+    {
+      "rule_set_id": "paravertebral_injections_with_ultrasound_guidance",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "0213T",
+            "0214T",
+            "0215T",
+            "0216T",
+            "0217T",
+            "0218T"
+          ]
+        }
+      },
+      "pathways": [],
+      "exclusions": [
+        {
+          "exclusion_id": "not_medically_necessary_ultrasound_guidance",
+          "description": "Paravertebral injections with ultrasound guidance are considered Not Medically Necessary"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "policy_id": "UNI-57180743",
+  "policy_name": "UniSpacer Knee System",
+  "rule_sets": [
+    {
+      "rule_set_id": "unispacer_knee_system_rules",
+      "match_criteria": {
+        "service_name": {
+          "operator": "IN",
+          "value": [
+            "UniSpacer Knee System",
+            "McKeever Hemiarthroplasty Prosthesis",
+            "MacIntosh Hemiarthroplasty Prosthesis",
+            "Shabaro Tibial Plateau Prosthesis"
+          ]
+        },
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "No specific codes"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_members",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUALS",
+              "value": "Medicare"
+            },
+            {
+              "field": "medicare_status",
+              "operator": "EQUALS",
+              "value": "This device is not called out by Medicare as separate from knee arthroplasty"
+            }
+          ]
+        },
+        {
+          "pathway_id": "non_medicare_members",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUALS",
+              "value": "Non-Medicare"
+            },
+            {
+              "field": "clinical_evidence",
+              "operator": "EQUALS",
+              "value": "insufficient evidence in the published medical literature to show that this service/therapy is as safe as standard services/therapies and/or provides better long-term outcomes than current standard services/therapies"
+            },
+            {
+              "field": "kaiser_permanente_medical_technology_assessment_criteria_met",
+              "operator": "EQUALS",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "not_medically_necessary",
+          "description": "Considered Not Medically Necessary: The use of UniSpacer Knee System in the treatment of osteoarthritis of the knee does not meet the Kaiser Permanente Medical Technology Assessment Criteria."
+        }
+      ]
+    }
+  ]
+}

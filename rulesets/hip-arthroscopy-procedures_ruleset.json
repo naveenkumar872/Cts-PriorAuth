@@ -1,0 +1,154 @@
+{
+  "policy_id": "HIP-19518116",
+  "policy_name": "Hip Arthroscopy Procedures",
+  "rule_sets": [
+    {
+      "rule_set_id": "hip_arthroscopy",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "29860",
+            "29861",
+            "29862",
+            "29863",
+            "27299",
+            "29916",
+            "29999"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "mcg_guideline_determination",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "mcg_guideline_reference",
+              "operator": "EQUAL",
+              "value": "MCG Hip Arthroscopy KP-S-572 02012025"
+            }
+          ]
+        }
+      ],
+      "exclusions": [],
+      "documentation_requirements": [
+        "Last 6 months of clinical notes from requesting provider &/or specialist"
+      ]
+    },
+    {
+      "rule_set_id": "fai_procedures",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "27299",
+            "29914",
+            "29915"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "fai_medical_necessity_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "skeletal_maturity",
+              "operator": "EQUAL",
+              "value": "skeletally mature"
+            },
+            {
+              "field": "mechanical_symptoms",
+              "operator": "EQUAL",
+              "value": "Mechanical symptoms of the hip (e.g., catching, locking, or giving way) associated with moderate-to-severe, groin-dominant hip pain"
+            },
+            {
+              "field": "pain_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months"
+            },
+            {
+              "field": "pain_aggravation",
+              "operator": "EQUAL",
+              "value": "worsened by flexion activities (e.g., squatting or prolonged sitting) and significantly limits activities"
+            },
+            {
+              "field": "positive_provocative_tests",
+              "operator": "SOME",
+              "value": [
+                "Anterior impingement sign (i.e., hip or groin pain with forced hip flexion, adduction, and internal rotation)",
+                "FABER test (i.e., hip or groin pain with forced flexion, abduction, and external rotation)",
+                "Fitzgerald test (i.e., hip or groin pain with extension, internal rotation, and adduction from forced hip flexion, abduction, and external rotation or with extension, external rotation, and abduction from forced hip flexion, adduction, and internal rotation)"
+              ]
+            },
+            {
+              "field": "imaging_confirmation",
+              "operator": "SOME",
+              "value": [
+                "cam impingement (alpha angle greater than 50 degrees)",
+                "pincer impingement (acetabular retroversion or coxa profunda) (center edge angle greater than or equal to 40 degrees)",
+                "pistol grip deformity (non-spherical femoral head shape)"
+              ]
+            },
+            {
+              "field": "conservative_treatment_failure_or_contraindicated",
+              "operator": "EQUAL",
+              "value": "Failure to respond to all available conservative treatment options (activity modification, pharmacological intervention, and physical therapy) or documentation that conservative therapy is contraindicated"
+            },
+            {
+              "field": "conservative_treatment_duration",
+              "operator": ">=",
+              "value": 12,
+              "unit": "weeks"
+            },
+            {
+              "field": "formal_physical_therapy_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "weeks"
+            },
+            {
+              "field": "intra_articular_injection_response",
+              "operator": "EQUAL",
+              "value": "Positive but transient response to an image-guided intra-articular hip injection with local anesthetic with or without corticosteroid"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "field": "tonnis_grade_2_osteoarthritis",
+          "operator": "EQUAL",
+          "value": "Tönnis grade 2 osteoarthritis (i.e., small cysts in femoral head or acetabulum with moderate joint space narrowing [i.e., < 2mm wide on plain radiographs of the pelvis] and moderate loss of femoral head sphericity)"
+        },
+        {
+          "field": "tonnis_grade_3_osteoarthritis",
+          "operator": "EQUAL",
+          "value": "Tönnis grade 3 osteoarthritis (i.e., large cysts in the femoral head or acetabulum, severe joint space narrowing [e.g., bone-on-bone] or obliteration of the joint space, and severe deformity and loss of sphericity of the femoral head)"
+        },
+        {
+          "field": "joint_space_narrowing",
+          "operator": "EQUAL",
+          "value": "Joint space narrowing on plain radiograph of less than 2 mm wide anywhere along the sourcil"
+        },
+        {
+          "field": "generalized_joint_laxity",
+          "operator": "EQUAL",
+          "value": "Generalized joint laxity especially in diseases connected with hypermobility of the joints, such as Marfan syndrome and Ehlers-Danlos syndrome"
+        },
+        {
+          "field": "osteogenesis_imperfecta",
+          "operator": "EQUAL",
+          "value": "Osteogenesis imperfecta"
+        }
+      ],
+      "documentation_requirements": [
+        "Last 6 months of clinical notes from requesting provider &/or specialist"
+      ]
+    }
+  ]
+}

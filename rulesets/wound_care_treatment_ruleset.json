@@ -1,0 +1,703 @@
+{
+  "policy_id": "WOU-01634634",
+  "policy_name": "Wound Care Treatments",
+  "rule_sets": [
+    {
+      "rule_set_id": "skin_substitutes_medically_necessary",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "Q4102",
+            "Q4104",
+            "Q4105",
+            "Q4108",
+            "Q4110",
+            "Q4124",
+            "Q4128",
+            "Q4137",
+            "Q4139",
+            "Q4151",
+            "Q4168",
+            "A2011",
+            "A2012",
+            "A2013",
+            "A4100",
+            "Q4224",
+            "Q4225",
+            "Q4256",
+            "Q4257",
+            "Q4258"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "diabetic_foot_ulcers",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "diagnosis",
+              "operator": "IN",
+              "value": [
+                "Diabetes mellitus type 1",
+                "Diabetes mellitus type 2"
+              ]
+            },
+            {
+              "field": "adequate_blood_supply",
+              "operator": "EQUALS",
+              "value": "palpable pedal pulse or ankle-brachial index (ABI) >= 0.70"
+            },
+            {
+              "field": "ankle_brachial_index",
+              "operator": ">=",
+              "value": 0.7
+            },
+            {
+              "field": "conventional_wound_care_and_glycemic_management",
+              "operator": "EQUALS",
+              "value": "receiving and to continue during treatment"
+            },
+            {
+              "field": "ulcer_type",
+              "operator": "EQUALS",
+              "value": "Full-thickness foot ulcer"
+            },
+            {
+              "field": "ulcer_location",
+              "operator": "IN",
+              "value": [
+                "plantar",
+                "medial",
+                "lateral"
+              ]
+            },
+            {
+              "field": "exposure_of_tendon_muscle_capsule_bone",
+              "operator": "EQUALS",
+              "value": false
+            },
+            {
+              "field": "allergy_to_bovine_products",
+              "operator": "EQUALS",
+              "value": false
+            },
+            {
+              "field": "no_response_to_consistent_conventional_therapy_duration",
+              "operator": ">=",
+              "value": 4,
+              "unit": "weeks"
+            },
+            {
+              "field": "conventional_therapy_includes",
+              "operator": "ALL",
+              "value": [
+                "No weight-bearing (off loading)",
+                "Optimal glycemic management",
+                "Dressing that promote moist wound healing",
+                "Serial debridement as clinically indicated"
+              ]
+            },
+            {
+              "field": "wound_infection_growth",
+              "operator": "<=",
+              "value": "3+ growth on semi-quantitative wound culture"
+            },
+            {
+              "field": "slough_or_eschar_in_wound_bed",
+              "operator": "EQUALS",
+              "value": false
+            },
+            {
+              "field": "approved_product",
+              "operator": "IN",
+              "value": [
+                "AmnioExcell amniotic allograph",
+                "AmnioMatrix amniotic allograft",
+                "AmnioExcell plus placental allograph",
+                "AlloPatch Pliable Allograft Dermal Matrix",
+                "AmnioBand Membrane Allograft Placental Matrix",
+                "AmnioBand Particulate Allograft Placental Matrix",
+                "AmnioBand Viable Allograft Placental Matrix",
+                "Oasis Ultra tri-layer Matrix",
+                "Oasis Wound Matrix Fenestrated",
+                "Integra Wound Matrix",
+                "PriMatrix",
+                "PriMatrix Fenestrated",
+                "PriMatrix Meshed",
+                "PriMatrix Ag",
+                "Integra Meshed Dermal Regeneration",
+                "Integra Meshed Bilayer Wound Matrix"
+              ]
+            }
+          ],
+          "exceptions": [
+            {
+              "description": "Other causes of neuropathy may be approved on a case by case basis by a medical director"
+            }
+          ]
+        },
+        {
+          "pathway_id": "venous_insufficiency_ulcers",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "diagnosis",
+              "operator": "EQUALS",
+              "value": "Venous insufficiency ulcer"
+            },
+            {
+              "field": "adequate_blood_supply",
+              "operator": "EQUALS",
+              "value": "palpable pedal pulse or ankle-brachial index (ABI) >= 0.70"
+            },
+            {
+              "field": "ankle_brachial_index",
+              "operator": ">=",
+              "value": 0.7
+            },
+            {
+              "field": "concurrent_conventional_wound_care_duration",
+              "operator": ">=",
+              "value": 4,
+              "unit": "weeks"
+            },
+            {
+              "field": "concurrent_conventional_wound_care_includes",
+              "operator": "ALL",
+              "value": [
+                "compression of extremity (e.g. compression stocking, ace bandage, lymphedema pump)"
+              ]
+            },
+            {
+              "field": "concurrent_optimal_glycemic_management_if_diabetic",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "ulcer_type",
+              "operator": "EQUALS",
+              "value": "Full-thickness ulcer due to venous insufficiency"
+            },
+            {
+              "field": "allergy_to_bovine_porcine_ovine_products",
+              "operator": "EQUALS",
+              "value": false
+            },
+            {
+              "field": "no_response_to_conventional_therapy_includes",
+              "operator": "ALL",
+              "value": [
+                "Dressing that promote moist wound healing",
+                "Serial debridement as clinically indicated",
+                "Compression"
+              ]
+            },
+            {
+              "field": "wound_infection_growth",
+              "operator": "<=",
+              "value": "3+ growth on semi-quantitative wound culture"
+            },
+            {
+              "field": "slough_or_eschar_in_wound_bed",
+              "operator": "EQUALS",
+              "value": false
+            },
+            {
+              "field": "approved_product",
+              "operator": "IN",
+              "value": [
+                "AmnioExcell amniotic allograph",
+                "AmnioMatrix amniotic allograft",
+                "AmnioExcell plus placental allograph",
+                "AlloPatch Pliable Allograft Dermal Matrix",
+                "AmnioBand Membrane Allograft Placental Matrix",
+                "AmnioBand Particulate Allograft Placental Matrix",
+                "AmnioBand Viable Allograft Placental Matrix",
+                "Oasis Ultra tri-layer Matrix",
+                "Oasis Wound Matrix Fenestrated",
+                "Integra Wound Matrix",
+                "PriMatrix",
+                "PriMatrix Fenestrated",
+                "PriMatrix Meshed",
+                "PriMatrix Ag",
+                "Integra Meshed Dermal Regeneration",
+                "Integra Meshed Bilayer Wound Matrix"
+              ]
+            }
+          ]
+        },
+        {
+          "pathway_id": "medicare_ambulatory_surgery_center",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUALS",
+              "value": "Medicare"
+            },
+            {
+              "field": "place_of_service",
+              "operator": "EQUALS",
+              "value": "Ambulatory Surgery Center (ASC)"
+            },
+            {
+              "field": "separately_billable",
+              "operator": "EQUALS",
+              "value": false
+            },
+            {
+              "field": "medical_review_required",
+              "operator": "EQUALS",
+              "value": false
+            }
+          ]
+        },
+        {
+          "pathway_id": "medicare_outpatient_hospital_or_clinic",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUALS",
+              "value": "Medicare"
+            },
+            {
+              "field": "place_of_service",
+              "operator": "IN",
+              "value": [
+                "outpatient hospital",
+                "clinic"
+              ]
+            },
+            {
+              "field": "separately_billable",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "medical_necessity_criteria",
+              "operator": "EQUALS",
+              "value": "Refer to Non-Medicare Skin Substitutes criteria"
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    },
+    {
+      "rule_set_id": "skin_substitutes_not_medically_necessary",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "A2002",
+            "A2003",
+            "A2004",
+            "A2005",
+            "A2006",
+            "A2007",
+            "A2008",
+            "A2009",
+            "A2010",
+            "A2014",
+            "A2015",
+            "A2016",
+            "A2017",
+            "A2018",
+            "A2019",
+            "A2020",
+            "A2021",
+            "A2026",
+            "A2027",
+            "A2028",
+            "A2029",
+            "C9358",
+            "C9360",
+            "C9361",
+            "C9363",
+            "C9364",
+            "Q4100",
+            "Q4101",
+            "Q4103",
+            "Q4106",
+            "Q4107",
+            "Q4111",
+            "Q4112",
+            "Q4113",
+            "Q4114",
+            "Q4115",
+            "Q4116",
+            "Q4117",
+            "Q4118",
+            "Q4121",
+            "Q4122",
+            "Q4123",
+            "Q4125",
+            "Q4126",
+            "Q4127",
+            "Q4130",
+            "Q4132",
+            "Q4133",
+            "Q4134",
+            "Q4135",
+            "Q4136",
+            "Q4138",
+            "Q4140",
+            "Q4141",
+            "Q4142",
+            "Q4143",
+            "Q4145",
+            "Q4146",
+            "Q4147",
+            "Q4148",
+            "Q4149",
+            "Q4150",
+            "Q4152",
+            "Q4153",
+            "Q4154",
+            "Q4155",
+            "Q4156",
+            "Q4157",
+            "Q4158",
+            "Q4159",
+            "Q4160",
+            "Q4161",
+            "Q4162",
+            "Q4163",
+            "Q4164",
+            "Q4165",
+            "Q4166",
+            "Q4167",
+            "Q4169",
+            "Q4170",
+            "Q4171",
+            "Q4173",
+            "Q4174",
+            "Q4175",
+            "Q4176",
+            "Q4177",
+            "Q4178",
+            "Q4179",
+            "Q4180",
+            "Q4181",
+            "Q4182",
+            "Q4183",
+            "Q4184",
+            "Q4185",
+            "Q4186",
+            "Q4187",
+            "Q4188",
+            "Q4189",
+            "Q4190",
+            "Q4191",
+            "Q4192",
+            "Q4193",
+            "Q4194",
+            "Q4195",
+            "Q4196",
+            "Q4197",
+            "Q4198",
+            "Q4200",
+            "Q4201",
+            "Q4202",
+            "Q4203",
+            "Q4204",
+            "Q4205",
+            "Q4206",
+            "Q4208",
+            "Q4209",
+            "Q4211",
+            "Q4212",
+            "Q4213",
+            "Q4214",
+            "Q4215",
+            "Q4216",
+            "Q4217",
+            "Q4218",
+            "Q4219",
+            "Q4220",
+            "Q4221",
+            "Q4222",
+            "Q4226",
+            "Q4227",
+            "Q4229",
+            "Q4230",
+            "Q4231",
+            "Q4232",
+            "Q4233",
+            "Q4234",
+            "Q4235",
+            "Q4237",
+            "Q4238",
+            "Q4239",
+            "Q4240",
+            "Q4241",
+            "Q4242",
+            "Q4245",
+            "Q4246",
+            "Q4247",
+            "Q4248",
+            "Q4249",
+            "Q4250",
+            "Q4251",
+            "Q4252",
+            "Q4253",
+            "Q4254",
+            "Q4255",
+            "Q4259",
+            "Q4260",
+            "Q4261",
+            "Q4262",
+            "Q4263",
+            "Q4264",
+            "Q4265",
+            "Q4266",
+            "Q4267",
+            "Q4268",
+            "Q4269",
+            "Q4270",
+            "Q4271",
+            "A2001",
+            "Q4199",
+            "Q4272",
+            "Q4273",
+            "Q4274",
+            "Q4275",
+            "Q4276",
+            "Q4278",
+            "Q4280",
+            "Q4281",
+            "Q4282",
+            "Q4283",
+            "Q4284",
+            "Q4279",
+            "Q4287",
+            "Q4288",
+            "Q4289",
+            "Q4290",
+            "Q4291",
+            "Q4292",
+            "Q4293",
+            "Q4294",
+            "Q4295",
+            "Q4296",
+            "Q4297",
+            "Q4298",
+            "Q4299",
+            "Q4300",
+            "Q4301",
+            "Q4302",
+            "Q4303",
+            "Q4304",
+            "Q4305",
+            "Q4306",
+            "Q4307",
+            "Q4308",
+            "Q4309",
+            "Q4311",
+            "Q4312",
+            "Q4313",
+            "Q4314",
+            "Q4315",
+            "Q4316",
+            "Q4317",
+            "Q4318",
+            "Q4319",
+            "Q4320",
+            "Q4321",
+            "Q4322",
+            "Q4323",
+            "Q4324",
+            "Q4325",
+            "Q4326",
+            "Q4327",
+            "Q4328",
+            "Q4329",
+            "Q4330",
+            "Q4331",
+            "Q4332",
+            "Q4333",
+            "Q4334",
+            "Q4335",
+            "Q4336",
+            "Q4337",
+            "Q4338",
+            "Q4339",
+            "Q4340",
+            "Q4341",
+            "Q4342",
+            "Q4343",
+            "Q4344",
+            "Q4345",
+            "Q4346",
+            "Q4347",
+            "Q4348",
+            "Q4349",
+            "Q4350",
+            "Q4351",
+            "Q4352",
+            "Q4353"
+          ]
+        }
+      },
+      "pathways": [],
+      "exclusions": [
+        {
+          "exclusion_id": "not_medically_necessary_skin_substitutes",
+          "description": "Considered not medically necessary"
+        }
+      ]
+    },
+    {
+      "rule_set_id": "noncontact_normothermic_wound_therapy",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "A6000",
+            "E0231",
+            "E0232"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_non_coverage",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUALS",
+              "value": "Medicare"
+            },
+            {
+              "field": "covered",
+              "operator": "EQUALS",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "not_medically_necessary_per_mcg",
+          "description": "This service is not medically necessary per MCG A-0351"
+        }
+      ],
+      "documentation_requirements": [
+        {
+          "description": "Last 6 months of clinical notes from requesting provider &/or specialist"
+        }
+      ]
+    },
+    {
+      "rule_set_id": "electrical_stimulation_and_electromagnetic_therapy",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "E0761",
+            "E0769",
+            "G0281",
+            "G0282",
+            "G0295",
+            "G0329"
+          ]
+        }
+      },
+      "pathways": [],
+      "exclusions": [
+        {
+          "exclusion_id": "not_medically_necessary_per_mcg",
+          "description": "This service is not medically necessary per MCG A-0242"
+        }
+      ],
+      "documentation_requirements": [
+        {
+          "description": "Last 6 months of clinical notes from requesting provider &/or specialist"
+        }
+      ]
+    },
+    {
+      "rule_set_id": "low_frequency_noncontact_nonthermal_ultrasound_wound_therapy",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "97610"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_members",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUALS",
+              "value": "Medicare"
+            },
+            {
+              "field": "medicare_criteria_met",
+              "operator": "EQUALS",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "non_medicare_not_medically_necessary",
+          "description": "Non-Medicare - Considered not medically necessary"
+        }
+      ]
+    },
+    {
+      "rule_set_id": "maggot_debridement_therapy",
+      "match_criteria": {
+        "service_name": {
+          "operator": "EQUALS",
+          "value": "Maggot Debridement Therapy (MDT)"
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "no_review_required",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "medical_necessity_review_required",
+              "operator": "EQUALS",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    },
+    {
+      "rule_set_id": "medicare_infrared_therapy_devices",
+      "match_criteria": {
+        "service_name": {
+          "operator": "EQUALS",
+          "value": "Infrared Therapy Devices"
+        }
+      },
+      "pathways": [],
+      "exclusions": [
+        {
+          "exclusion_id": "medicare_non_coverage",
+          "description": "This service is not covered per Medicare criteria"
+        }
+      ]
+    }
+  ]
+}

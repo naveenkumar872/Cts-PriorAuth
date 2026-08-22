@@ -1,0 +1,61 @@
+{
+  "policy_id": "JAW-37632548",
+  "policy_name": "Jaw Motion Rehabilitation Device (Jaw Stretch Device)",
+  "rule_sets": [
+    {
+      "rule_set_id": "jaw_motion_rehabilitation_rules",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "E1700",
+            "E1701",
+            "E1702"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "mandibular_hypomobility_due_to_radiation_therapy",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "clinical_condition",
+              "operator": "EQUALS",
+              "value": "mandibular hypomobility"
+            },
+            {
+              "field": "cause_of_condition",
+              "operator": "EQUALS",
+              "value": "radiation therapy"
+            },
+            {
+              "field": "patient_diagnosis",
+              "operator": "EQUALS",
+              "value": "head and neck cancer"
+            },
+            {
+              "field": "clinical_notes_from_requesting_provider_and_or_specialist",
+              "operator": "PROVIDE_LAST",
+              "value": 6,
+              "unit": "months"
+            },
+            {
+              "field": "radiology_notes_if_applicable",
+              "operator": "PROVIDE_LAST",
+              "value": 6,
+              "unit": "months"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "other_indications",
+          "description": "Not medically necessary for any other indication other than mandibular hypomobility caused by radiation therapy in persons with head and neck cancer."
+        }
+      ]
+    }
+  ]
+}

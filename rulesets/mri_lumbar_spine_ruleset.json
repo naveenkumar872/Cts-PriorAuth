@@ -1,0 +1,245 @@
+{
+  "policy_id": "MRI-69575638",
+  "policy_name": "Lumbar Spine MRI Clinical Review Criteria",
+  "rule_sets": [
+    {
+      "rule_set_id": "non_medicare_lumbar_spine_mri",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "72148",
+            "72149",
+            "72158"
+          ]
+        }
+      },
+      "exclusions": [
+        {
+          "exclusion_id": "uncomplicated_acute_low_back_pain",
+          "description": "Uncomplicated acute (<6 weeks) low back pain with or without suspected radiculopathy (no red flags) does not warrant the use of MRI, X-ray, CT, myelography or CT xylography, NUC Tc-99m bone scan with SPECT."
+        },
+        {
+          "exclusion_id": "functional_mri",
+          "description": "Functional MRI is not covered except for Presurgical Planning Policy."
+        },
+        {
+          "exclusion_id": "multiple_sclerosis",
+          "description": "There is no indication for Lumbar MRI for initial or subsequent evaluation of suspected or confirmed MS."
+        }
+      ],
+      "pathways": [
+        {
+          "pathway_id": "acute_low_back_pain_with_red_flags",
+          "description": "Acute low back pain (onset within past 6 weeks) with one or more red flag conditions",
+          "logic": "ANY",
+          "conditions": [
+            {
+              "field": "progressive_neurological_signs",
+              "operator": "EQUAL",
+              "value": "progressive motor weakness present on repeat in-person examination"
+            },
+            {
+              "field": "suspected_cauda_equina_syndrome",
+              "operator": "EQUAL",
+              "value": "new onset bilateral neurologic signs and symptoms of cauda equina (e.g., saddle numbness with acute bladder or bowel dysfunction)"
+            },
+            {
+              "field": "spine_infection_suspicion",
+              "operator": "ALL",
+              "value": [
+                "Strong clinical suspicion of spine infection",
+                "Two or more of: Fever, Immunosuppression (e.g., chronic steroid use, diabetes), IV drug use, Known bacteremia, Elevated sedimentation rate/c-reactive protein"
+              ]
+            },
+            {
+              "field": "neoplastic_process_evaluation",
+              "operator": "ANY",
+              "value": [
+                "Confirmed cancer (active or in remission) of a type likely to involve or spread to the skeletal system AND (Non-diagnostic plain films and CT OR Evidence of bony pathology on plain films or CT)",
+                "Suspected Cancer with non-diagnostic plain films and CT AND Two of: Unexplained weight loss, Age over 50, Failure of back pain to improve after one month"
+              ]
+            },
+            {
+              "field": "vertebral_compression_fracture_evaluation",
+              "operator": "ANY",
+              "value": [
+                "Suspected vertebral fracture in a patient with pain and non-diagnostic plain films and CT AND (Osteoporosis OR Age >70 years with other acute fracture(s))",
+                "Confirmed vertebral compression fracture by plain films or CT AND (Signs or symptoms of acute cord or cauda equina compression due to retropulsion OR Signs or symptoms of acute nerve root impingement due to retropulsion OR Pathologic fracture suspected OR Preoperative planning for vertebral augmentation)"
+              ]
+            }
+          ]
+        },
+        {
+          "pathway_id": "subacute_low_back_pain",
+          "description": "Subacute Low back pain >6 weeks",
+          "logic": "ANY",
+          "conditions": [
+            {
+              "field": "conservative_treatment_and_clinical_criteria",
+              "operator": "ALL",
+              "value": [
+                "At least 6 weeks medical/conservative treatment (must include at least 4 weeks of physical therapy, including an initial evaluation with PT and at least one follow up, within the last 3 months) for current episode of back pain with no significant improvement",
+                "ONE or more of: (1) Criteria under acute low back pain met, (2) Suspected radiculopathy with lower extremity pain > back pain in nerve root distribution AND (Positive supine straight leg raising test >30 degrees and <70 degrees or positive crossed straight leg raising test OR Motor weakness or sensory loss in a radicular distribution OR EMG/NCS confirms acute radiculopathy), (3) Strong clinical suspicion of lumbar spinal stenosis with documentation of neurogenic claudication"
+              ]
+            },
+            {
+              "field": "urgent_intervention_need",
+              "operator": "EQUAL",
+              "value": "Patient's clinical presentation indicates need for urgent surgery or other intensive intervention as determined by a surgeon or interventional specialist, even without 6 weeks of conservative/medical treatment"
+            }
+          ]
+        },
+        {
+          "pathway_id": "chronic_low_back_pain_no_prior_mri",
+          "description": "Chronic low back pain (> 3 months) with no prior MRI of lumbar spine",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "conservative_treatment_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "weeks"
+            },
+            {
+              "field": "physical_therapy_duration",
+              "operator": ">=",
+              "value": 4,
+              "unit": "weeks"
+            },
+            {
+              "field": "physical_therapy_timeframe",
+              "operator": "<=",
+              "value": 6,
+              "unit": "months"
+            },
+            {
+              "field": "physical_therapy_visits",
+              "operator": "EQUAL",
+              "value": "includes an initial evaluation with PT and at least one follow up"
+            },
+            {
+              "field": "clinical_criteria",
+              "operator": "ANY",
+              "value": [
+                "Any of the criteria under subacute low back pain met",
+                "Lack of improvement accompanied by severe functional impairments",
+                "Patient's clinical presentation indicates need for surgery or other invasive intervention as determined by a surgeon or interventional specialist"
+              ]
+            }
+          ]
+        },
+        {
+          "pathway_id": "chronic_low_back_pain_with_prior_mri",
+          "description": "Chronic low back pain (> 3 months) with prior MRI of lumbar spine",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "conservative_treatment_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "weeks"
+            },
+            {
+              "field": "physical_therapy_duration",
+              "operator": ">=",
+              "value": 4,
+              "unit": "weeks"
+            },
+            {
+              "field": "physical_therapy_timeframe",
+              "operator": "<=",
+              "value": 6,
+              "unit": "months"
+            },
+            {
+              "field": "physical_therapy_visits",
+              "operator": "EQUAL",
+              "value": "includes an initial evaluation with PT and at least one follow up therapy visit"
+            },
+            {
+              "field": "clinical_criteria",
+              "operator": "ANY",
+              "value": [
+                "Patient has not been determined to be a surgical candidate in the past AND (Documented objective worsening of neurological status on current physical exam OR electrodiagnostic testing confirming new radiculopathy)",
+                "Patient has been determined to be a definite candidate for spine surgery by neurosurgery/orthopedics AND (Progressive changes in objective neurological findings OR (If no objective neurological findings) the surgeon is requesting another MRI prior to surgery and it has been at least 1 year since last lumbar MRI)",
+                "Prior lumbar surgery with ONE or more of: Objective and/or new or worsening neurological signs on physical exam, Plain radiography OR clinical findings suggest new adverse effects of surgery, New changes to electrodiagnostic studies"
+              ]
+            }
+          ]
+        },
+        {
+          "pathway_id": "suspected_ankylosing_spondylitis",
+          "description": "Suspected Ankylosing Spondylitis (AS)",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "radiographs_status",
+              "operator": "EQUAL",
+              "value": "not diagnostic"
+            },
+            {
+              "field": "inflammatory_back_pain_duration",
+              "operator": ">=",
+              "value": 3,
+              "unit": "months"
+            },
+            {
+              "field": "inflammatory_back_pain_features",
+              "operator": ">=",
+              "value": 4,
+              "unit": "features",
+              "details": "Features include: Patient is younger than age 40, Insidious (gradual) onset, Improvement with exercise, No improvement with rest, Pain at night that improves on getting up"
+            },
+            {
+              "field": "ordered_by",
+              "operator": "EQUAL",
+              "value": "ordered by or in conjunction with a Rheumatologist"
+            }
+          ]
+        },
+        {
+          "pathway_id": "confirmed_ankylosing_spondylitis",
+          "description": "Confirmed Ankylosing Spondylitis (AS) diagnosis",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "ordered_by",
+              "operator": "EQUAL",
+              "value": "ordered by the patient's managing Rheumatologist"
+            },
+            {
+              "field": "disease_activity",
+              "operator": "EQUAL",
+              "value": "unclear disease activity after full clinical and laboratory evaluation"
+            },
+            {
+              "field": "treatment_impact",
+              "operator": "EQUAL",
+              "value": "progression on MRI will lead to a change of biologic drug or cessation of biologic therapy"
+            }
+          ]
+        },
+        {
+          "pathway_id": "oncologic_staging_or_restaging",
+          "description": "Oncologic staging or restaging for a known or suspected neoplastic process",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "neoplastic_process_status",
+              "operator": "EQUAL",
+              "value": "known or suspected neoplastic process (based on pathology findings or another imaging study) involving the spine or associated structures"
+            }
+          ]
+        }
+      ],
+      "documentation_requirements": [
+        {
+          "requirement_id": "clinical_notes",
+          "description": "Last 6 months of clinical notes from requesting provider &/or specialist"
+        }
+      ]
+    }
+  ]
+}

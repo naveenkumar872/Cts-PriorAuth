@@ -1,0 +1,330 @@
+{
+  "policy_id": "ENT-77529174",
+  "policy_name": "Clinical Review Criteria: Enteral Formula",
+  "medicare_members": {
+    "local_coverage_determinations": [
+      {
+        "lcd_id": "L38955",
+        "title": "Enteral Nutrition"
+      }
+    ],
+    "local_coverage_articles": [
+      {
+        "article_id": "A58833",
+        "title": "Enteral Nutrition"
+      }
+    ]
+  },
+  "rule_sets": [
+    {
+      "rule_set_id": "non_medicare_enteral_formula",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "B4153",
+            "B4161",
+            "B4157",
+            "B4162",
+            "B4150",
+            "B4152",
+            "B4158",
+            "B4159",
+            "B4160",
+            "B4102",
+            "B4103",
+            "B4105",
+            "B4149",
+            "B4154",
+            "B4155"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "nutritional_replacement_therapy_elemental",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "formula_type",
+              "operator": "EQUALS",
+              "value": "elemental"
+            },
+            {
+              "field": "diagnosis",
+              "operator": "IN",
+              "value": [
+                "Crohn’s Disease",
+                "Inflammatory Bowel Disease",
+                "Short Bowel Syndrome",
+                "Eosinophilic gastrointestinal associated disorders"
+              ]
+            },
+            {
+              "field": "icd_10_code",
+              "operator": "IN",
+              "value": [
+                "K20.0",
+                "K52.81",
+                "K52.82"
+              ],
+              "notes": "Applicable for Eosinophilic Gastrointestinal Associated Diseases"
+            },
+            {
+              "field": "intended_for_home_use",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "managed_by",
+              "operator": "EQUALS",
+              "value": "Gastroenterologist"
+            },
+            {
+              "field": "evaluated_and_followed_by",
+              "operator": "EQUALS",
+              "value": "Registered Dietitian"
+            },
+            {
+              "field": "elemental_total_nutritional_replacement_percentage",
+              "operator": "IN_RANGE",
+              "value": "80 - 100% of diet or 80% or greater of the daily dietary requirements"
+            },
+            {
+              "field": "alternative_approaches_status",
+              "operator": "EQUALS",
+              "value": "Alternative approaches, other than use of an elemental formula, have not resulted in adequate nutrition and control of symptoms"
+            },
+            {
+              "field": "administration_tolerance",
+              "operator": "OR",
+              "conditions": [
+                {
+                  "field": "able_to_tolerate_oral_supplementation",
+                  "operator": "EQUALS",
+                  "value": true
+                },
+                {
+                  "field": "unable_to_tolerate_oral_supplementation_requirements",
+                  "operator": "ALL",
+                  "conditions": [
+                    {
+                      "field": "demonstrate_ability_to_place_nasogastric_tube_or_manage_surgically_placed_feeding_tube",
+                      "operator": "EQUALS",
+                      "value": true
+                    },
+                    {
+                      "field": "demonstrate_ability_to_regulate_flow_via_gravity_drip_or_pump",
+                      "operator": "EQUALS",
+                      "value": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "pathway_id": "nutritional_supplementation_therapy_elemental",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "formula_type",
+              "operator": "EQUALS",
+              "value": "elemental"
+            },
+            {
+              "field": "diagnosis",
+              "operator": "IN",
+              "value": [
+                "Crohn’s Disease",
+                "Inflammatory Bowel Disease",
+                "Short Bowel Syndrome",
+                "Cystic Fibrosis involving the intestine",
+                "Eosinophilic gastrointestinal associated disorders"
+              ]
+            },
+            {
+              "field": "icd_10_code",
+              "operator": "IN",
+              "value": [
+                "K20.0",
+                "K52.81",
+                "K52.82"
+              ],
+              "notes": "Applicable for Eosinophilic Gastrointestinal Associated Diseases"
+            },
+            {
+              "field": "intended_for_home_use",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "growth_failure_retardation_or_cachexia_documented",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "managed_by",
+              "operator": "EQUALS",
+              "value": "Gastroenterologist"
+            },
+            {
+              "field": "evaluated_and_followed_by",
+              "operator": "EQUALS",
+              "value": "Registered Dietitian"
+            },
+            {
+              "field": "other_therapies_status",
+              "operator": "EQUALS",
+              "value": "Other therapies, such as medication, have not resulted in adequate nutrition/weight gain"
+            },
+            {
+              "field": "administration_tolerance",
+              "operator": "OR",
+              "conditions": [
+                {
+                  "field": "able_to_tolerate_oral_supplementation",
+                  "operator": "EQUALS",
+                  "value": true
+                },
+                {
+                  "field": "unable_to_tolerate_oral_supplementation_requirements",
+                  "operator": "ALL",
+                  "conditions": [
+                    {
+                      "field": "demonstrate_ability_to_place_nasogastric_tube_or_manage_surgically_placed_feeding_tube",
+                      "operator": "EQUALS",
+                      "value": true
+                    },
+                    {
+                      "field": "demonstrate_ability_to_regulate_flow_via_gravity_drip_or_pump",
+                      "operator": "EQUALS",
+                      "value": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "pathway_id": "oral_nutrition_or_supplements_non_elemental_inborn_errors_of_metabolism",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "formula_type",
+              "operator": "EQUALS",
+              "value": "non-elemental"
+            },
+            {
+              "field": "diagnosis",
+              "operator": "IN",
+              "value": [
+                "Phenylketonuria [PKU]",
+                "Maple syrup urine disease (MSUD)",
+                "Homocystinuria",
+                "Histidinemia",
+                "Tyrosinemia",
+                "Glycogen Storage Type II Syndrome (GSD II or Pompe disease)"
+              ]
+            },
+            {
+              "field": "intended_for_home_use",
+              "operator": "EQUALS",
+              "value": true,
+              "notes": "not for use in the hospital or nursing facility"
+            }
+          ]
+        },
+        {
+          "pathway_id": "non_elemental_formula_tube_feeding",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "formula_type",
+              "operator": "EQUALS",
+              "value": "non-elemental"
+            },
+            {
+              "field": "requires_tube_feeding",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "anatomical_or_motility_condition",
+              "operator": "EQUALS",
+              "value": "Non-function or disease of the structures that normally permit food to reach the small bowel"
+            },
+            {
+              "field": "requires_tube_feeding_to_maintain_weight_and_strength",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "anticipated_duration",
+              "operator": ">=",
+              "value": 3,
+              "unit": "months",
+              "notes": "typically at least 3 months (90 days)"
+            }
+          ]
+        },
+        {
+          "pathway_id": "other_specialized_formulas",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "hcpcs_code",
+              "operator": "IN",
+              "value": [
+                "B4102",
+                "B4103",
+                "B4105",
+                "B4149",
+                "B4154",
+                "B4155"
+              ]
+            },
+            {
+              "field": "medical_necessity_documentation",
+              "operator": "EQUALS",
+              "value": "The medical record must document why the specific formula is medically necessary"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "intra_peritoneal_nutrition",
+          "description": "Intra-peritoneal nutrition is considered insufficient evidence"
+        }
+      ],
+      "documentation_requirements": [
+        {
+          "requirement_id": "clinical_notes",
+          "description": "Last 6 months of clinical notes from requesting provider &/or specialist (PCP, GI specialist)"
+        },
+        {
+          "requirement_id": "radiology_notes",
+          "description": "Last 6 months of radiology notes if applicable"
+        }
+      ],
+      "additional_rules": [
+        {
+          "rule_id": "elemental_formula_delivery_method",
+          "description": "Elemental formula can be delivered by tube only if indications in I or II above are met"
+        },
+        {
+          "rule_id": "pumps_and_associated_equipment",
+          "description": "The pumps and associated equipment are considered durable medical equipment and are covered as part of the durable medical equipment benefit"
+        },
+        {
+          "rule_id": "medicare_exclusion_for_specific_codes",
+          "description": "Codes B4102 and B4103 are not covered by Medicare"
+        }
+      ]
+    }
+  ]
+}

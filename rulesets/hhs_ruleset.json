@@ -1,0 +1,60 @@
+{
+  "policy_id": "HHS-29237019",
+  "policy_name": "Home Care Services Criteria",
+  "rule_sets": [
+    {
+      "rule_set_id": "home_care_services_criteria_ruleset",
+      "match_criteria": {
+        "service_name": {
+          "operator": "EQUAL",
+          "value": "Home Care Services"
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_members_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUAL",
+              "value": "Medicare"
+            },
+            {
+              "field": "applicable_guideline",
+              "operator": "EQUAL",
+              "value": "CMS Coverage Manuals Medicare Benefit Policy Manual Chapter 7 Home Health Services"
+            }
+          ]
+        },
+        {
+          "pathway_id": "non_medicare_members_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "NOT_EQUAL",
+              "value": "Medicare"
+            },
+            {
+              "field": "applicable_guideline",
+              "operator": "EQUAL",
+              "value": "MCG Home Care Guidelines"
+            },
+            {
+              "field": "social_work_service_classification",
+              "operator": "EQUAL",
+              "value": "secondary"
+            },
+            {
+              "field": "social_work_service_classification",
+              "operator": "NOT_EQUAL",
+              "value": "primary"
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    }
+  ]
+}
