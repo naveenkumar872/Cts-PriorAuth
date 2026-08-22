@@ -1,7 +1,29 @@
-node_modules/
+# Environment
+.env
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Alembic — keep versions dir but ignore generated scripts from VCS if desired
+# alembic/versions/*.py
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Distribution
 dist/
-.next/
-coverage/
 build/
-.env*
-*.tsbuildinfo
+*.egg-info/
