@@ -277,14 +277,15 @@ export default function LandingHome() {
                 <div className="w-12 h-12 rounded-lg bg-teal-50 border border-teal-200 text-teal-600 flex items-center justify-center">
                   <Shield className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900">Payer Reviewer</h3>
+                <h3 className="text-lg font-bold text-slate-900">Insurance Payer</h3>
                 <p className="text-xs text-slate-500 leading-relaxed">
                   Manage the Clinical Review Queue, inspect RAG policy matched evidence citations, interact with the Policy AI chat assistant, and record audited approval determinations.
                 </p>
               </div>
               <button onClick={() => handlePortalRedirect("reviewer")} className="btn-secondary mt-6 text-xs justify-center w-full border-slate-200">
-                Enter Reviewer Portal <ChevronRight className="w-4 h-4" />
+                Enter Payer Portal <ChevronRight className="w-4 h-4" />
               </button>
+
             </div>
           </div>
         </div>

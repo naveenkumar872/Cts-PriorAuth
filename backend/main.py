@@ -55,6 +55,10 @@ app.include_router(context.router,     prefix="/api/v1/context",      tags=["Mod
 app.include_router(evaluation.router,  prefix="/api/v1/evaluation",   tags=["Rule-Based Evaluation"])
 app.include_router(explanation.router, prefix="/api/v1/explanation",  tags=["Module 6A Policy Evidence & Explanation"])
 
+# Top-level OAuth endpoints (Google Callback URI)
+app.add_api_route("/google/login", users.google_login, methods=["GET"], tags=["Authentication"])
+app.add_api_route("/google/callback", users.google_callback, methods=["GET", "POST"], tags=["Authentication"])
+
 
 @app.get("/", tags=["Health"])
 async def root():

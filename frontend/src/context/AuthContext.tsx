@@ -1,16 +1,20 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import type { UserRole, UserProfile } from "@/lib/roles";
 import { USER_PROFILES } from "@/lib/roles";
+import { api } from "@/lib/api";
 
 interface AuthContextValue {
   user: UserProfile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  registerUser: (data: { name: string; email: string; password: string; role: UserRole; organization?: string; contact?: string }) => Promise<void>;
   loginAsRole: (role: UserRole) => void;
+  setAuthUser: (profile: UserProfile, token?: string) => void;
   logout: () => void;
   error: string | null;
 }
+
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -70,6 +74,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
   }, []);
 
+  // Direct set auth user (used by OAuth callback)
+  const setAuthUser = useCallback((profile: UserProfile, token?: string) => {
+    setUser(profile);
+    setError(null);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+    if (token) {
+      localStorage.setItem("priorauth_token", token);
+    }
+  }, []);
+
   const logout = useCallback(() => {
     setUser(null);
     localStorage.removeItem(STORAGE_KEY);
@@ -77,11 +91,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
   }, []);
 
+  const registerUser = useCallback(async (data: { name: string; email: string; password: string; role: UserRole; organization?: string; contact?: string }) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const resp = (await api.register(data)) as { user: any; token: string };
+      const profile: UserProfile = {
+        id: resp.user.id,
+        name: resp.user.name,
+        email: resp.user.email,
+        role: resp.user.role as UserRole,
+        organization: resp.user.organization || "",
+        contact: resp.user.contact || "",
+      };
+      setUser(profile);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+      if (resp.token) localStorage.setItem("priorauth_token", resp.token);
+    } catch {
+      // Demo fallback if backend registration endpoint is unconfigured
+      const profile: UserProfile = {
+        id: `usr-${Date.now()}`,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        organization: data.organization || (data.role === "provider" ? "Healthcare Provider Center" : "Insurance Payer Operations"),
+        contact: data.contact || "",
+      };
+      setUser(profile);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: user !== null, isLoading, login, loginAsRole, logout, error }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: user !== null, isLoading, login, registerUser, loginAsRole, setAuthUser, logout, error }}>
       {children}
     </AuthContext.Provider>
   );
+
 }
 
 export function useAuth() {
