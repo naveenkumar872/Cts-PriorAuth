@@ -1,0 +1,330 @@
+{
+  "policy_id": "BAR-43479050",
+  "policy_name": "Bariatric Surgery",
+  "rule_sets": [
+    {
+      "rule_set_id": "biliopancreatic_diversion_and_sadi_s",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "43775",
+            "43845"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "bpd_sadi_s_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "patient_bmi",
+              "operator": ">",
+              "value": 50
+            },
+            {
+              "field": "documentation_height_weight_comorbid_conditions",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "level_of_care_review",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "medical_necessity_review_mcg",
+              "operator": "EQUAL",
+              "value": "Bariatric Surgery (KP-S-516 10012024) MCG"
+            },
+            {
+              "field": "documentation_gastroenterology_notes",
+              "operator": ">=",
+              "value": 2,
+              "unit": "years"
+            },
+            {
+              "field": "documentation_recent_clinical_note_from_requesting_provider",
+              "operator": "EQUAL",
+              "value": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rule_set_id": "vsg_and_rygb",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "43775",
+            "43843",
+            "43644",
+            "43645",
+            "43846",
+            "43847",
+            "43848"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "vsg_rygb_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "level_of_care_review",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "medical_necessity_review_mcg",
+              "operator": "EQUAL",
+              "value": "Bariatric Surgery (KP-S-516 10012024) MCG"
+            },
+            {
+              "field": "documentation_gastroenterology_notes",
+              "operator": ">=",
+              "value": 2,
+              "unit": "years"
+            },
+            {
+              "field": "documentation_recent_clinical_note_from_requesting_provider",
+              "operator": "EQUAL",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "field": "indication",
+          "operator": "EQUAL",
+          "value": "GERD"
+        }
+      ]
+    },
+    {
+      "rule_set_id": "adjustable_gastric_banding",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "43770",
+            "43771",
+            "43772",
+            "43773",
+            "43774",
+            "S2083"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "lap_band_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "plan_type",
+              "operator": "NOT_EQUAL",
+              "value": "Federal Plans"
+            },
+            {
+              "field": "level_of_care_review",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "medical_necessity_review_mcg",
+              "operator": "EQUAL",
+              "value": "Bariatric Surgery (KP-S-516 10012024) MCG"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "field": "plan_type",
+          "operator": "EQUAL",
+          "value": "Federal Plans"
+        }
+      ]
+    },
+    {
+      "rule_set_id": "gastric_electrical_stimulation",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "43647",
+            "43648",
+            "43659",
+            "43881",
+            "64590",
+            "64595",
+            "95980",
+            "95981",
+            "95982"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "ges_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "medical_necessity_mcg_guideline",
+              "operator": "EQUAL",
+              "value": "Gastric Stimulation (Electrical) (A-0395)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rule_set_id": "lap_band_port_revision",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "43886",
+            "43887",
+            "43888"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "non_medicare_port_revision",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUAL",
+              "value": "Non-Medicare"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "field": "member_type",
+          "operator": "EQUAL",
+          "value": "Medicare"
+        }
+      ]
+    },
+    {
+      "rule_set_id": "insufficient_evidence_procedures",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "C9784",
+            "43644",
+            "43645",
+            "43846",
+            "43847",
+            "43848",
+            "43659",
+            "C9785"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "review_documentation_requirement",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "documentation_clinical_notes",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months"
+            },
+            {
+              "field": "documentation_source",
+              "operator": "IN",
+              "value": [
+                "requesting provider",
+                "specialist"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rule_set_id": "intragastric_balloon",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "43290",
+            "43291",
+            "0813T"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "balloon_review_documentation",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "documentation_clinical_notes",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months"
+            },
+            {
+              "field": "documentation_source",
+              "operator": "IN",
+              "value": [
+                "requesting provider",
+                "specialist"
+              ]
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "field": "mcg_guideline",
+          "operator": "EQUAL",
+          "value": "A-0970"
+        }
+      ]
+    },
+    {
+      "rule_set_id": "vertical_banded_gastroplasty",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "43842"
+          ]
+        }
+      },
+      "pathways": [],
+      "exclusions": [
+        {
+          "field": "coverage_status",
+          "operator": "EQUAL",
+          "value": "Not Covered"
+        }
+      ]
+    }
+  ]
+}

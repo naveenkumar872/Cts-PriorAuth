@@ -1,0 +1,122 @@
+{
+  "policy_id": "MAS-99026069",
+  "policy_name": "Massage Therapy Clinical Review Criteria",
+  "rule_sets": [
+    {
+      "rule_set_id": "medicare_members",
+      "match_criteria": {
+        "member_type": {
+          "operator": "EQUALS",
+          "value": "Medicare"
+        },
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "97124",
+            "97140"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_physical_therapy_rehab",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "provider_type",
+              "operator": "EQUALS",
+              "value": "physical therapist"
+            },
+            {
+              "field": "plan_of_care",
+              "operator": "EQUALS",
+              "value": "rehabilitation plan of care"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "not_licensed_as_physical_therapist",
+          "description": "Massage therapy is not covered when delivered by a massage therapist who is not licensed as a physical therapist."
+        }
+      ]
+    },
+    {
+      "rule_set_id": "non_medicare_members",
+      "match_criteria": {
+        "member_type": {
+          "operator": "EQUALS",
+          "value": "Non-Medicare"
+        },
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "97124",
+            "97140"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "therapeutic_indication",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "assessment_and_diagnosis_documents_objective_physical_and_functional_limitations",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "has_physical_therapeutic_benefits",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "ordered_by_treating_physician",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "expected_significant_improvement_in_reasonable_predictable_time",
+              "operator": "EQUALS",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "terminal_illness_comfort",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "patient_is_terminally_ill",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "therapy_needed_for_comfort",
+              "operator": "EQUALS",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "prevention_recreation_stress_reduction",
+          "description": "Massage therapy is not covered when provided for prevention, recreation (spa therapy) or stress reduction."
+        },
+        {
+          "exclusion_id": "maintenance_of_functioning",
+          "description": "Massage therapy is not covered when directed at the maintenance of current level of functioning."
+        },
+        {
+          "exclusion_id": "goals_achieved_or_no_progress",
+          "description": "Massage therapy is not covered when the patient has achieved therapeutic goals or is not showing meaningful progress."
+        }
+      ]
+    }
+  ]
+}

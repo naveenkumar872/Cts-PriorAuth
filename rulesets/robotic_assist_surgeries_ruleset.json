@@ -1,0 +1,41 @@
+{
+  "policy_id": "ROB-77384245",
+  "policy_name": "Robotic Assisted Surgeries (RAS)",
+  "rule_sets": [
+    {
+      "rule_set_id": "robotic_assisted_surgeries_reimbursement_and_documentation",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "20985",
+            "0054T",
+            "0055T",
+            "S2900"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "review_request_documentation",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "clinical_notes_from_requesting_provider_and_or_specialist",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "no_separate_reimbursement",
+          "description": "Kaiser Permanente will not separately reimburse for the use of robotic surgical systems, including but not limited to the CPT/HCPCS codes listed in this document."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,209 @@
+{
+  "policy_id": "STE-84381449",
+  "policy_name": "Stem Cell Transplant/Bone Marrow Transplant",
+  "rule_sets": [
+    {
+      "rule_set_id": "stem_cell_bmt_ruleset",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "38204",
+            "38205",
+            "38206",
+            "38207",
+            "38208",
+            "38209",
+            "38210",
+            "38211",
+            "38212",
+            "38213",
+            "38214",
+            "38215",
+            "38230",
+            "38232",
+            "38240",
+            "38241",
+            "38242",
+            "S2140",
+            "S2150"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "general_eligibility_and_principles",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "uncontrollable_active_infection",
+              "operator": "EQUALS",
+              "value": false
+            },
+            {
+              "field": "history_of_substance_abuse_free_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months"
+            },
+            {
+              "field": "substance_abuse_program_evaluation",
+              "operator": "EQUALS",
+              "value": "completed"
+            },
+            {
+              "field": "social_support_system",
+              "operator": "EQUALS",
+              "value": "adequate"
+            },
+            {
+              "field": "proven_record_of_adherence_to_medical_treatment",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "willing_and_able_to_travel_short_notice_to_kp_approved_transplant_center_of_excellence",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "has_caregiver_physically_and_cognitively_able_to_assist",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "significant_irreversible_neurologic_dysfunction",
+              "operator": "EQUALS",
+              "value": false
+            },
+            {
+              "field": "active_psychological_or_psychiatric_conditions_preventing_adherence",
+              "operator": "EQUALS",
+              "value": false
+            }
+          ]
+        },
+        {
+          "pathway_id": "myeloablative_conditioning_requirements",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "heart_failure_class",
+              "operator": "NOT_IN",
+              "value": [
+                "Class III",
+                "Class IV"
+              ]
+            },
+            {
+              "field": "heart_ejection_fraction",
+              "operator": ">=",
+              "value": 45,
+              "unit": "percent"
+            },
+            {
+              "field": "lung_fev1",
+              "operator": ">=",
+              "value": 50,
+              "unit": "percent_predicted"
+            },
+            {
+              "field": "lung_dlco",
+              "operator": ">=",
+              "value": 50,
+              "unit": "percent_predicted"
+            },
+            {
+              "field": "liver_bilirubin",
+              "operator": "<=",
+              "value": 3.0
+            },
+            {
+              "field": "liver_transaminase",
+              "operator": "<=",
+              "value": 3,
+              "unit": "times_upper_limit_of_normal"
+            },
+            {
+              "field": "liver_cirrhosis",
+              "operator": "EQUALS",
+              "value": false
+            }
+          ]
+        },
+        {
+          "pathway_id": "kidney_function_myeloablative_adult",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "patient_age_group",
+              "operator": "EQUALS",
+              "value": "adult"
+            },
+            {
+              "field": "creatinine_clearance",
+              "operator": ">=",
+              "value": 60,
+              "unit": "ml/min"
+            }
+          ],
+          "exceptions": [
+            {
+              "condition": "patients with multiple myeloma and primary systemic amyloidosis undergoing autologous transplant"
+            }
+          ]
+        },
+        {
+          "pathway_id": "kidney_function_myeloablative_pediatric",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "patient_age_group",
+              "operator": "EQUALS",
+              "value": "pediatric"
+            },
+            {
+              "field": "creatinine_clearance",
+              "operator": ">=",
+              "value": 60,
+              "unit": "ml/min/1.73m2"
+            }
+          ]
+        },
+        {
+          "pathway_id": "stem_cell_storage",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "scheduled_to_receive_stem_cell_transplant",
+              "operator": "EQUALS",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "documentation_requirements",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "clinical_notes_from_requesting_provider_or_specialist",
+              "operator": "EQUALS",
+              "value": "last 6 months"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "mesenchymal_stem_cell_therapy_orthopedic",
+          "description": "Mesenchymal stem cell therapy is considered investigational for all orthopedic applications, including use in repair or regeneration of musculoskeletal tissue or joint."
+        },
+        {
+          "exclusion_id": "multiple_myeloma_tandem_transplant",
+          "description": "Tandem autologous or allogeneic transplant is generally not indicated as front-line therapy for Multiple Myeloma."
+        }
+      ]
+    }
+  ]
+}

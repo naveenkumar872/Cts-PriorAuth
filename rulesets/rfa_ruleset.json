@@ -1,0 +1,129 @@
+{
+  "policy_id": "RFA-69066189",
+  "policy_name": "Radiofrequency Ablation",
+  "rule_sets": [
+    {
+      "rule_set_id": "barretts_esophagus_rfa",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "43229",
+            "43270"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "barretts_esophagus_medical_necessity",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "diagnosis_code",
+              "operator": "IN",
+              "value": [
+                "K22.70",
+                "K22.710",
+                "K22.711",
+                "K22.719"
+              ]
+            },
+            {
+              "field": "histological_confirmation_of_low_grade_dysplasia",
+              "operator": "EQUALS",
+              "value": "true"
+            },
+            {
+              "field": "endoscopies_count",
+              "operator": ">=",
+              "value": 2
+            },
+            {
+              "field": "endoscopy_interval",
+              "operator": ">=",
+              "value": 3,
+              "unit": "months"
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    },
+    {
+      "rule_set_id": "lung_cancer_rfa",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "32998"
+          ]
+        }
+      },
+      "pathways": [],
+      "exclusions": [
+        "There is insufficient evidence in the published medical literature to show that this service/therapy is as safe as standard services/therapies and/or provides better long-term outcomes than current standard services/therapies."
+      ]
+    },
+    {
+      "rule_set_id": "transcervical_uterine_ablation_leiomyomas",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "58580"
+          ]
+        }
+      },
+      "pathways": [],
+      "exclusions": [
+        "This is not covered per MCG A-1039."
+      ]
+    },
+    {
+      "rule_set_id": "laparoscopic_rfa_uterine_fibroids",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "58674"
+          ]
+        }
+      },
+      "pathways": [],
+      "exclusions": [
+        "There is insufficient evidence in the published medical literature to show that this service/therapy is as safe as standard services/therapies and/or provides better long-term outcomes than current standard services/therapies."
+      ]
+    },
+    {
+      "rule_set_id": "renal_tumors_and_liver_cancer_rfa",
+      "match_criteria": {
+        "service_name": {
+          "coding_system": "N/A",
+          "operator": "IN",
+          "value": [
+            "Renal Tumors",
+            "Primary HCC and Metastatic Liver Cancer"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "no_review_required",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "medical_necessity_review_required",
+              "operator": "EQUALS",
+              "value": "false"
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    }
+  ]
+}

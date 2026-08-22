@@ -1,0 +1,443 @@
+{
+  "policy_id": "TRE-79441402",
+  "policy_name": "Treatments of Sleep Apnea (Surgical & Non-Surgical)",
+  "rule_sets": [
+    {
+      "rule_set_id": "pap_devices_until_oct_2026",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "E0601",
+            "E0470",
+            "E0471",
+            "E0472"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "pap_indication_1",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "AHI",
+              "operator": ">=",
+              "value": 15,
+              "unit": "events per hour"
+            },
+            {
+              "field": "polysomnography_duration",
+              "operator": ">=",
+              "value": 2,
+              "unit": "hours"
+            }
+          ]
+        },
+        {
+          "pathway_id": "pap_indication_2",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "AHI",
+              "operator": ">=",
+              "value": 5,
+              "unit": "events per hour"
+            },
+            {
+              "field": "AHI",
+              "operator": "<=",
+              "value": 15,
+              "unit": "events per hour"
+            },
+            {
+              "field": "documented_conditions",
+              "operator": "IN",
+              "value": [
+                "excessive daytime sleepiness",
+                "impaired cognition",
+                "mood disorders",
+                "insomnia",
+                "hypertension",
+                "ischemic heart disease",
+                "history of stroke"
+              ]
+            },
+            {
+              "field": "polysomnography_duration",
+              "operator": ">=",
+              "value": 2,
+              "unit": "hours"
+            }
+          ]
+        },
+        {
+          "pathway_id": "pap_indication_3",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "SACS",
+              "operator": ">",
+              "value": 15,
+              "unit": "score"
+            },
+            {
+              "field": "baseline_stanford_sleepiness_score_completed",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "auto_titration_pap_duration",
+              "operator": "==",
+              "value": 3,
+              "unit": "nights"
+            },
+            {
+              "field": "auto_titration_response",
+              "operator": "IN",
+              "value": [
+                "positive response to initial auto titration",
+                "negative response to initial auto titration with completed polysomnography test meeting indication 1 or 2"
+              ]
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    },
+    {
+      "rule_set_id": "pap_devices_effective_oct_2026",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "E0601",
+            "E0470"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "e0601_initial_coverage_1",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "AHI_or_RDI",
+              "operator": ">=",
+              "value": 15,
+              "unit": "events per hour"
+            },
+            {
+              "field": "minimum_events",
+              "operator": ">=",
+              "value": 30,
+              "unit": "events"
+            }
+          ]
+        },
+        {
+          "pathway_id": "e0601_initial_coverage_2",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "AHI_or_RDI",
+              "operator": ">=",
+              "value": 5,
+              "unit": "events per hour"
+            },
+            {
+              "field": "AHI_or_RDI",
+              "operator": "<=",
+              "value": 14,
+              "unit": "events per hour"
+            },
+            {
+              "field": "minimum_events",
+              "operator": ">=",
+              "value": 10,
+              "unit": "events"
+            },
+            {
+              "field": "documented_conditions",
+              "operator": "IN",
+              "value": [
+                "excessive daytime sleepiness",
+                "impaired cognition",
+                "mood disorders",
+                "insomnia",
+                "hypertension",
+                "ischemic heart disease",
+                "history of stroke"
+              ]
+            }
+          ]
+        },
+        {
+          "pathway_id": "e0470_initial_coverage",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "meets_e0601_criteria",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "e0601_trial_ineffective",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "continued_coverage_beyond_3_months",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "adherence_use_hours_per_night",
+              "operator": ">=",
+              "value": 4,
+              "unit": "hours"
+            },
+            {
+              "field": "adherence_percentage_of_nights",
+              "operator": ">=",
+              "value": 70,
+              "unit": "percent"
+            },
+            {
+              "field": "adherence_consecutive_period",
+              "operator": "==",
+              "value": 30,
+              "unit": "days"
+            },
+            {
+              "field": "adherence_timeframe_months",
+              "operator": "<=",
+              "value": 3,
+              "unit": "months"
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    },
+    {
+      "rule_set_id": "hypoglossal_nerve_stimulation",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "64582",
+            "64583",
+            "64584"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "hns_non_medicare",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "age",
+              "operator": ">=",
+              "value": 22,
+              "unit": "years"
+            },
+            {
+              "field": "bmi",
+              "operator": "<",
+              "value": 32,
+              "unit": "kg/m2"
+            },
+            {
+              "field": "psg_within_months_of_first_consultation",
+              "operator": "<=",
+              "value": 24,
+              "unit": "months"
+            },
+            {
+              "field": "central_and_mixed_apneas_percentage_of_total_ahi",
+              "operator": "<",
+              "value": 25,
+              "unit": "percent"
+            },
+            {
+              "field": "ahi",
+              "operator": ">=",
+              "value": 15,
+              "unit": "events per hour"
+            },
+            {
+              "field": "ahi",
+              "operator": "<=",
+              "value": 65,
+              "unit": "events per hour"
+            },
+            {
+              "field": "cpap_failure_or_intolerance",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "complete_concentric_collapse_at_soft_palate_level_on_dise",
+              "operator": "==",
+              "value": false
+            },
+            {
+              "field": "compromising_anatomical_findings",
+              "operator": "==",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "central and mixed apneas that make up more than one-quarter of the total AHI",
+        "implantable device interaction",
+        "neuromuscular disease",
+        "hypoglossal-nerve palsy",
+        "severe restrictive or obstructive pulmonary disease",
+        "moderate-to-severe pulmonary arterial hypertension",
+        "severe valvular heart disease",
+        "New York Heart Association class III or IV heart failure",
+        "recent myocardial infarction or severe cardiac arrhythmias within the past 6 months",
+        "persistent uncontrolled hypertension despite medication use",
+        "active, serious mental illness reducing ability to carry out ADLs",
+        "coexisting nonrespiratory sleep disorders",
+        "pregnancy or planning to become pregnant",
+        "require MRI with model 3024",
+        "unable or lack assistance to operate sleep remote",
+        "compromised neurological control of upper airway"
+      ]
+    },
+    {
+      "rule_set_id": "drug_induced_sleep_endoscopy",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "42975"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "dise_for_hgns_workup",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "age",
+              "operator": ">=",
+              "value": 22,
+              "unit": "years"
+            },
+            {
+              "field": "bmi",
+              "operator": "<",
+              "value": 32,
+              "unit": "kg/m2"
+            },
+            {
+              "field": "psg_within_months_of_first_consultation",
+              "operator": "<=",
+              "value": 24,
+              "unit": "months"
+            },
+            {
+              "field": "central_and_mixed_apneas_percentage_of_total_ahi",
+              "operator": "<",
+              "value": 25,
+              "unit": "percent"
+            },
+            {
+              "field": "ahi",
+              "operator": ">=",
+              "value": 15,
+              "unit": "events per hour"
+            },
+            {
+              "field": "ahi",
+              "operator": "<=",
+              "value": 65,
+              "unit": "events per hour"
+            },
+            {
+              "field": "cpap_failure_or_intolerance",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "compromising_anatomical_findings",
+              "operator": "==",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    },
+    {
+      "rule_set_id": "mandibular_advancement_devices",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "E0486",
+            "D9947",
+            "D9948",
+            "D9949"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "non_medicare_no_review_required",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "medical_review_required",
+              "operator": "==",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    },
+    {
+      "rule_set_id": "not_medically_necessary_treatments",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "C9727",
+            "S2080",
+            "41512",
+            "41530",
+            "42160",
+            "42890",
+            "42950"
+          ]
+        }
+      },
+      "pathways": [],
+      "exclusions": [
+        "Nasal Expiratory Positive Airway Pressure",
+        "Pillar Implants",
+        "Oral Pressure Therapy",
+        "Laser Treatments of Snoring",
+        "Repose",
+        "Somnoplasty",
+        "LAUP",
+        "CAPSO"
+      ]
+    }
+  ]
+}

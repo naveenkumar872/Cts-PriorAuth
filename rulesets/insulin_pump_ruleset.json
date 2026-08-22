@@ -1,0 +1,422 @@
+{
+  "policy_id": "INS-92657655",
+  "policy_name": "Insulin Pump",
+  "definitions": {
+    "diabetes_specialist": "Adult or Pediatric Endocrinologist or a provider under his or her direct supervision (eg. PA or ARNP with CDE or BC-ADM certification or Diabetes Team RN-CDE) or a Perinatologist managing a patient with diabetes during pregnancy."
+  },
+  "documentation_requirements": [
+    "Last 6 months of clinical notes from requesting provider &/or specialist (endocrinology, primary care)",
+    "Last 6 months of lab work",
+    "Last 1-2 months of legible home monitoring logs or a printout of CGM results"
+  ],
+  "rule_sets": [
+    {
+      "rule_set_id": "initial_insulin_pump_non_medicare",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "E0784",
+            "A4230",
+            "A4231",
+            "A4232",
+            "K0552",
+            "E0787",
+            "A4226",
+            "S1034",
+            "S1035",
+            "S1036",
+            "S1037"
+          ]
+        },
+        "member_type": {
+          "operator": "EQUALS",
+          "value": "Non-Medicare"
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "initial_insulin_pump_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "diagnosis",
+              "operator": "IN",
+              "value": [
+                "Type 1 diabetes of at least six months' duration",
+                "Type 2 diabetes requiring a basal/bolus insulin regimen of multiple daily injections using long-acting basal insulin and a rapid-acting analogue"
+              ],
+              "notes": "Pediatric patients under the age of 13 may waive the 6-month time period on a case-by-case basis, upon review by a clinical review medical director, if patient monitoring is occurring per the diabetes management plan outlined by an Endocrinologist."
+            },
+            {
+              "field": "referral_initiated_by",
+              "operator": "EQUALS",
+              "value": "Diabetes specialist that will manage therapy with an insulin pump"
+            },
+            {
+              "field": "specialist_documentation",
+              "operator": "ALL",
+              "value": [
+                "Assessment for clinical therapeutic value of an insulin pump",
+                "Assessment of patient pump education and skill training preparation prior to pump start (either one-on-one or within a group)",
+                "Assessment of the patient's (or caregiver's) ability to safely and appropriately participate in an insulin-pump self-management plan"
+              ]
+            },
+            {
+              "field": "prior_treatment_regimen",
+              "operator": "EQUALS",
+              "value": "Multiple daily injections (MDI) of insulin that includes a trial of both a long-acting insulin analog and a short-acting insulin analog with a plan for pre-meal short acting insulin dose adjustment"
+            },
+            {
+              "field": "prior_treatment_duration",
+              "operator": "BETWEEN",
+              "value": [
+                3,
+                6
+              ],
+              "unit": "months",
+              "notes": "Pediatric patients under the age of 13 may waive the 6-month time period on a case-by-case basis, upon review by a clinical review medical director, if patient monitoring is occurring per the diabetes management plan outlined by an Endocrinologist."
+            },
+            {
+              "field": "total_daily_insulin_requirement",
+              "operator": "<",
+              "value": 200,
+              "unit": "units"
+            },
+            {
+              "field": "glucose_monitoring_frequency",
+              "operator": ">=",
+              "value": 4,
+              "unit": "times per day",
+              "notes": "Documented logs of glucose self-testing or CGM results during the 1 month prior to consideration of an insulin pump"
+            },
+            {
+              "field": "clinical_criteria_on_mdi",
+              "operator": "ANY",
+              "value": [
+                "Recent history (within last six months) of significant, recurring hypoglycemia (blood glucose < 70 mg/dl)",
+                "Wide fluctuations (well below and above the set glycemic targets) in blood glucose before and after mealtimes, despite appropriate MDI using up to date insulins (analogs) and dose adjustments to affect control"
+              ]
+            },
+            {
+              "field": "carbohydrate_counting_skills",
+              "operator": "EQUALS",
+              "value": "Advanced carbohydrate counting skills and actively uses this information for insulin dosing"
+            },
+            {
+              "field": "glucose_pattern_recognition",
+              "operator": "EQUALS",
+              "value": "Demonstrates ability to recognize glucose patterns and safely problem-solve these"
+            },
+            {
+              "field": "impeding_illness",
+              "operator": "NOT_IN",
+              "value": [
+                "alcohol abuse",
+                "chemical abuse",
+                "psychological instability",
+                "difficulty with digital dexterity",
+                "visual impairment"
+              ]
+            },
+            {
+              "field": "continuous_glucose_sensing_pump_additional_criteria",
+              "operator": "EQUALS",
+              "value": "Meets all criteria outlined in the Continuous Glucose Monitoring clinical review criteria including that current device is no longer under warranty",
+              "notes": "Only applies to requests for an insulin infusion pump used with continuous glucose sensing (HCPCS code E0787 or E0784 for Medicare)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rule_set_id": "ongoing_insulin_pump_non_medicare",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "E0784",
+            "A4230",
+            "A4231",
+            "A4232",
+            "K0552",
+            "E0787",
+            "A4226",
+            "S1034",
+            "S1035",
+            "S1036",
+            "S1037"
+          ]
+        },
+        "member_type": {
+          "operator": "EQUALS",
+          "value": "Non-Medicare"
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "ongoing_insulin_pump_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "glucose_monitoring_ongoing",
+              "operator": "ANY",
+              "value": [
+                "Documentation that patient monitors glucose at least four times daily",
+                "Appropriately uses a continuous glucose monitor"
+              ]
+            },
+            {
+              "field": "carbohydrate_counting_skills_ongoing",
+              "operator": "EQUALS",
+              "value": "Patient maintains advanced carbohydrate counting skills and actively uses this information for insulin dosing"
+            },
+            {
+              "field": "glucose_pattern_recognition_ongoing",
+              "operator": "EQUALS",
+              "value": "Patient maintains ability to recognize their glucose patterns and safely and appropriately problem-solve these, including troubleshooting pump malfunction"
+            },
+            {
+              "field": "impeding_conditions_ongoing",
+              "operator": "EQUALS",
+              "value": "Patient does not have other conditions or psychosocial stressors which might impede safe use of an insulin pump"
+            },
+            {
+              "field": "specialist_visit_frequency",
+              "operator": ">=",
+              "value": 1,
+              "unit": "visit per year",
+              "notes": "Face-to-face, secure message, or telephone encounter with diabetes specialist"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rule_set_id": "inpen_system_initial",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "E1399",
+            "A4211"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "inpen_system_initial_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "diagnosis",
+              "operator": "IN",
+              "value": [
+                "Type 1 diabetes of at least six months' duration",
+                "Type 2 diabetes requiring a basal/bolus insulin regimen of multiple daily injections using long-acting basal insulin and a rapid-acting analogue"
+              ]
+            },
+            {
+              "field": "referral_initiated_by",
+              "operator": "EQUALS",
+              "value": "Diabetes specialist that will manage therapy with an InPen System"
+            },
+            {
+              "field": "specialist_documentation",
+              "operator": "ALL",
+              "value": [
+                "Assessment for clinical therapeutic value of an InPen System",
+                "Assessment of patient InPen education and skill training preparation prior to InPen start (either one-on-one or within a group)",
+                "Assessment of the patient's (or caregiver's) ability to safely and appropriately participate in an InPen System self-management plan"
+              ]
+            },
+            {
+              "field": "prior_treatment_regimen",
+              "operator": "EQUALS",
+              "value": "Multiple daily injections (MDI) of insulin that includes a trial of both a long-acting insulin analog and a short-acting insulin analog with a plan for pre-meal short acting insulin dose adjustment"
+            },
+            {
+              "field": "prior_treatment_duration",
+              "operator": "BETWEEN",
+              "value": [
+                3,
+                6
+              ],
+              "unit": "months"
+            },
+            {
+              "field": "glucose_monitoring_frequency",
+              "operator": ">=",
+              "value": 4,
+              "unit": "times per day",
+              "notes": "Documented logs of glucose self-testing or CGM results during the 1 month prior to consideration of an InPen System"
+            },
+            {
+              "field": "clinical_criteria_on_mdi",
+              "operator": "ANY",
+              "value": [
+                "Recent history (within last six months) of significant, recurring hypoglycemia (blood glucose < 70 mg/dl)",
+                "Wide fluctuations (well below and above the set glycemic targets) in blood glucose before and after mealtimes, despite appropriate MDI using up to date insulins (analogs) and dose adjustments to affect control"
+              ]
+            },
+            {
+              "field": "carbohydrate_counting_skills",
+              "operator": "EQUALS",
+              "value": "Patient has advanced carbohydrate counting skills and actively uses this information for insulin dosing"
+            },
+            {
+              "field": "glucose_pattern_recognition",
+              "operator": "EQUALS",
+              "value": "Patient demonstrates ability to recognize their glucose patterns and safely problem-solve these"
+            },
+            {
+              "field": "prescriber_documentation_need",
+              "operator": "EQUALS",
+              "value": "Prescriber has documented a need for detailed electronic monitoring the patient's blood glucose levels and insulin dose administered"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rule_set_id": "inpen_system_ongoing",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "E1399",
+            "A4211"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "inpen_system_ongoing_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "glucose_monitoring_ongoing",
+              "operator": "ANY",
+              "value": [
+                "Documentation that patient monitors glucose at least four times daily",
+                "Appropriately uses a continuous glucose monitor"
+              ]
+            },
+            {
+              "field": "carbohydrate_counting_skills_ongoing",
+              "operator": "EQUALS",
+              "value": "Patient maintains advanced carbohydrate counting skills and actively uses this information for insulin dosing"
+            },
+            {
+              "field": "glucose_pattern_recognition_ongoing",
+              "operator": "EQUALS",
+              "value": "Patient maintains ability to recognize their glucose patterns and safely and appropriately problem-solve these, including troubleshooting InPen malfunction"
+            },
+            {
+              "field": "specialist_visit_frequency",
+              "operator": ">=",
+              "value": 1,
+              "unit": "visit per year",
+              "notes": "Face-to-face, secure message, or telephone encounter with diabetes specialist"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rule_set_id": "replacement_insulin_pump_non_medicare",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "E0784",
+            "E0787"
+          ]
+        },
+        "member_type": {
+          "operator": "EQUALS",
+          "value": "Non-Medicare"
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "replacement_insulin_pump_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "warranty_status",
+              "operator": "EQUALS",
+              "value": "Expired",
+              "notes": "Requests for replacement are not covered when the device is still under warranty. Medtronic and Tandem have 4-year warranty periods, OmniPod Dash does not have a warranty period."
+            },
+            {
+              "field": "prior_authorization",
+              "operator": "EQUALS",
+              "value": "Required from the treating diabetes specialist managing the insulin pump to the Kaiser Permanente Pre-Service department"
+            },
+            {
+              "field": "specialist_visit_within_past_year",
+              "operator": "EQUALS",
+              "value": "Face-to-face visit with the treating diabetes specialist managing the insulin pump is documented within the past year"
+            },
+            {
+              "field": "replacement_reason_documentation",
+              "operator": "EQUALS",
+              "value": "Fully documented in the member's medical treatment plan"
+            },
+            {
+              "field": "current_pump_approval_history",
+              "operator": "ANY",
+              "value": [
+                "Previously approved by Kaiser Permanente",
+                "Approved by another non-Medicare plan, and the member meets the medical necessity and coverage criteria for Kaiser Permanente"
+              ]
+            },
+            {
+              "field": "suitability_for_continuance",
+              "operator": "EQUALS",
+              "value": "Reviewed and confirmed by the Diabetes specialist"
+            },
+            {
+              "field": "abuse_status",
+              "operator": "EQUALS",
+              "value": "The item is not lost or damaged as a result of abuse"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rule_set_id": "medicare_exclusions",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "E0787",
+            "A4226",
+            "S1034",
+            "S1035",
+            "S1036",
+            "S1037"
+          ]
+        },
+        "member_type": {
+          "operator": "EQUALS",
+          "value": "Medicare"
+        }
+      },
+      "exclusions": [
+        {
+          "exclusion_id": "medicare_not_medically_necessary",
+          "description": "Insulin Pump used with continuous glucose monitor (E0787, A4226) and Artificial Pancreas (S1034, S1035, S1036, S1037) are considered not medically necessary for Medicare members."
+        }
+      ]
+    }
+  ]
+}

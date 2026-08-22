@@ -1,0 +1,107 @@
+{
+  "policy_id": "KET-66225451",
+  "policy_name": "Ketamine for the Treatment of Depression and Other Psychiatric Disorders",
+  "rule_sets": [
+    {
+      "rule_set_id": "ketamine_clinical_review_criteria",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "90792",
+            "J3490",
+            "96365",
+            "96366",
+            "96367",
+            "96368"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "documentation_requirements",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "clinical_notes_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months",
+              "description": "Last 6 months of clinical notes from requesting provider and/or specialist"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "non_covered_diagnoses",
+          "description": "Ketamine (intranasal, intravenous, or subcutaneous) is considered insufficient evidence and non-covered for these diagnoses",
+          "diagnoses": [
+            "Chronic pain",
+            "Depression",
+            "Generalized anxiety and social anxiety disorders",
+            "Substance use disorder",
+            "Suicidal ideation"
+          ]
+        },
+        {
+          "exclusion_id": "not_medically_necessary_icd10_codes",
+          "description": "ICD-10 codes considered Not Medically Necessary",
+          "coding_system": "ICD-10",
+          "operator": "IN",
+          "value": [
+            "F01-F09",
+            "F10-F19",
+            "F20-F29",
+            "F30-F39",
+            "F40-F48",
+            "F50-F59",
+            "F60-F69",
+            "F70-F79",
+            "F80-F89",
+            "F90-F98",
+            "F99-F99",
+            "T14.91XA",
+            "R45.89",
+            "T65.92XA",
+            "R45.851",
+            "T50.902A",
+            "T50.902S",
+            "T50.902D",
+            "T40.602A",
+            "Z71.1",
+            "F32.A",
+            "Z91.52",
+            "Z91.51",
+            "G89.21",
+            "G89.22",
+            "G89.28",
+            "G89.29",
+            "G89.3",
+            "G89.4",
+            "G90.511",
+            "G90.512",
+            "G90.513",
+            "G90.519",
+            "G90.521",
+            "G90.522",
+            "G90.523",
+            "G90.529",
+            "G90.59"
+          ]
+        },
+        {
+          "exclusion_id": "esketamine_nasal_spray_exclusion",
+          "description": "Esketamine nasal spray (Spravato) has separate criteria for pharmacy review and is excluded from this policy"
+        }
+      ],
+      "additional_rules": [
+        {
+          "rule_id": "evaluations_review",
+          "description": "Evaluations for the explicit purpose of Ketamine treatment will also be reviewed against clinical criteria for Ketamine treatment."
+        }
+      ]
+    }
+  ]
+}

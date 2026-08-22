@@ -1,0 +1,117 @@
+{
+  "policy_id": "PAN-95946219",
+  "policy_name": "Pancreas Transplant Alone",
+  "rule_sets": [
+    {
+      "rule_set_id": "pta_pak_rules",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "48550",
+            "48551",
+            "48552",
+            "48554",
+            "48556"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "non_medicare_referral_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "diagnosis",
+              "operator": "EQUAL",
+              "value": "Type 1 DM with disabling and potentially life threatening complications as seen in brittle diabetes with severe and recurrent episodes of either hypoglycemia (involving seizures, loss of consciousness and/or calls to 911) and or hyperglycemia (episodes of DKA) or hypoglycemic unawareness in which the individual requires constant supervision"
+            },
+            {
+              "field": "endocrinologist_management_duration",
+              "operator": ">=",
+              "value": 12,
+              "unit": "months",
+              "notes": "Optimally and intensively managed by an endocrinologist"
+            },
+            {
+              "field": "age",
+              "operator": "BETWEEN",
+              "value": [
+                18,
+                55
+              ],
+              "unit": "years",
+              "notes": "Except under special clinical circumstances"
+            },
+            {
+              "field": "kidney_function_gfr_or_creatinine_clearance",
+              "operator": ">",
+              "value": 50,
+              "unit": "ml per minute",
+              "notes": "Native or transplanted kidney must be functioning well as evidenced by GFR or 24-hour urine for creatinine clearance"
+            },
+            {
+              "field": "social_support_and_adherence",
+              "operator": "EQUAL",
+              "value": "Adequate social support systems and display a proven record of adherence to medical treatment"
+            },
+            {
+              "field": "travel_capability",
+              "operator": "EQUAL",
+              "value": "Able to travel within short notice to the KP approved transplant Center of Excellence and, if necessary, return for treatment of complications"
+            },
+            {
+              "field": "caregiver_availability",
+              "operator": "EQUAL",
+              "value": "Has a care giver or care givers who are physically and cognitively able to assist the patient with self-care activities and are available to travel within short notice to the KP approved transplant Center of Excellence"
+            },
+            {
+              "field": "documentation_requirement",
+              "operator": "EQUAL",
+              "value": "Copy of final summary report from multidisciplinary transplant team"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "uncontrollable_active_infection",
+          "description": "Uncontrollable active infection is a contraindication to transplant"
+        },
+        {
+          "exclusion_id": "substance_abuse",
+          "description": "History of substance abuse unless free from alcohol and other substance abuse for six (6) months, evaluated by a substance abuse program, and risk of recidivism is low (exceptions on case-by-case basis)"
+        },
+        {
+          "exclusion_id": "irreversible_neurologic_or_psychiatric_conditions",
+          "description": "Presence of significant irreversible neurologic dysfunction, active psychological and/or psychiatric conditions, and/or other social behaviors that prevent adherence with a complex medical regimen"
+        },
+        {
+          "exclusion_id": "cardiopulmonary_disease",
+          "description": "Significant irreversible coronary artery disease and/or left ventricular dysfunction, and irreversible pulmonary disease"
+        },
+        {
+          "exclusion_id": "peripheral_vascular_disease",
+          "description": "Irreversible peripheral vascular disease, including carotid vascular disease (Amputation alone is not a contraindication)"
+        },
+        {
+          "exclusion_id": "uncontrolled_hypertension",
+          "description": "Uncontrolled hypertension"
+        },
+        {
+          "exclusion_id": "relative_contraindication_bmi",
+          "description": "BMI >= 35 (unless referred to COE for individual consideration)"
+        },
+        {
+          "exclusion_id": "relative_contraindication_cachexia_malnourishment",
+          "description": "Cachexia and/or malnourishment"
+        },
+        {
+          "exclusion_id": "history_of_malignancy",
+          "description": "History of malignancy with a moderate to high risk of recurrence (as determined after consultation with oncologist considering tumor type, response to therapy, and presence or absence of metastatic disease)"
+        }
+      ]
+    }
+  ]
+}

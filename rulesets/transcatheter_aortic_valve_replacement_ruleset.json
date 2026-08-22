@@ -1,0 +1,310 @@
+{
+  "policy_id": "TRA-81213133",
+  "policy_name": "Transcatheter Aortic or Pulmonary Valve Replacement (TAVR/TPVI)",
+  "rule_sets": [
+    {
+      "rule_set_id": "tavr_non_medicare",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "33361",
+            "33362",
+            "33363",
+            "33364",
+            "33365",
+            "33366",
+            "33367",
+            "33368",
+            "33369"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "tavr_without_previous_experience",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "device_status",
+              "operator": "EQUALS",
+              "value": "FDA approved",
+              "unit": null
+            },
+            {
+              "field": "clinical_condition",
+              "operator": "EQUALS",
+              "value": "severe, symptomatic aortic valve stenosis",
+              "unit": null
+            },
+            {
+              "field": "care_team",
+              "operator": "EQUALS",
+              "value": "under the care of a heart team (preoperatively and postoperatively)",
+              "unit": null
+            },
+            {
+              "field": "heart_team_composition",
+              "operator": "CONTAINS",
+              "value": "Cardiac surgeon and an interventional cardiologist experienced in the care and treatment of aortic stenosis who have independently examined the patient face-to-face, evaluated suitability for SAVR, TAVR or medical/palliative therapy, and documented rationale",
+              "unit": null
+            },
+            {
+              "field": "heart_team_joint_participation",
+              "operator": "EQUALS",
+              "value": "interventional cardiologist(s) and cardiac surgeon(s) jointly participate in intra-operative technical aspects of TAVR",
+              "unit": null
+            },
+            {
+              "field": "hospital_infrastructure",
+              "operator": "CONTAINS",
+              "value": "On-site heart valve surgery and interventional cardiology programs, post-procedure intensive care facility with experienced personnel",
+              "unit": null
+            },
+            {
+              "field": "hospital_open_heart_surgeries_prior_year",
+              "operator": ">=",
+              "value": 50,
+              "unit": "open heart surgeries in the previous year prior to TAVR program initiation"
+            },
+            {
+              "field": "hospital_aortic_valve_procedures_prior_2_years",
+              "operator": ">=",
+              "value": 20,
+              "unit": "aortic valve related procedures in the 2 years prior to TAVR program initiation"
+            },
+            {
+              "field": "hospital_physicians_cardiac_surgery_privileges",
+              "operator": ">=",
+              "value": 2,
+              "unit": "physicians with cardiac surgery privileges"
+            },
+            {
+              "field": "hospital_physicians_interventional_cardiology_privileges",
+              "operator": ">=",
+              "value": 1,
+              "unit": "physician with interventional cardiology privileges"
+            },
+            {
+              "field": "hospital_pcis_per_year",
+              "operator": ">=",
+              "value": 300,
+              "unit": "percutaneous coronary interventions (PCIs) per year"
+            },
+            {
+              "field": "surgeon_career_open_heart_surgeries",
+              "operator": ">=",
+              "value": 100,
+              "unit": "career open heart surgeries"
+            },
+            {
+              "field": "surgeon_career_aortic_valve_surgeries",
+              "operator": ">=",
+              "value": 25,
+              "unit": "aortic valve related career open heart surgeries"
+            },
+            {
+              "field": "interventional_cardiologist_structural_procedures",
+              "operator": "OR",
+              "value": ">= 100 career structural heart disease procedures OR >= 30 left-sided structural procedures per year",
+              "unit": null
+            },
+            {
+              "field": "interventional_cardiologist_training",
+              "operator": "EQUALS",
+              "value": "Device-specific training as required by the manufacturer",
+              "unit": null
+            },
+            {
+              "field": "required_documentation",
+              "operator": "EQUALS",
+              "value": "Last 6 months of clinical notes from requesting provider &/or specialist",
+              "unit": null
+            }
+          ]
+        },
+        {
+          "pathway_id": "tavr_with_previous_experience",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "device_status",
+              "operator": "EQUALS",
+              "value": "FDA approved",
+              "unit": null
+            },
+            {
+              "field": "clinical_condition",
+              "operator": "EQUALS",
+              "value": "severe, symptomatic aortic valve stenosis",
+              "unit": null
+            },
+            {
+              "field": "care_team",
+              "operator": "EQUALS",
+              "value": "under the care of a heart team (preoperatively and postoperatively)",
+              "unit": null
+            },
+            {
+              "field": "heart_team_composition",
+              "operator": "CONTAINS",
+              "value": "Cardiac surgeon and an interventional cardiologist experienced in the care and treatment of aortic stenosis who have independently examined the patient face-to-face, evaluated suitability for SAVR, TAVR or medical/palliative therapy, and documented rationale",
+              "unit": null
+            },
+            {
+              "field": "heart_team_joint_participation",
+              "operator": "EQUALS",
+              "value": "interventional cardiologist(s) and cardiac surgeon(s) jointly participate in intra-operative technical aspects of TAVR",
+              "unit": null
+            },
+            {
+              "field": "hospital_infrastructure",
+              "operator": "CONTAINS",
+              "value": "On-site heart valve surgery and interventional cardiology programs, post-procedure intensive care facility with experienced personnel",
+              "unit": null
+            },
+            {
+              "field": "hospital_avr_volume_requirement",
+              "operator": "OR",
+              "value": ">= 50 AVRs (TAVR or SAVR) per year including >= 20 TAVR procedures in the prior year OR >= 100 AVRs (TAVR or SAVR) every 2 years, including >= 40 TAVR procedures in the prior 2 years",
+              "unit": null
+            },
+            {
+              "field": "hospital_physicians_cardiac_surgery_privileges",
+              "operator": ">=",
+              "value": 2,
+              "unit": "physicians with cardiac surgery privileges"
+            },
+            {
+              "field": "hospital_physicians_interventional_cardiology_privileges",
+              "operator": ">=",
+              "value": 1,
+              "unit": "physician with interventional cardiology privileges"
+            },
+            {
+              "field": "hospital_pcis_per_year",
+              "operator": ">=",
+              "value": 300,
+              "unit": "percutaneous coronary interventions (PCIs) per year"
+            },
+            {
+              "field": "registry_participation",
+              "operator": "EQUALS",
+              "value": "Participation in the STS/ACC TVT Registry is required",
+              "unit": null
+            },
+            {
+              "field": "required_documentation",
+              "operator": "EQUALS",
+              "value": "Last 6 months of clinical notes from requesting provider &/or specialist",
+              "unit": null
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "All other indications are not covered as there is insufficient evidence to support effectiveness."
+      ]
+    },
+    {
+      "rule_set_id": "vi_tavi_non_medicare",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "33361",
+            "33362",
+            "33363",
+            "33364",
+            "33365",
+            "33366",
+            "33367",
+            "33368",
+            "33369"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "vi_tavi_medical_necessity",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "device_status",
+              "operator": "EQUALS",
+              "value": "FDA approved",
+              "unit": null
+            },
+            {
+              "field": "care_team",
+              "operator": "EQUALS",
+              "value": "under the care of a heart team (preoperatively and postoperatively)",
+              "unit": null
+            },
+            {
+              "field": "clinical_condition",
+              "operator": "EQUALS",
+              "value": "failed aortic tissue prosthesis resulting in symptomatic stenosis or regurgitation",
+              "unit": null
+            },
+            {
+              "field": "required_documentation",
+              "operator": "EQUALS",
+              "value": "Last 6 months of clinical notes from requesting provider &/or specialist",
+              "unit": null
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    },
+    {
+      "rule_set_id": "tpvi_non_medicare",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "33477"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "tpvi_medical_necessity",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "clinical_condition",
+              "operator": "EQUALS",
+              "value": "congenital heart disease and current right ventricular outflow tract obstruction (RVOT) or regurgitation",
+              "unit": null
+            },
+            {
+              "field": "specific_indication",
+              "operator": "ANY_OF",
+              "value": [
+                "Individuals with right ventricle-to-pulmonary artery conduit with or without bioprosthetic valve with at least moderate pulmonic regurgitation",
+                "Individuals with native or patched RVOT with at least moderate pulmonic regurgitation",
+                "Individuals with right ventricle-to-pulmonary artery conduit with or without bioprosthetic valve with pulmonic stenosis (mean RVOT gradient at least 35 mm Hg)",
+                "Individuals with native or patched RVOT with pulmonic stenosis (mean RVOT gradient at least 35 mm Hg)"
+              ],
+              "unit": null
+            },
+            {
+              "field": "required_documentation",
+              "operator": "EQUALS",
+              "value": "Last 6 months of clinical notes from requesting provider &/or specialist",
+              "unit": null
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "All other indications are not covered as there is insufficient evidence to support effectiveness."
+      ]
+    }
+  ]
+}

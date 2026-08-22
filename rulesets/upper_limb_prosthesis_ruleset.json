@@ -1,0 +1,301 @@
+{
+  "policy_id": "UPP-75416798",
+  "policy_name": "Upper Limb Prosthesis",
+  "rule_sets": [
+    {
+      "rule_set_id": "non_myoelectric_upper_limb_prosthesis",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "L6028",
+            "L6029",
+            "L6030",
+            "L6031",
+            "L6032",
+            "L6033",
+            "L6050",
+            "L6055",
+            "L6100",
+            "L6110",
+            "L6120",
+            "L6130",
+            "L6200",
+            "L6205",
+            "L6250",
+            "L6300",
+            "L6310",
+            "L6320",
+            "L6629",
+            "L6632",
+            "L6680",
+            "L6682",
+            "L6684",
+            "L6687",
+            "L6703",
+            "L6704",
+            "L6706",
+            "L6707",
+            "L6708",
+            "L6709",
+            "L6711",
+            "L6712",
+            "L6713",
+            "L6714",
+            "L6721",
+            "L6722",
+            "L6810",
+            "L6890"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "standard_non_myoelectric_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "physical_functional_impairment_or_disability",
+              "operator": "EQUAL",
+              "value": "documented physical functional impairment or disability due to disease, trauma, congenital anomaly or prior therapeutic intervention"
+            },
+            {
+              "field": "requires_accommodation_for_basic_adls",
+              "operator": "EQUAL",
+              "value": "requires accommodation for basic activities of daily living (ADLs) that can be met by using a DME item"
+            },
+            {
+              "field": "clinical_assessment_and_rationale_in_medical_record",
+              "operator": "EQUAL",
+              "value": "present"
+            },
+            {
+              "field": "prescribed_by_healthcare_practitioner",
+              "operator": "EQUAL",
+              "value": "true"
+            },
+            {
+              "field": "has_published_hcpcs_code",
+              "operator": "EQUAL",
+              "value": "true"
+            },
+            {
+              "field": "meets_definition_of_dme",
+              "operator": "EQUAL",
+              "value": "true"
+            },
+            {
+              "field": "not_considered_not_medically_necessary_investigational_or_unsafe",
+              "operator": "EQUAL",
+              "value": "true"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Accessory add-ons and upgrades when a basic DME item meets the member’s functional needs",
+        "Comfort or convenience items added to basic equipment",
+        "Deluxe equipment when basic (standard) equipment is available and meets the member’s functional needs",
+        "Duplicate equipment",
+        "Equipment and modifications/upgrades to equipment when used primarily for leisure activities (unless plan subject to SHB 1669 Chapter 48.43 RCW)",
+        "Same/similar or back-up DME item(s) not used as the primary device to meet the member’s functional needs",
+        "Devices that do not meet the definition of durable medical equipment (DME), because they are not primarily intended for medical purposes"
+      ]
+    },
+    {
+      "rule_set_id": "myoelectric_upper_limb_prosthesis",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "L6026",
+            "L6611",
+            "L6677",
+            "L6700",
+            "L6715",
+            "L6880",
+            "L6881",
+            "L6882",
+            "L6925",
+            "L6935",
+            "L6945",
+            "L6955",
+            "L6965",
+            "L6975",
+            "L7007",
+            "L7008",
+            "L7009",
+            "L7045",
+            "L7180",
+            "L7181",
+            "L7190",
+            "L7191",
+            "L7259",
+            "L8435",
+            "L8465",
+            "L8485"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "standard_myoelectric_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "amputation_or_missing_limb",
+              "operator": "EQUAL",
+              "value": "present"
+            },
+            {
+              "field": "standard_body_powered_prosthetic_devices_insufficient",
+              "operator": "EQUAL",
+              "value": "documented in detail by a physical or occupational or physiatrist therapist who is not employed by the vendor or prosthetist"
+            },
+            {
+              "field": "remaining_musculature_microvolt_threshold",
+              "operator": "EQUAL",
+              "value": "contains the minimum microvolt threshold to allow operation of a myoelectric prosthetic device, as demonstrated by functional testing using a physical or computer model prosthesis"
+            },
+            {
+              "field": "neurological_and_cognitive_function",
+              "operator": "EQUAL",
+              "value": "sufficient to operate the prosthesis effectively"
+            },
+            {
+              "field": "free_of_comorbidities_interfering_with_function",
+              "operator": "EQUAL",
+              "value": "true"
+            },
+            {
+              "field": "functional_evaluation_by_qualified_professional",
+              "operator": "EQUAL",
+              "value": "indicates that with training, use of a myoelectric prosthesis is likely to meet the functional needs of the individual when performing activities of daily living"
+            },
+            {
+              "field": "device_necessary_for_instrumental_activities_of_daily_living",
+              "operator": "EQUAL",
+              "value": "true"
+            },
+            {
+              "field": "device_not_primarily_for_vocational_leisure_or_recreational_activities",
+              "operator": "EQUAL",
+              "value": "true"
+            },
+            {
+              "field": "patient_age",
+              "operator": ">=",
+              "value": 1,
+              "unit": "year"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Prosthesis with individually powered digits, including but not limited to partial hand prosthesis, is considered investigational",
+        "Accessory add-ons and upgrades when a basic DME item meets the member’s functional needs",
+        "Comfort or convenience items added to basic equipment",
+        "Deluxe equipment when basic (standard) equipment is available and meets the member’s functional needs",
+        "Duplicate equipment",
+        "Equipment and modifications/upgrades to equipment when used primarily for leisure activities (unless plan subject to SHB 1669 Chapter 48.43 RCW)",
+        "Same/similar or back-up DME item(s) not used as the primary device to meet the member’s functional needs",
+        "Devices that do not meet the definition of durable medical equipment (DME), because they are not primarily intended for medical purposes"
+      ]
+    },
+    {
+      "rule_set_id": "repair_and_replacement",
+      "match_criteria": {
+        "service_type": {
+          "operator": "IN",
+          "value": [
+            "Repair",
+            "Replacement"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "repair_coverage",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "anatomical_change_or_reasonable_wear_and_tear_renders_item_nonfunctional",
+              "operator": "EQUAL",
+              "value": "true"
+            },
+            {
+              "field": "repair_will_make_equipment_usable",
+              "operator": "EQUAL",
+              "value": "true"
+            }
+          ]
+        },
+        {
+          "pathway_id": "replacement_coverage",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "anatomical_change_or_reasonable_wear_and_tear_renders_item_nonfunctional",
+              "operator": "EQUAL",
+              "value": "true"
+            },
+            {
+              "field": "item_is_non_repairable",
+              "operator": "EQUAL",
+              "value": "true"
+            }
+          ]
+        },
+        {
+          "pathway_id": "shb_1669_replacement_coverage",
+          "logic": "ANY",
+          "conditions": [
+            {
+              "field": "change_in_physiological_condition_of_patient",
+              "operator": "EQUAL",
+              "value": "true"
+            },
+            {
+              "field": "irreparable_change_in_condition_of_device_or_part",
+              "operator": "EQUAL",
+              "value": "true"
+            },
+            {
+              "field": "repair_cost_percentage_of_replacement",
+              "operator": ">",
+              "value": 60,
+              "unit": "percent"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Repair or replacement of an external prosthetic device, including an upper limb myoelectric prosthetic device, made unusable or nonfunctioning because of individual misuse, abuse or neglect is not covered"
+      ]
+    }
+  ],
+  "documentation_requirements": [
+    {
+      "requirement": "Last 6 months of clinical notes from requesting provider &/or specialist",
+      "duration": {
+        "value": 6,
+        "unit": "months"
+      }
+    },
+    {
+      "requirement": "An order/prescription from the physician/health care provider responsible for the patient's care that states the therapeutic purpose of the DME"
+    },
+    {
+      "requirement": "The patient's medical condition that requires DME for long term use (i.e. 6-12 months or more) when applicable",
+      "duration": {
+        "value": 6,
+        "unit": "months"
+      }
+    },
+    {
+      "requirement": "Details of the patient’s physical functional impairment related to completing activities of daily living (ADLs), or when applicable, essential job related activities and/or exercise (relating to SHB 1669 chapter 48.43 RCW) without the home medical equipment/DME"
+    }
+  ]
+}

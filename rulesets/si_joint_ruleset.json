@@ -1,0 +1,316 @@
+{
+  "policy_id": "SIJ-20308443",
+  "policy_name": "Sacroiliac Joint Procedures for Pain",
+  "rule_sets": [
+    {
+      "rule_set_id": "si_joint_injections",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "27096"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "non_medicare_injections",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUALS",
+              "value": "Non-Medicare"
+            },
+            {
+              "field": "medical_necessity_review",
+              "operator": "EQUALS",
+              "value": "Not required"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rule_set_id": "si_joint_neurotomy",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "64625"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_neurotomy",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUALS",
+              "value": "Medicare"
+            },
+            {
+              "field": "coverage_status",
+              "operator": "EQUALS",
+              "value": "Considered Not Medically Necessary"
+            }
+          ]
+        },
+        {
+          "pathway_id": "non_medicare_neurotomy",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUALS",
+              "value": "Non-Medicare"
+            },
+            {
+              "field": "intraarticular_si_joint_steroid_injections_count",
+              "operator": ">=",
+              "value": 2,
+              "unit": "injections"
+            },
+            {
+              "field": "steroid_injection_location_confirmation_method",
+              "operator": "IN",
+              "value": [
+                "contrast spread",
+                "both A/P and lateral views"
+              ]
+            },
+            {
+              "field": "steroid_injection_pain_relief_failure_remedy",
+              "operator": "EQUALS",
+              "value": "If patient fails to get 80% or greater pain relief as measured by a standard pain questionnaire, should have a second steroid injection at least one month later"
+            },
+            {
+              "field": "lateral_branch_anesthetic_injections_trial_requirement",
+              "operator": "EQUALS",
+              "value": "Required if 2 intraarticular SI joint steroid injections are unsuccessful in long-term relief"
+            },
+            {
+              "field": "lateral_branch_anesthetic_injections_count",
+              "operator": ">=",
+              "value": 2,
+              "unit": "injections"
+            },
+            {
+              "field": "anesthetic_injection_location_confirmation_method",
+              "operator": "IN",
+              "value": [
+                "contrast spread",
+                "both A/P and lateral views"
+              ]
+            },
+            {
+              "field": "anesthetic_injection_pain_reduction",
+              "operator": ">=",
+              "value": 80,
+              "unit": "percent"
+            },
+            {
+              "field": "anesthetic_injection_pain_reduction_duration",
+              "operator": "EQUALS",
+              "value": "expected duration of the anesthetic used"
+            },
+            {
+              "field": "minimum_time_between_anesthetic_injections",
+              "operator": ">=",
+              "value": 2,
+              "unit": "weeks"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rule_set_id": "open_si_joint_fusion",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "27280"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "open_fusion_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "imaging_studies_demonstrate_localized_pathology",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "tobacco_status",
+              "operator": "EQUALS",
+              "value": "nonsmoker or in the absence of progressive neurological compromise will refrain from use of tobacco products for at least 6 weeks prior to the planned surgery"
+            },
+            {
+              "field": "clinical_indication",
+              "operator": "IN",
+              "value": [
+                "Post-traumatic injury of the SI joint (e.g., following pelvic ring fracture)",
+                "As an adjunctive treatment for sacroiliac joint infection or sepsis",
+                "Management of sacral tumor (e.g., partial sacrectomy)",
+                "When performed as part of multisegmental long fusions for the correction of spinal deformity (e.g., idiopathic scoliosis, neuromuscular scoliosis)"
+              ]
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "open_fusion_exclusions",
+          "description": "Open sacroiliac joint fusion is not covered for any other indication, including the specified conditions",
+          "conditions": [
+            "Mechanical low back pain",
+            "Sacroiliac joint syndrome",
+            "Degenerative sacroiliac joint",
+            "Radicular pain syndromes"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_set_id": "percutaneous_or_minimally_invasive_si_joint_fusion",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "27278",
+            "27279"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "percutaneous_fusion_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "age",
+              "operator": ">=",
+              "value": 18,
+              "unit": "years"
+            },
+            {
+              "field": "pain_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months",
+              "notes": "greater than 18 months for pregnancy induced pelvic girdle pain"
+            },
+            {
+              "field": "pain_rating",
+              "operator": ">=",
+              "value": 5,
+              "unit": "on a 0 to 10 numeric scale"
+            },
+            {
+              "field": "pain_location",
+              "operator": "EQUALS",
+              "value": "located at or close to the posterior superior iliac spine (PSIS) with possible radiation into buttocks, posterior thigh, or groin and can point to the location of pain (Fortin Finger Test)"
+            },
+            {
+              "field": "provocative_maneuvers_positive_count",
+              "operator": ">=",
+              "value": 3,
+              "notes": "provocative examination maneuvers that stress the sacroiliac joint (e.g., FABER test, thigh thrust, pelvic gapping test, pelvic compression, Gaenslen's test)"
+            },
+            {
+              "field": "limits_activities_of_daily_living",
+              "operator": "EQUALS",
+              "value": true,
+              "notes": "ADLs defined as feeding, bathing, dressing, grooming, meal preparation, household chores, and occupational tasks"
+            },
+            {
+              "field": "alternative_treatments_failure_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months"
+            },
+            {
+              "field": "alternative_treatments_required",
+              "operator": "ALL",
+              "value": [
+                "Anti-inflammatory medication (one or more of: Non-steroidal anti-inflammatory drugs (oral or topical) unless contraindicated, Acetaminophen)",
+                "A trial of Physical Therapy in the last 12 months (supervised, attendance >75% of sessions, minimum of 3 visits) unless conservative therapy is not appropriate and documented why"
+              ]
+            },
+            {
+              "field": "steroid_injections_trial",
+              "operator": "EQUALS",
+              "value": "At least 2 intraarticular SI joint steroid injections (location confirmed by contrast spread or both A/P and lateral views). If patient fails to get 80% or greater pain relief, second injection at least one month later."
+            },
+            {
+              "field": "anesthetic_injections_trial",
+              "operator": "EQUALS",
+              "value": "If steroid injections unsuccessful, trial of at least 2 anesthetic injections in the lateral branch (location confirmed by contrast spread or both A/P and lateral views), with at least 80% reduction in pain, 2 week minimum between injections."
+            },
+            {
+              "field": "rfa_ablation_trial",
+              "operator": "EQUALS",
+              "value": "If anesthetic injection is successful, patient should have an RFA ablation (not covered/required for Medicare). If anesthetic injection not successful, or if post ablation pain is not reduced by less than 80% after 1 month, consult with SI joint surgeon."
+            },
+            {
+              "field": "alternative_or_contributing_diagnoses_absent",
+              "operator": "EQUALS",
+              "value": true,
+              "notes": "e.g., hip osteoarthritis, L5-S1 spine degeneration, tumor, infection, fracture"
+            },
+            {
+              "field": "imaging_requirements",
+              "operator": "ALL",
+              "value": [
+                "Imaging (CT or MRI) of the sacroiliac joint excludes presence of destructive lesions or inflammatory arthropathy and rules out concomitant hip pathology",
+                "Imaging of the ipsilateral hip (plain radiographs, CT or MRI) excludes presence of osteoarthritis",
+                "Imaging of the lumbar spine (CT or MRI) excludes neural compression or other degenerative conditions causing low back or buttock pain"
+              ]
+            },
+            {
+              "field": "generalized_pain_behavior_or_disorders_absent",
+              "operator": "EQUALS",
+              "value": true,
+              "notes": "e.g., somatoform disorder, fibromyalgia"
+            },
+            {
+              "field": "nicotine_free_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "weeks",
+              "notes": "prior to elective surgery. For recent nicotine use, lab report showing blood or urine nicotine level of 0 drawn within 6 weeks prior to surgery is required (unless cord compression or urgent intervention)"
+            }
+          ]
+        }
+      ],
+      "relative_contraindications": [
+        {
+          "field": "bmi",
+          "operator": ">",
+          "value": 40,
+          "notes": "BMI > 40 is a relative contraindication to SI joint fusion"
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "medicare_percutaneous_exclusion_27278",
+          "description": "CPT 27278 is considered Not Medically Necessary for Medicare members under certain determinations",
+          "conditions": [
+            "Member is Medicare",
+            "Procedure is CPT 27278"
+          ]
+        }
+      ]
+    }
+  ]
+}

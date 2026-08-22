@@ -1,0 +1,384 @@
+{
+  "policy_id": "VEI-81670542",
+  "policy_name": "Treatment of Varicose Veins",
+  "rule_sets": [
+    {
+      "rule_set_id": "ligation_stripping_ablation_venaseal",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "36475",
+            "36476",
+            "36478",
+            "36479",
+            "37700",
+            "37718",
+            "37722",
+            "37735",
+            "37780",
+            "37785",
+            "36482",
+            "36483",
+            "37765",
+            "37766"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "pre_october_2026_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "date_of_service",
+              "operator": "<",
+              "value": "2026-10-01"
+            },
+            {
+              "field": "patient_symptomatic",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "symptoms",
+              "operator": "SOME_OF",
+              "value": [
+                "Pain or burning in the extremity",
+                "Recurrent episodes of superficial phlebitis",
+                "Non-healing skin ulceration",
+                "Bleeding from a varicosity",
+                "Stasis dermatitis",
+                "Refractory dependent edema"
+              ]
+            },
+            {
+              "field": "vein_size_diameter",
+              "operator": "OR",
+              "value": [
+                {
+                  "field": "general_vein_diameter",
+                  "operator": ">=",
+                  "value": 4.5,
+                  "unit": "mm"
+                },
+                {
+                  "field": "short_saphenous_vein_diameter",
+                  "operator": ">=",
+                  "value": 3.5,
+                  "unit": "mm"
+                }
+              ]
+            },
+            {
+              "field": "pre_operative_doppler_reflux_duration",
+              "operator": ">=",
+              "value": 500,
+              "unit": "milliseconds"
+            },
+            {
+              "field": "erfa_and_laser_ablation_specific_criteria",
+              "operator": "IF_APPLICABLE",
+              "conditions": [
+                {
+                  "field": "absence_of_aneurysm_in_target_segment",
+                  "operator": "EQUAL",
+                  "value": true
+                },
+                {
+                  "field": "maximum_vein_diameter_erfa",
+                  "operator": "<=",
+                  "value": 12,
+                  "unit": "mm"
+                },
+                {
+                  "field": "maximum_vein_diameter_laser_ablation",
+                  "operator": "<=",
+                  "value": 20,
+                  "unit": "mm"
+                },
+                {
+                  "field": "absence_of_thrombosis_or_vein_tortuosity_impairing_catheter_advancement",
+                  "operator": "EQUAL",
+                  "value": true
+                },
+                {
+                  "field": "absence_of_significant_peripheral_arterial_disease",
+                  "operator": "EQUAL",
+                  "value": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "pathway_id": "post_october_2026_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "date_of_service",
+              "operator": ">=",
+              "value": "2026-10-01"
+            },
+            {
+              "field": "patient_symptomatic",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "symptoms",
+              "operator": "SOME_OF",
+              "value": [
+                "Pain, Fatigue, heaviness, or burning in the extremity that results in impaired mobility or inability to perform activities of daily living",
+                "Recurrent episodes of superficial phlebitis",
+                "Non-healing skin ulceration",
+                "Bleeding from varicosity",
+                "Stasis dermatitis",
+                "Refractory dependent edema"
+              ]
+            },
+            {
+              "field": "vein_size_diameter",
+              "operator": ">=",
+              "value": 4.5,
+              "unit": "mm"
+            },
+            {
+              "field": "pre_operative_doppler_reflux_duration",
+              "operator": ">=",
+              "value": 500,
+              "unit": "milliseconds"
+            },
+            {
+              "field": "erfa_and_laser_ablation_specific_criteria",
+              "operator": "IF_APPLICABLE",
+              "conditions": [
+                {
+                  "field": "absence_of_aneurysm_in_target_segment",
+                  "operator": "EQUAL",
+                  "value": true
+                },
+                {
+                  "field": "maximum_vein_diameter_erfa",
+                  "operator": "<=",
+                  "value": 12,
+                  "unit": "mm"
+                },
+                {
+                  "field": "maximum_vein_diameter_laser_ablation",
+                  "operator": "<=",
+                  "value": 20,
+                  "unit": "mm"
+                },
+                {
+                  "field": "absence_of_thrombosis_or_vein_tortuosity_impairing_catheter_advancement",
+                  "operator": "EQUAL",
+                  "value": true
+                },
+                {
+                  "field": "absence_of_severe_peripheral_arterial_disease",
+                  "operator": "EQUAL",
+                  "value": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Procedures and services that are intended to improve or maintain appearance, and that are not expected to significantly improve physical function (cosmetic)",
+        "Treatment of telangiectasias, reticular veins, spider veins",
+        "Treatment of varicose veins that are 2mm or less in diameter",
+        "Treatment of incompetent perforator veins only",
+        "Procedures with devices not FDA approved",
+        "Non-compressive sclerotherapy",
+        "Transdermal laser therapy",
+        "Intense pulsed-light therapy (photothermal sclerosis)",
+        "Treatment using glycerin or glycerol",
+        "Selective vein ablation under local anesthesia (ASVAL) technique",
+        "Rotating catheter endomechanical ablation (Clari-Vein, MOCA, MCEA, MEECA procedures)",
+        "Cryosurgical procedures (cryostripping, cryoablation, cryofreezing or similar)",
+        "Coil Embolization",
+        "Balloon isolation and venous catheter-directed chemical ablation",
+        "Transilluminated phlebectomy (TIPP, TriVex)"
+      ]
+    },
+    {
+      "rule_set_id": "sclerotherapy_and_varithena",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "36465",
+            "36466",
+            "36470",
+            "36471",
+            "36473",
+            "36474",
+            "S2202"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "pre_october_2026_sclerotherapy_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "date_of_service",
+              "operator": "<",
+              "value": "2026-10-01"
+            },
+            {
+              "field": "sclerotherapy_indication",
+              "operator": "ANY",
+              "conditions": [
+                {
+                  "field": "time_since_covered_stab_phlebectomy_endovenous_ablation_or_vein_stripping",
+                  "operator": "<=",
+                  "value": 6,
+                  "unit": "months"
+                },
+                {
+                  "field": "symptoms_persist_associated_with_persistent_varicosities_at_same_venous_sites",
+                  "operator": "EQUAL",
+                  "value": true
+                },
+                {
+                  "field": "superficial_varicosities_diameter",
+                  "operator": ">=",
+                  "value": 4.0,
+                  "unit": "mm",
+                  "associated_conditions": [
+                    "spontaneous bleeding",
+                    "poorly healing ulcer"
+                  ]
+                },
+                {
+                  "field": "microfoam_sclerotherapy_varithena_use",
+                  "operator": "ALL",
+                  "conditions": [
+                    {
+                      "field": "vein_size_diameter",
+                      "operator": "OR",
+                      "value": [
+                        {
+                          "field": "general_vein_diameter",
+                          "operator": ">=",
+                          "value": 4.5,
+                          "unit": "mm"
+                        },
+                        {
+                          "field": "short_saphenous_vein_diameter",
+                          "operator": ">=",
+                          "value": 3.5,
+                          "unit": "mm"
+                        }
+                      ]
+                    },
+                    {
+                      "field": "laser_ablation_not_an_option_due_to_thrombosis_or_vein_tortuosity",
+                      "operator": "EQUAL",
+                      "value": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "pathway_id": "post_october_2026_sclerotherapy_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "date_of_service",
+              "operator": ">=",
+              "value": "2026-10-01"
+            },
+            {
+              "field": "sclerotherapy_indication",
+              "operator": "ANY",
+              "conditions": [
+                {
+                  "field": "time_since_covered_stab_phlebectomy_endovenous_ablation_or_vein_stripping",
+                  "operator": "<=",
+                  "value": 6,
+                  "unit": "months"
+                },
+                {
+                  "field": "symptoms_persist_associated_with_persistent_varicosities_at_same_venous_sites",
+                  "operator": "EQUAL",
+                  "value": true
+                },
+                {
+                  "field": "superficial_varicosities_diameter",
+                  "operator": ">=",
+                  "value": 4.0,
+                  "unit": "mm",
+                  "associated_conditions": [
+                    "spontaneous bleeding",
+                    "poorly healing ulcer"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Procedures and services that are intended to improve or maintain appearance, and that are not expected to significantly improve physical function (cosmetic)",
+        "Treatment of telangiectasias, reticular veins, spider veins",
+        "Treatment of varicose veins that are 2mm or less in diameter",
+        "Treatment of incompetent perforator veins only",
+        "Procedures with devices not FDA approved",
+        "Non-compressive sclerotherapy",
+        "Transdermal laser therapy",
+        "Intense pulsed-light therapy (photothermal sclerosis)",
+        "Treatment using glycerin or glycerol",
+        "Selective vein ablation under local anesthesia (ASVAL) technique",
+        "Rotating catheter endomechanical ablation (Clari-Vein, MOCA, MCEA, MEECA procedures)",
+        "Cryosurgical procedures (cryostripping, cryoablation, cryofreezing or similar)",
+        "Coil Embolization",
+        "Balloon isolation and venous catheter-directed chemical ablation",
+        "Transilluminated phlebectomy (TIPP, TriVex)"
+      ]
+    },
+    {
+      "rule_set_id": "sclerotherapy_telangiectasias_exclusion",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "36468"
+          ]
+        }
+      },
+      "pathways": [],
+      "exclusions": [
+        "Treatment of reticular veins, spider veins or superficial telangiectasias by any technique (considered cosmetic)"
+      ]
+    },
+    {
+      "rule_set_id": "subfascial_endoscopic_perforator_surgery_seps",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "37500",
+            "37760",
+            "37761"
+          ]
+        }
+      },
+      "pathways": [],
+      "exclusions": [
+        "Treatment of incompetent perforator veins only"
+      ]
+    }
+  ]
+}

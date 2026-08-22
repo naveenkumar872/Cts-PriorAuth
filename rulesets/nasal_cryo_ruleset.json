@@ -1,0 +1,72 @@
+{
+  "policy_id": "NAS-53203184",
+  "policy_name": "Nasal Cryoablation, Radiofrequency Ablation & Laser Treatments",
+  "rule_sets": [
+    {
+      "rule_set_id": "nasal_cryo_rf_laser_non_coverage",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "30469",
+            "30117",
+            "31242",
+            "31243"
+          ]
+        },
+        "diagnosis_code": {
+          "coding_system": "ICD-10",
+          "operator": "IN",
+          "value": [
+            "J30.0",
+            "J30.1-J30.9",
+            "J31.0",
+            "J31.1",
+            "J34.89",
+            "R09.81",
+            "R09.82"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "non_coverage_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "medical_necessity_status",
+              "operator": "EQUAL",
+              "value": "Considered Not Medically Necessary"
+            },
+            {
+              "field": "clinical_evidence_status",
+              "operator": "EQUAL",
+              "value": "There is insufficient evidence in the published medical literature to show that this therapy is as safe as standard service/therapies and/or provides better long-term outcomes than current standard services/therapies."
+            },
+            {
+              "field": "documentation_requirement",
+              "operator": "EQUAL",
+              "value": "Last 6 months of clinical notes from requesting provider &/or specialist"
+            },
+            {
+              "field": "clinical_notes_timeframe",
+              "operator": "EQUAL",
+              "value": 6,
+              "unit": "months"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Cryoablation for allergic or nonallergic chronic rhinitis (e.g., ClariFix® device)",
+        "Radiofrequency ablation for the treatment of airway obstruction (e.g., VivAer® Stylus device)",
+        "Radiofrequency ablation for allergic or nonallergic chronic rhinitis (e.g., RhinAer® Stylus device)",
+        "Repair of nasal valve collapse with low energy, temperature-controlled (ie, radiofrequency) subcutaneous/submucosal remodeling (CPT 30469)",
+        "Excision or destruction (eg, laser), intranasal lesion; internal approach (CPT 30117)",
+        "Nasal/sinus endoscopy, surgical; with destruction by radiofrequency ablation, posterior nasal nerve (CPT 31242)",
+        "Nasal/sinus endoscopy, surgical; with destruction by cryoablation, posterior nasal nerve (CPT 31243)"
+      ]
+    }
+  ]
+}

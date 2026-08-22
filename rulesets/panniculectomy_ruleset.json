@@ -1,0 +1,319 @@
+{
+  "policy_id": "PAN-46451858",
+  "policy_name": "Panniculectomy and Removal of Excess/Redundant Skin",
+  "rule_sets": [
+    {
+      "rule_set_id": "panniculectomy",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "15830",
+            "17999",
+            "22999",
+            "00802"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "panniculectomy_standard_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "pannus_grade",
+              "operator": ">=",
+              "value": 2,
+              "unit": "grade",
+              "description": "Pannus is a grade II or higher as documented by clinical notes and/or pre-operative notes"
+            },
+            {
+              "field": "pannus_complications",
+              "operator": "IN",
+              "value": [
+                "recurrent chronic rashes",
+                "infections",
+                "cellulitis",
+                "non-healing ulcers under the panniculus"
+              ],
+              "description": "Pannus is documented to have caused recurrent chronic rashes, infections, cellulitis, or non-healing ulcers under the panniculus"
+            },
+            {
+              "field": "antibiotic_treatment_trial_duration",
+              "operator": ">=",
+              "value": 3,
+              "unit": "months",
+              "description": "Documentation of a minimum of a 3-month trial and failure of treatment with prescribed systemic oral or IV antibiotics"
+            },
+            {
+              "field": "functional_impairment",
+              "operator": "EQUAL",
+              "value": true,
+              "description": "Pannus is documented to cause significant functional impairment to activities of daily living with panniculectomy expected to restore or improve function"
+            },
+            {
+              "field": "stable_weight_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months",
+              "description": "Documentation of a stable weight for at least 6 months"
+            }
+          ]
+        },
+        {
+          "pathway_id": "panniculectomy_bariatric_surgery_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "pannus_grade",
+              "operator": ">=",
+              "value": 2,
+              "unit": "grade",
+              "description": "Pannus is a grade II or higher as documented by clinical notes and/or pre-operative notes"
+            },
+            {
+              "field": "pannus_complications",
+              "operator": "IN",
+              "value": [
+                "recurrent chronic rashes",
+                "infections",
+                "cellulitis",
+                "non-healing ulcers under the panniculus"
+              ],
+              "description": "Pannus is documented to have caused recurrent chronic rashes, infections, cellulitis, or non-healing ulcers under the panniculus"
+            },
+            {
+              "field": "antibiotic_treatment_trial_duration",
+              "operator": ">=",
+              "value": 3,
+              "unit": "months",
+              "description": "Documentation of a minimum of a 3-month trial and failure of treatment with prescribed systemic oral or IV antibiotics"
+            },
+            {
+              "field": "functional_impairment",
+              "operator": "EQUAL",
+              "value": true,
+              "description": "Pannus is documented to cause significant functional impairment to activities of daily living with panniculectomy expected to restore or improve function"
+            },
+            {
+              "field": "bariatric_surgery_post_op_duration",
+              "operator": ">=",
+              "value": 18,
+              "unit": "months",
+              "description": "In cases where a bariatric surgery was performed the patient must be 18 months post op"
+            },
+            {
+              "field": "bariatric_surgery_weight_stabilization_duration",
+              "operator": ">=",
+              "value": 12,
+              "unit": "months",
+              "description": "12 months of documented stabilization of weight"
+            },
+            {
+              "field": "bmi",
+              "operator": "<",
+              "value": 35,
+              "unit": "kg/m2",
+              "description": "BMI < 35"
+            }
+          ]
+        },
+        {
+          "pathway_id": "panniculectomy_with_abdominal_or_gynecological_procedures",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "performed_in_conjunction_with",
+              "operator": "IN",
+              "value": [
+                "abdominal procedures",
+                "gynecological procedures"
+              ],
+              "description": "Performed in conjunction with abdominal or gynecological procedures"
+            },
+            {
+              "field": "reduces_excessive_skin_tension",
+              "operator": "EQUAL",
+              "value": true,
+              "description": "Documented that the panniculectomy will reduce excessive skin tension that may impair wound healing"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "neck_or_back_pain_treatment",
+          "description": "Treatment for neck or back pain"
+        },
+        {
+          "exclusion_id": "minimize_hernia_risk",
+          "description": "Minimizing risk for hernia formation or recurrence"
+        },
+        {
+          "exclusion_id": "repair_abdominal_wall_laxity_or_diastasis_recti",
+          "description": "Repairing abdominal wall laxity or diastasis recti"
+        },
+        {
+          "exclusion_id": "suction_assisted_lipectomy_alone",
+          "description": "Suction assisted lipectomy performed alone or not as a part of a medically necessary panniculectomy procedure"
+        },
+        {
+          "exclusion_id": "improved_appearance",
+          "description": "Improved appearance"
+        },
+        {
+          "exclusion_id": "nicotine_tobacco_use",
+          "description": "Current nicotine/tobacco use unless actively enrolled in a tobacco cessation program with a commitment to be nicotine/tobacco-free for a minimum of 30-days prior to surgery"
+        },
+        {
+          "exclusion_id": "poorly_controlled_diabetes",
+          "description": "Diabetes with poorly controlled blood sugar as evidenced by an HbA1c > 7.5"
+        }
+      ],
+      "documentation_requirements": [
+        {
+          "requirement": "Last 6 months of clinical notes from requesting provider &/or specialist"
+        }
+      ]
+    },
+    {
+      "rule_set_id": "abdominoplasty",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "15847"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "abdominoplasty_hernia_repair_exception",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "required_for_hernia_repair",
+              "operator": "EQUAL",
+              "value": true,
+              "description": "Abdominoplasty may be approved, if required for a hernia repair"
+            }
+          ]
+        },
+        {
+          "pathway_id": "abdominoplasty_medicare_members",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUAL",
+              "value": "Medicare",
+              "description": "For Medicare Members, considered medically necessary when criteria in the applicable policy statements are met"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "non_medicare_cosmetic",
+          "description": "Non-Medicare - Considered Not Medically Necessary / Cosmetic and not medically necessary for all applications"
+        },
+        {
+          "exclusion_id": "diastasis_recti_correction",
+          "description": "Surgical procedures to correct diastasis recti are considered cosmetic in nature and not medically necessary"
+        },
+        {
+          "exclusion_id": "nicotine_tobacco_use",
+          "description": "Current nicotine/tobacco use unless actively enrolled in a tobacco cessation program with a commitment to be nicotine/tobacco-free for a minimum of 30-days prior to surgery"
+        },
+        {
+          "exclusion_id": "poorly_controlled_diabetes",
+          "description": "Diabetes with poorly controlled blood sugar as evidenced by an HbA1c > 7.5"
+        }
+      ],
+      "documentation_requirements": [
+        {
+          "requirement": "Last 6 months of clinical notes from requesting provider &/or specialist"
+        }
+      ]
+    },
+    {
+      "rule_set_id": "other_redundant_skin_removal",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "15832",
+            "15833",
+            "15834",
+            "15835",
+            "15836",
+            "15837",
+            "15838",
+            "15839"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "redundant_skin_standard_criteria",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "interference_with_activities_of_daily_living",
+              "operator": "EQUAL",
+              "value": true,
+              "description": "Documentation of interference with activities of daily living"
+            },
+            {
+              "field": "skin_complications",
+              "operator": "IN",
+              "value": [
+                "skin breakdown",
+                "skin infections",
+                "fungal infections due to friction in the intertriginous zones"
+              ],
+              "description": "Skin breakdown and skin infections including fungal infections due to friction in the intertriginous zones"
+            },
+            {
+              "field": "medical_treatment_trial_duration",
+              "operator": ">=",
+              "value": 3,
+              "unit": "months",
+              "description": "Don't respond to 3 or more months of medical treatment (consisting of good hygiene practices, topical antifungals, topical and/or systemic corticosteroids, and local and/or systemic antibiotics)"
+            }
+          ]
+        },
+        {
+          "pathway_id": "redundant_skin_surgical_access_exception",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "requested_by_surgeon_for_access_or_healing",
+              "operator": "EQUAL",
+              "value": true,
+              "description": "Requested by a surgeon because of difficult surgical access, where the excess skin or tissue will interfere with surgery or surgical healing"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "nicotine_tobacco_use",
+          "description": "Current nicotine/tobacco use unless actively enrolled in a tobacco cessation program with a commitment to be nicotine/tobacco-free for a minimum of 30-days prior to surgery"
+        },
+        {
+          "exclusion_id": "poorly_controlled_diabetes",
+          "description": "Diabetes with poorly controlled blood sugar as evidenced by an HbA1c > 7.5"
+        }
+      ],
+      "documentation_requirements": [
+        {
+          "requirement": "Last 6 months of clinical notes from requesting provider &/or specialist"
+        }
+      ]
+    }
+  ]
+}

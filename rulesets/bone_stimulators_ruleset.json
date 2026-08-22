@@ -1,0 +1,238 @@
+{
+  "policy_id": "BON-36947462",
+  "policy_name": "Osteogenic (Bone) Stimulators",
+  "rule_sets": [
+    {
+      "rule_set_id": "electrical_bone_growth_stimulator_medicare",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "20974",
+            "20975",
+            "E0747",
+            "E0748",
+            "E0749"
+          ]
+        },
+        "member_type": {
+          "operator": "EQUALS",
+          "value": "Medicare"
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_electrical_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "national_coverage_determination",
+              "operator": "MEETS_CRITERIA",
+              "value": "Osteogenic Stimulators (150.2)"
+            },
+            {
+              "field": "local_coverage_determination",
+              "operator": "MEETS_CRITERIA",
+              "value": "Osteogenesis Stimulators (L33796)"
+            },
+            {
+              "field": "local_coverage_article",
+              "operator": "MEETS_CRITERIA",
+              "value": "Osteogenesis Stimulators (A52513)"
+            },
+            {
+              "field": "clinical_notes_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months",
+              "description": "Last 6 months of clinical notes from requesting provider &/or specialist (Orthopedics/podiatry)"
+            },
+            {
+              "field": "x_rays_duration",
+              "operator": ">=",
+              "value": 12,
+              "unit": "months",
+              "description": "Copies of last 12 months of x-rays of involved area"
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    },
+    {
+      "rule_set_id": "electrical_bone_growth_stimulator_non_medicare",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "20974",
+            "20975",
+            "E0748",
+            "E0749"
+          ]
+        },
+        "member_type": {
+          "operator": "EQUALS",
+          "value": "Non-Medicare"
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "non_medicare_electrical_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "mcg_guideline",
+              "operator": "MEETS_CRITERIA",
+              "value": "Bone Growth Stimulators, Electrical and Electromagnetic (A-0565)"
+            },
+            {
+              "field": "clinical_notes_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months",
+              "description": "Last 6 months of clinical notes from requesting provider &/or specialist (Orthopedics/podiatry)"
+            },
+            {
+              "field": "x_rays_duration",
+              "operator": ">=",
+              "value": 12,
+              "unit": "months",
+              "description": "Copies of last 12 months of x-rays of involved area"
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    },
+    {
+      "rule_set_id": "electrical_bone_growth_stimulator_non_medicare_exclusion",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "E0747"
+          ]
+        },
+        "member_type": {
+          "operator": "EQUALS",
+          "value": "Non-Medicare"
+        }
+      },
+      "pathways": [],
+      "exclusions": [
+        {
+          "field": "service_code",
+          "operator": "IN",
+          "value": [
+            "E0747"
+          ],
+          "reason": "Considered not medically necessary for Non-Medicare members"
+        }
+      ]
+    },
+    {
+      "rule_set_id": "ultrasonic_bone_growth_stimulator_medicare",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "20979",
+            "E0760"
+          ]
+        },
+        "member_type": {
+          "operator": "EQUALS",
+          "value": "Medicare"
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_ultrasonic_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "national_coverage_determination",
+              "operator": "MEETS_CRITERIA",
+              "value": "Osteogenic Stimulators (150.2)"
+            },
+            {
+              "field": "local_coverage_determination",
+              "operator": "MEETS_CRITERIA",
+              "value": "Osteogenesis Stimulators (L33796)"
+            },
+            {
+              "field": "local_coverage_article",
+              "operator": "MEETS_CRITERIA",
+              "value": "Osteogenesis Stimulators (A52513)"
+            },
+            {
+              "field": "clinical_notes_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months",
+              "description": "Last 6 months of clinical notes from requesting provider &/or specialist (Orthopedics/podiatry)"
+            },
+            {
+              "field": "x_rays_duration",
+              "operator": ">=",
+              "value": 12,
+              "unit": "months",
+              "description": "Copies of last 12 months of x-rays of involved area"
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    },
+    {
+      "rule_set_id": "ultrasonic_bone_growth_stimulator_non_medicare",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "20979",
+            "E0760"
+          ]
+        },
+        "member_type": {
+          "operator": "EQUALS",
+          "value": "Non-Medicare"
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "non_medicare_ultrasonic_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "mcg_guideline",
+              "operator": "MEETS_CRITERIA",
+              "value": "Bone Growth Stimulators, Ultrasonic (A-0414)"
+            },
+            {
+              "field": "clinical_notes_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months",
+              "description": "Last 6 months of clinical notes from requesting provider &/or specialist (Orthopedics/podiatry)"
+            },
+            {
+              "field": "x_rays_duration",
+              "operator": ">=",
+              "value": 12,
+              "unit": "months",
+              "description": "Copies of last 12 months of x-rays of involved area"
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    }
+  ]
+}

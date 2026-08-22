@@ -1,0 +1,72 @@
+{
+  "policy_id": "NON-75629529",
+  "policy_name": "Non-Hiatal Hernia Repair",
+  "rule_sets": [
+    {
+      "rule_set_id": "non_hiatal_hernia_repair_rules",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "49591",
+            "49593",
+            "49595",
+            "49613",
+            "49615",
+            "49617",
+            "49659"
+          ]
+        },
+        "diagnosis_code": {
+          "coding_system": "ICD-10",
+          "operator": "IN",
+          "value": [
+            "K42.0",
+            "K42.9"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "clinical_necessity_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "clinical_guideline",
+              "operator": "EQUAL",
+              "value": "MCG Hernia Repair (non-hiatal) KP-S-1305"
+            },
+            {
+              "field": "clinical_notes_duration",
+              "operator": "GE",
+              "value": 6,
+              "unit": "months",
+              "description": "Last 6 months of clinical notes from requesting provider and/or specialist"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "review_not_required_49595",
+          "field": "service_code",
+          "operator": "EQUAL",
+          "value": "49595",
+          "description": "Review not required"
+        },
+        {
+          "exclusion_id": "review_not_required_49617",
+          "field": "service_code",
+          "operator": "EQUAL",
+          "value": "49617",
+          "description": "Review not required"
+        },
+        {
+          "exclusion_id": "strangulated_incarcerated_repair_codes",
+          "description": "The strangulated/incarcerated repair codes were excluded from the policy"
+        }
+      ]
+    }
+  ]
+}

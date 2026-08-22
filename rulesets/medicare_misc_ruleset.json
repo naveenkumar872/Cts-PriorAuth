@@ -1,0 +1,139 @@
+{
+  "policy_id": "MED-22564134",
+  "policy_name": "Medicare Only – Miscellaneous Criteria",
+  "rule_sets": [
+    {
+      "rule_set_id": "computed_tomography_cerebral_perfusion_analysis",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "0042T",
+            "70472",
+            "70473"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "ctp_code_0042t_validity",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "service_code",
+              "operator": "==",
+              "value": "0042T"
+            },
+            {
+              "field": "service_date",
+              "operator": "<",
+              "value": "2026-01-01",
+              "unit": "date"
+            }
+          ]
+        },
+        {
+          "pathway_id": "ctp_codes_70472_70473_validity",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "service_code",
+              "operator": "IN",
+              "value": [
+                "70472",
+                "70473"
+              ]
+            },
+            {
+              "field": "service_date",
+              "operator": ">=",
+              "value": "2026-01-01",
+              "unit": "date"
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    },
+    {
+      "rule_set_id": "therapeutic_apheresis_familial_hypercholesterolemia",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "36516"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "lca_reference_only",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "applicable_policy",
+              "operator": "==",
+              "value": "LCA A54543"
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    },
+    {
+      "rule_set_id": "cryosurgery_of_prostate",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "55873"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "ncd_reference_only",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "applicable_policy",
+              "operator": "==",
+              "value": "NCD 230.9"
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    },
+    {
+      "rule_set_id": "urological_supplies_inflow_device",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "A4341",
+            "A4342"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "lcd_reference_only",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "applicable_policy",
+              "operator": "==",
+              "value": "LCD L33803"
+            }
+          ]
+        }
+      ],
+      "exclusions": []
+    }
+  ]
+}

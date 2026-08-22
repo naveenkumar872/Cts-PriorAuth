@@ -1,0 +1,186 @@
+{
+  "policy_id": "DEE-09991129",
+  "policy_name": "Deep Brain Stimulation",
+  "rule_sets": [
+    {
+      "rule_set_id": "non_medicare_members",
+      "match_criteria": {
+        "member_type": {
+          "operator": "==",
+          "value": "Non-Medicare"
+        },
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "61863",
+            "61864",
+            "61867",
+            "61868",
+            "61880",
+            "61885",
+            "61886",
+            "61888",
+            "95970",
+            "95983",
+            "95984"
+          ]
+        },
+        "hcpcs_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "C1820",
+            "L8679",
+            "L8681",
+            "L8686",
+            "L8687",
+            "L8688",
+            "L8689",
+            "C1778",
+            "C1787",
+            "C1816",
+            "C1897"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "essential_tremor_thalamic_stimulation",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "clinical_condition",
+              "operator": "==",
+              "value": "Essential tremor"
+            },
+            {
+              "field": "prior_treatment",
+              "operator": "==",
+              "value": "Failed maximal medical therapy for controlling tremor"
+            },
+            {
+              "field": "mini_mental_state_examination_score",
+              "operator": ">=",
+              "value": 24
+            },
+            {
+              "field": "severe_depression",
+              "operator": "==",
+              "value": "No evidence"
+            },
+            {
+              "field": "clinical_notes_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months"
+            }
+          ]
+        },
+        {
+          "pathway_id": "parkinsonian_tremor_thalamic_stimulation",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "clinical_condition",
+              "operator": "==",
+              "value": "Parkinsonian tremor"
+            },
+            {
+              "field": "primary_functional_disability",
+              "operator": "==",
+              "value": "Tremor despite maximal medical therapy"
+            },
+            {
+              "field": "mini_mental_state_examination_score",
+              "operator": ">=",
+              "value": 24
+            },
+            {
+              "field": "severe_depression",
+              "operator": "==",
+              "value": "No evidence"
+            },
+            {
+              "field": "clinical_notes_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months"
+            }
+          ]
+        },
+        {
+          "pathway_id": "parkinsons_symptoms_globus_pallidus_subthalamic_nucleus",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "clinical_condition",
+              "operator": "==",
+              "value": "Parkinson's symptoms"
+            },
+            {
+              "field": "procedure_type",
+              "operator": "IN",
+              "value": [
+                "Globus Pallidus Stimulator Implant",
+                "Subthalamic Nucleus Stimulator Implant"
+              ]
+            },
+            {
+              "field": "mini_mental_state_examination_score",
+              "operator": ">=",
+              "value": 24
+            },
+            {
+              "field": "severe_depression",
+              "operator": "==",
+              "value": "No evidence"
+            },
+            {
+              "field": "clinical_notes_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "condition": "Refractory Obsessive-Compulsive Disorder",
+          "reason": "Insufficient evidence in the published medical literature to show that this service/therapy is as safe as standard services/therapies and/or provides better long-term outcomes"
+        },
+        {
+          "condition": "Primary Headache",
+          "reason": "Insufficient evidence in the published medical literature to show that this service/therapy is as safe as standard services/therapies and/or provides better long-term outcomes"
+        },
+        {
+          "condition": "Neuropathic Pain",
+          "reason": "Insufficient evidence in the published medical literature to show that this service/therapy is as safe as standard services/therapies and/or provides better long-term outcomes"
+        }
+      ]
+    },
+    {
+      "rule_set_id": "medicare_members",
+      "match_criteria": {
+        "member_type": {
+          "operator": "==",
+          "value": "Medicare"
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_national_coverage_determination",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "national_coverage_determination",
+              "operator": "==",
+              "value": "Deep Brain Stimulation for Essential Tremor and Parkinson’s Disease (160.24)"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

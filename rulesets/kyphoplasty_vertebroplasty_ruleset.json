@@ -1,0 +1,193 @@
+{
+  "policy_id": "KYP-48865034",
+  "policy_name": "Vertebroplasty + Kyphoplasty",
+  "rule_sets": [
+    {
+      "rule_set_id": "kyphoplasty",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "22513",
+            "20983",
+            "22514",
+            "22515"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "non_medicare_kyphoplasty",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUAL",
+              "value": "Non-Medicare"
+            },
+            {
+              "field": "medical_necessity_guideline",
+              "operator": "EQUAL",
+              "value": "Noridian Local Coverage Determination (LCD) Percutaneous Vertebral Augmentation (PVA) for Osteoporotic Vertebral Compression Fracture (VCF) (L34228)"
+            },
+            {
+              "field": "documentation_submitted",
+              "operator": "EQUAL",
+              "value": "Last 6 months of clinical notes from requesting provider &/or specialist"
+            }
+          ]
+        },
+        {
+          "pathway_id": "medicare_kyphoplasty",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUAL",
+              "value": "Medicare"
+            },
+            {
+              "field": "medical_necessity_guideline",
+              "operator": "EQUAL",
+              "value": "Local Coverage Determinations (LCD) Percutaneous Vertebral Augmentation (PVA) for Osteoporotic Vertebral Compression Fracture (VCF) (L34228) and Local Coverage Article Billing and coding: percutaneous Vertebral Augmentation (PVA) for Osteoporotic Vertebral Compression Fracture (VCF) (A56572)"
+            },
+            {
+              "field": "documentation_submitted",
+              "operator": "EQUAL",
+              "value": "Last 6 months of clinical notes from requesting provider &/or specialist"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Radiofrequency-assisted vertebral augmentation with ultrahigh viscosity cement, including but not limited to Radiofrequency-Targeted Vertebral Augmentation™ (RF-TVA™) with the StabiliT® System",
+        "Mechanical vertebral augmentation using any device other than a balloon device, including but not limited to use of the Kiva®"
+      ],
+      "coverage_notes": "Provisions in the LCD and related coding article only address Vertebral Augmentation for Osteoporotic Vertebral Compression Fracture (VCF). Coverage will remain available for medically necessary procedures for other conditions not included in the LCD, such as other pathologic vertebral compression fractures."
+    },
+    {
+      "rule_set_id": "vertebroplasty",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "22510",
+            "22511",
+            "22512"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "non_medicare_vertebroplasty",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUAL",
+              "value": "Non-Medicare"
+            },
+            {
+              "field": "medical_necessity_guideline",
+              "operator": "EQUAL",
+              "value": "Noridian Local Coverage Determination (LCD) Percutaneous Vertebral Augmentation (PVA) for Osteoporotic Vertebral Compression Fracture (VCF) (L34228)"
+            },
+            {
+              "field": "documentation_submitted",
+              "operator": "EQUAL",
+              "value": "Last 6 months of clinical notes from requesting provider &/or specialist"
+            }
+          ]
+        },
+        {
+          "pathway_id": "medicare_vertebroplasty",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUAL",
+              "value": "Medicare"
+            },
+            {
+              "field": "medical_necessity_guideline",
+              "operator": "EQUAL",
+              "value": "Local Coverage Determinations (LCD) Percutaneous Vertebral Augmentation (PVA) for Osteoporotic Vertebral Compression Fracture (VCF) (L34228) and Local Coverage Article Billing and coding: percutaneous Vertebral Augmentation (PVA) for Osteoporotic Vertebral Compression Fracture (VCF) (A56572)"
+            },
+            {
+              "field": "documentation_submitted",
+              "operator": "EQUAL",
+              "value": "Last 6 months of clinical notes from requesting provider &/or specialist"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Radiofrequency-assisted vertebral augmentation with ultrahigh viscosity cement, including but not limited to Radiofrequency-Targeted Vertebral Augmentation™ (RF-TVA™) with the StabiliT® System",
+        "Mechanical vertebral augmentation using any device other than a balloon device, including but not limited to use of the Kiva®"
+      ],
+      "coverage_notes": "Provisions in the LCD and related coding article only address Vertebral Augmentation for Osteoporotic Vertebral Compression Fracture (VCF). Coverage will remain available for medically necessary procedures for other conditions not included in the LCD, such as other pathologic vertebral compression fractures."
+    },
+    {
+      "rule_set_id": "sacroplasty",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "0200T",
+            "0201T"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "sacroplasty_non_medicare",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUAL",
+              "value": "Non-Medicare"
+            },
+            {
+              "field": "clinical_evidence",
+              "operator": "EQUAL",
+              "value": "Insufficient evidence in the published medical literature to show that this service/therapy is as safe as standard services/therapies and/or provides better long-term outcomes than current standard services/therapies"
+            },
+            {
+              "field": "documentation_submitted",
+              "operator": "EQUAL",
+              "value": "Last 6 months of clinical notes from requesting provider &/or specialist"
+            }
+          ]
+        },
+        {
+          "pathway_id": "sacroplasty_medicare",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUAL",
+              "value": "Medicare"
+            },
+            {
+              "field": "medical_necessity_guideline",
+              "operator": "EQUAL",
+              "value": "KPWA Medical Policy Clinical Review Criteria, Percutaneous Sacroplasty"
+            },
+            {
+              "field": "documentation_submitted",
+              "operator": "EQUAL",
+              "value": "Last 6 months of clinical notes from requesting provider &/or specialist"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Considered Not Medically Necessary"
+      ]
+    }
+  ]
+}

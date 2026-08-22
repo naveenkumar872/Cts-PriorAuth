@@ -1,0 +1,181 @@
+{
+  "policy_id": "DIA-37579519",
+  "policy_name": "Dialysis Services",
+  "rule_sets": [
+    {
+      "rule_set_id": "standard_hemodialysis",
+      "match_criteria": {
+        "service_name": {
+          "operator": "EQUALS",
+          "value": "Standard Hemodialysis"
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "standard_hemodialysis_in_center_non_medicare",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUALS",
+              "value": "Non-Medicare"
+            },
+            {
+              "field": "clinical_condition",
+              "operator": "EQUALS",
+              "value": "end stage renal disease"
+            },
+            {
+              "field": "frequency",
+              "operator": "EQUALS",
+              "value": 3,
+              "unit": "days a week"
+            }
+          ]
+        },
+        {
+          "pathway_id": "standard_hemodialysis_home_non_medicare",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUALS",
+              "value": "Non-Medicare"
+            },
+            {
+              "field": "clinical_condition",
+              "operator": "EQUALS",
+              "value": "end stage renal disease"
+            },
+            {
+              "field": "frequency",
+              "operator": "EQUALS",
+              "value": 3,
+              "unit": "days a week"
+            },
+            {
+              "field": "stable_on_dialysis",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "free_of_complications_and_significant_concomitant_disease_rendering_home_dialysis_unsuitable_or_unsafe",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "member_or_caregiver_capable_of_completing_home_dialysis_training_program_and_adhering_to_prescribed_treatment_regimen",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "adequate_caregiver_available_during_dialysis",
+              "operator": "EQUALS",
+              "value": true
+            },
+            {
+              "field": "backup_arrangements_made_with_facility_based_dialysis_center",
+              "operator": "EQUALS",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "exclusions": [],
+      "documentation_requirements": [
+        {
+          "description": "Last 6 months of clinical notes from requesting provider &/or specialist."
+        }
+      ]
+    },
+    {
+      "rule_set_id": "frequent_hemodialysis",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "99512",
+            "90999",
+            "E1629"
+          ]
+        }
+      },
+      "pathways": [],
+      "exclusions": [
+        {
+          "exclusion_id": "frequent_hemodialysis_non_medicare_exclusion",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUALS",
+              "value": "Non-Medicare"
+            }
+          ],
+          "reason": "Considered Not Medically Necessary. There is insufficient evidence in the published medical literature to show that this service/therapy is as safe as standard services/therapies and/or provides better long-term outcomes than current standard services/therapies."
+        }
+      ],
+      "documentation_requirements": [
+        {
+          "description": "Last 6 months of clinical notes from requesting provider &/or specialist."
+        }
+      ]
+    },
+    {
+      "rule_set_id": "ultrafiltration_chf",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "0692T"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "ultrafiltration_medicare",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUALS",
+              "value": "Medicare"
+            },
+            {
+              "field": "meets_criteria_in_applicable_policy_statements",
+              "operator": "EQUALS",
+              "value": true,
+              "referenced_policies": [
+                "Medicare Benefit Policy Manual, Chapter 8 - Outpatient ESRD Hospital, Independent Facility, and Physician/Supplier Claims",
+                "National Coverage Determinations (NCD) Ultrafiltration, Hemoperfusion and Hemofiltration (110.15)",
+                "Local Coverage Determinations (LCD) Frequency of Hemodialysis (L37502)",
+                "Local Coverage Article Billing and Coding: Frequency of Hemodialysis (A55675)"
+              ]
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "ultrafiltration_non_medicare_exclusion",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "EQUALS",
+              "value": "Non-Medicare"
+            }
+          ],
+          "reason": "Considered Not Medically Necessary. There is insufficient evidence in the published medical literature to show that this service/therapy is as safe as standard services/therapies and/or provides better long-term outcomes than current standard services/therapies."
+        }
+      ],
+      "documentation_requirements": [
+        {
+          "description": "Last 6 months of clinical notes from requesting provider &/or specialist."
+        }
+      ]
+    }
+  ]
+}

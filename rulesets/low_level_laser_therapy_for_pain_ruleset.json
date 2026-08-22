@@ -1,0 +1,69 @@
+{
+  "policy_id": "LOW-64082370",
+  "policy_name": "Low Level Laser Therapy for Pain",
+  "rule_sets": [
+    {
+      "rule_set_id": "low_level_laser_therapy_rules",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "97037",
+            "S8948",
+            "0552T"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_member_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "==",
+              "value": "Medicare"
+            },
+            {
+              "field": "national_coverage_determination",
+              "operator": "EXISTS",
+              "value": "Laser Procedures (140.5)"
+            }
+          ]
+        },
+        {
+          "pathway_id": "non_medicare_member_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "==",
+              "value": "Non-Medicare"
+            },
+            {
+              "field": "clinical_notes_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months",
+              "description": "Last 6 months of clinical notes from requesting provider &/or specialist"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "non_medicare_not_medically_necessary",
+          "description": "For Non-Medicare members, low level laser therapy is considered Not Medically Necessary.",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "==",
+              "value": "Non-Medicare"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

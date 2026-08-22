@@ -1,0 +1,170 @@
+{
+  "policy_id": "INH-23863964",
+  "policy_name": "Inhaled Nitric Oxide (iNO) Therapy",
+  "rule_sets": [
+    {
+      "rule_set_id": "non_medicare_members",
+      "match_criteria": {
+        "service_name": {
+          "operator": "EQUAL",
+          "value": "Inhaled Nitric Oxide (iNO) Therapy"
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "pulmonary_hypertension_near_term_infants_no_cdh",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "gestational_age",
+              "operator": ">",
+              "value": 34,
+              "unit": "weeks"
+            },
+            {
+              "field": "congenital_diaphragmatic_hernia",
+              "operator": "EQUAL",
+              "value": "absent"
+            },
+            {
+              "field": "conventional_therapies",
+              "operator": "EQUAL",
+              "value": "failed or expected to fail",
+              "details": "Conventional therapies include administration of high concentrations of oxygen, hyperventilation, high-frequency ventilation, the induction of alkalosis, neuromuscular blockade, and sedation"
+            }
+          ]
+        },
+        {
+          "pathway_id": "pulmonary_hypertension_near_term_infants_cdh_transition_to_ecmo",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "gestational_age",
+              "operator": ">",
+              "value": 34,
+              "unit": "weeks"
+            },
+            {
+              "field": "congenital_diaphragmatic_hernia",
+              "operator": "EQUAL",
+              "value": "present"
+            },
+            {
+              "field": "clinical_scenario",
+              "operator": "EQUAL",
+              "value": "stabilize patient during transition to ECMO"
+            },
+            {
+              "field": "duration",
+              "operator": "EQUAL",
+              "value": "usually required for a few hours before transition"
+            }
+          ]
+        },
+        {
+          "pathway_id": "pulmonary_hypertension_near_term_infants_cdh_transition_off_ecmo",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "gestational_age",
+              "operator": ">",
+              "value": 34,
+              "unit": "weeks"
+            },
+            {
+              "field": "congenital_diaphragmatic_hernia",
+              "operator": "EQUAL",
+              "value": "present"
+            },
+            {
+              "field": "clinical_scenario",
+              "operator": "EQUAL",
+              "value": "transition off of ECMO when pulmonary arterial pressures are high"
+            },
+            {
+              "field": "duration",
+              "operator": "EQUAL",
+              "value": "ranging from hours to several days"
+            }
+          ]
+        },
+        {
+          "pathway_id": "cyanotic_congenital_heart_disease_acute_crisis",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "patient_population",
+              "operator": "EQUAL",
+              "value": "pediatric"
+            },
+            {
+              "field": "clinical_scenario",
+              "operator": "EQUAL",
+              "value": "managed for acute pulmonary hypertension crisis and acute right heart failure with a predisposition to unrestricted over-circulation"
+            }
+          ]
+        },
+        {
+          "pathway_id": "cyanotic_congenital_heart_disease_surgical_intervention",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "patient_population",
+              "operator": "EQUAL",
+              "value": "pediatric"
+            },
+            {
+              "field": "surgical_intervention_required",
+              "operator": "EQUAL",
+              "value": true,
+              "details": "increased risk of pulmonary hypertension crisis"
+            },
+            {
+              "field": "receiving_pulmonary_vascular_therapy",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "treatment_course",
+              "operator": "EQUAL",
+              "value": "typical course of treatment 3 days (may be longer on a case by case basis) to transition to oral medications and wean-off iNO"
+            }
+          ]
+        },
+        {
+          "pathway_id": "cyanotic_congenital_heart_disease_transplant",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "patient_population",
+              "operator": "EQUAL",
+              "value": "pediatric"
+            },
+            {
+              "field": "needs_transplant_for_right_heart_failure",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "duration",
+              "operator": "EQUAL",
+              "value": "requires iNO for 1 week to several months"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "pre_term_newborns",
+          "description": "Treatment of pulmonary hypertension in pre-term newborns (<=34 weeks)",
+          "reason": "There is insufficient evidence in the published medical literature to show that this service/therapy is as safe as standard services/therapies and/or provides better long-term outcomes than current standard services/therapies."
+        },
+        {
+          "exclusion_id": "acute_respiratory_distress_syndrome",
+          "description": "Treatment of acute respiratory distress syndrome (ARDS) in adults and children",
+          "reason": "There is insufficient evidence in the published medical literature to show that this service/therapy is as safe as standard services/therapies and/or provides better long-term outcomes than current standard services/therapies."
+        }
+      ]
+    }
+  ]
+}

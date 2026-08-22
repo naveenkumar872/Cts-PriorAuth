@@ -1,0 +1,66 @@
+{
+  "policy_id": "NEU-43561927",
+  "policy_name": "Neutron Beam Radiotherapy",
+  "rule_sets": [
+    {
+      "rule_set_id": "neutron_beam_radiotherapy_criteria",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "77423"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "salivary_gland_tumors_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "clinical_indication",
+              "operator": "EQUALS",
+              "value": "salivary gland tumors"
+            },
+            {
+              "field": "tumor_status",
+              "operator": "IN",
+              "value": [
+                "Inoperable tumor",
+                "Locally advanced tumor especially in persons with gross residual disease",
+                "Unresectable tumor"
+              ]
+            },
+            {
+              "field": "documentation_requirement",
+              "operator": "EQUALS",
+              "value": "Last 6 months of clinical notes from requesting provider &/or specialist",
+              "unit": "months",
+              "value_numerical": 6
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "field": "clinical_indication",
+          "operator": "IN",
+          "value": [
+            "Colon cancer",
+            "Dermatofibrosarcoma protuberans",
+            "Glioma",
+            "Kidney cancer",
+            "Laryngeal cancer",
+            "Lung cancer",
+            "Pancreatic cancer",
+            "Prostate cancer",
+            "Rectal cancer",
+            "Soft tissue sarcoma"
+          ],
+          "reason": "Kaiser Permanente considers neutron beam therapy insufficient evidence for all other indications because its effectiveness for these indications has not been established"
+        }
+      ]
+    }
+  ]
+}

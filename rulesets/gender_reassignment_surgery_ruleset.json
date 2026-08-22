@@ -1,0 +1,802 @@
+{
+  "policy_id": "GEN-41215938",
+  "policy_name": "Clinical Review Criteria: Gender Affirming Surgeries of Washington",
+  "rule_sets": [
+    {
+      "rule_set_id": "general_requirements_non_medicare",
+      "match_criteria": {
+        "service_type": {
+          "operator": "EQUAL",
+          "value": "Gender Affirming Services"
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "general_case_coordination_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "engaged_with_gender_health_case_coordination_program",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "referral_reviewed_and_submitted_in_coordination_with_gender_health_case_coordination_team",
+              "operator": "EQUAL",
+              "value": true,
+              "notes": "Not applicable for options patients utilizing out of network benefit, and except for re-authorization requests for expired approvals"
+            }
+          ]
+        },
+        {
+          "pathway_id": "under_18_surgical_referral_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "age",
+              "operator": "<",
+              "value": 18
+            },
+            {
+              "field": "care_coordinator_involved",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "multidisciplinary_review_completed",
+              "operator": "EQUAL",
+              "value": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rule_set_id": "facial_hair_removal",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "17380"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "facial_hair_removal_adult",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "age",
+              "operator": ">=",
+              "value": 18
+            },
+            {
+              "field": "documented_gender_dysphoria",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "gender_affirming_hormone_therapy_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months",
+              "notes": "Appropriate to desired gender, unless medically contraindicated"
+            }
+          ]
+        },
+        {
+          "pathway_id": "facial_hair_removal_adolescent",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "age",
+              "operator": ">=",
+              "value": 16
+            },
+            {
+              "field": "parental_consent",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "documented_gender_dysphoria",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "gender_affirming_hormone_therapy_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months",
+              "notes": "Appropriate to desired gender, unless medically contraindicated"
+            }
+          ]
+        },
+        {
+          "pathway_id": "facial_hair_removal_testicular_bodied_testosterone_level",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "testicular_bodied",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "testosterone_level",
+              "operator": "<",
+              "value": 100
+            }
+          ]
+        },
+        {
+          "pathway_id": "facial_hair_removal_orchiectomy_history",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "history_of_orchiectomy",
+              "operator": "EQUAL",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "members using exogenous testosterone"
+      ]
+    },
+    {
+      "rule_set_id": "body_hair_removal",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "17380"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "body_hair_removal_adult",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "age",
+              "operator": ">=",
+              "value": 18
+            },
+            {
+              "field": "documented_gender_dysphoria",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "gender_affirming_hormone_therapy_duration",
+              "operator": ">=",
+              "value": 2,
+              "unit": "years",
+              "notes": "Taking GAHT appropriate to desired gender for 2-3 years unless medically contraindicated"
+            }
+          ]
+        },
+        {
+          "pathway_id": "body_hair_removal_adolescent",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "age",
+              "operator": ">=",
+              "value": 16
+            },
+            {
+              "field": "parental_consent",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "documented_gender_dysphoria",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "gender_affirming_hormone_therapy_duration",
+              "operator": ">=",
+              "value": 2,
+              "unit": "years",
+              "notes": "Taking GAHT appropriate to desired gender for 2-3 years unless medically contraindicated"
+            }
+          ]
+        },
+        {
+          "pathway_id": "body_hair_removal_testicular_bodied_testosterone_level",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "testicular_bodied",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "testosterone_level",
+              "operator": "<",
+              "value": 100
+            }
+          ]
+        },
+        {
+          "pathway_id": "body_hair_removal_orchiectomy_history",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "history_of_orchiectomy",
+              "operator": "EQUAL",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "members using exogenous testosterone"
+      ]
+    },
+    {
+      "rule_set_id": "mastectomy",
+      "match_criteria": {
+        "service_name": {
+          "operator": "EQUAL",
+          "value": "Mastectomy"
+        },
+        "diagnosis_code": {
+          "coding_system": "ICD-10",
+          "operator": "IN",
+          "value": [
+            "F64.0",
+            "F64.1",
+            "F64.2",
+            "F64.8",
+            "F64.9"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "mastectomy_standard_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "assigned_female_at_birth",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "age",
+              "operator": ">=",
+              "value": 18,
+              "notes": "Age requirement will not be applied if the surgeon, primary care provider, and qualified mental health professional unanimously document the medical necessity of earlier intervention"
+            },
+            {
+              "field": "single_letter_of_referral_from_qmhp_within_past_18_months",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "stable_on_gender_affirming_hormonal_treatment_regime",
+              "operator": "EQUAL",
+              "value": true,
+              "notes": "May include at least 6 months of hormone treatment or longer, unless hormone therapy is not desired or medically contraindicated. Note: trial of hormone therapy is not a pre-requisite."
+            },
+            {
+              "field": "social_transition_undergone_or_planned",
+              "operator": "EQUAL",
+              "value": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rule_set_id": "breast_augmentation",
+      "match_criteria": {
+        "service_name": {
+          "operator": "EQUAL",
+          "value": "Breast Augmentation"
+        },
+        "diagnosis_code": {
+          "coding_system": "ICD-10",
+          "operator": "IN",
+          "value": [
+            "F64.0",
+            "F64.1",
+            "F64.2",
+            "F64.8",
+            "F64.9"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "breast_augmentation_standard_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "assigned_male_at_birth",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "age",
+              "operator": ">=",
+              "value": 18,
+              "notes": "Age requirement will not be applied if the surgeon, primary care provider, and qualified mental health professional unanimously document the medical necessity of earlier intervention"
+            },
+            {
+              "field": "single_letter_of_referral_from_qmhp_within_past_18_months",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "stable_on_gender_affirming_hormonal_treatment",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "failed_breast_tissue_development_after_12_months_oral_estrogen",
+              "operator": "EQUAL",
+              "value": true,
+              "notes": "Unless medically contraindicated, 12 months of therapy with oral estrogen has failed to result in breast tissue development in the range typical for adult cis-gendered women"
+            },
+            {
+              "field": "social_transition_undergone_or_planned",
+              "operator": "EQUAL",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "additional breast augmentation after an initial mammaplasty"
+      ]
+    },
+    {
+      "rule_set_id": "gonadectomy_and_genital_reconstructive_surgery",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "55970",
+            "55980"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "genital_surgery_standard_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "age",
+              "operator": ">=",
+              "value": 18
+            },
+            {
+              "field": "single_letter_of_referral_from_qmhp_within_past_18_months",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "stable_on_gender_affirming_hormonal_treatment_regime",
+              "operator": "EQUAL",
+              "value": true,
+              "notes": "May include at least 6 months of hormone treatment or longer, unless hormone therapy is not desired or medically contraindicated"
+            },
+            {
+              "field": "living_in_congruent_gender_role_duration",
+              "operator": ">=",
+              "value": 12,
+              "unit": "months",
+              "notes": "Patient has undergone social transition and has been living in gender congruent identity for at least twelve months"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rule_set_id": "gender_affirming_voice_modification_surgery",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "31599"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "pitch_lowering_surgery_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "age",
+              "operator": ">=",
+              "value": 18
+            },
+            {
+              "field": "voice_fails_to_deepen_below_speaking_f0_150hz_after_consistent_masculinization_hormone_therapy",
+              "operator": "EQUAL",
+              "value": true,
+              "notes": "After 1.5 years of consistent masculinization hormone therapy"
+            },
+            {
+              "field": "social_transition_undergone_or_planned",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "stable_on_gender_affirming_hormonal_treatment_regime",
+              "operator": "EQUAL",
+              "value": true,
+              "notes": "May include at least 6 months of hormone treatment or longer, unless hormone therapy is not desired or medically contraindicated"
+            },
+            {
+              "field": "single_letter_of_referral_from_qmhp_within_past_18_months",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "established_with_speech_language_pathologist_for_voice_therapy",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "voice_therapy_attendance_rate",
+              "operator": ">=",
+              "value": 75,
+              "unit": "percent"
+            },
+            {
+              "field": "voice_therapy_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months"
+            },
+            {
+              "field": "voice_speech_therapy_ineffective",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "agrees_to_follow_up_post_operatively_on_regular_cadence",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "active_laryngeal_pathology_except_muscle_tension",
+              "operator": "EQUAL",
+              "value": false
+            },
+            {
+              "field": "medical_diagnoses_impairing_wound_healing",
+              "operator": "EQUAL",
+              "value": false
+            },
+            {
+              "field": "medical_diagnoses_seriously_impairing_breathing_or_swallowing",
+              "operator": "EQUAL",
+              "value": false
+            },
+            {
+              "field": "planned_upcoming_surgeries_within_2_months_after_pitch_modification_surgery",
+              "operator": "EQUAL",
+              "value": false
+            }
+          ]
+        },
+        {
+          "pathway_id": "pitch_elevation_surgery_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "age",
+              "operator": ">=",
+              "value": 18
+            },
+            {
+              "field": "speaking_f0",
+              "operator": "<",
+              "value": 150,
+              "unit": "Hz"
+            },
+            {
+              "field": "social_transition_undergone_or_planned",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "stable_on_gender_affirming_hormonal_treatment_regime",
+              "operator": "EQUAL",
+              "value": true,
+              "notes": "May include at least 6 months of hormone treatment or longer, unless hormone therapy is not desired or medically contraindicated"
+            },
+            {
+              "field": "single_letter_of_referral_from_qmhp_within_past_18_months",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "established_with_speech_language_pathologist_for_voice_therapy",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "voice_therapy_attendance_rate",
+              "operator": ">=",
+              "value": 75,
+              "unit": "percent"
+            },
+            {
+              "field": "voice_therapy_duration",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months"
+            },
+            {
+              "field": "voice_speech_therapy_ineffective",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "agrees_to_follow_up_post_operatively_on_regular_cadence",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "active_laryngeal_pathology_except_muscle_tension",
+              "operator": "EQUAL",
+              "value": false
+            },
+            {
+              "field": "medical_diagnoses_impairing_wound_healing",
+              "operator": "EQUAL",
+              "value": false
+            },
+            {
+              "field": "medical_diagnoses_seriously_impairing_breathing_or_swallowing",
+              "operator": "EQUAL",
+              "value": false
+            },
+            {
+              "field": "planned_upcoming_surgeries_within_2_months_after_pitch_modification_surgery",
+              "operator": "EQUAL",
+              "value": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rule_set_id": "gender_affirming_facial_surgery",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "21137",
+            "21138",
+            "21139",
+            "15824",
+            "67900",
+            "15839",
+            "21299",
+            "21209",
+            "21120",
+            "21121",
+            "21122",
+            "21123",
+            "21296",
+            "30400",
+            "30410",
+            "30420",
+            "30430",
+            "30435",
+            "30450",
+            "15820",
+            "15821",
+            "15822",
+            "15823",
+            "15876",
+            "15829",
+            "15838"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "facial_surgery_standard_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "age",
+              "operator": ">=",
+              "value": 18
+            },
+            {
+              "field": "single_letter_of_referral_from_qmhp_within_past_18_months",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "living_in_congruent_gender_role_duration",
+              "operator": ">=",
+              "value": 12,
+              "unit": "months",
+              "notes": "Patient has undergone social transition and has been living in gender congruent identity for at least twelve months"
+            },
+            {
+              "field": "documentation_from_abms_board_certified_facial_surgeon_of_dysphoria_associated_with_facial_element",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "goal_is_to_alter_or_reshape_facial_feature_to_appearance_within_normal_range_for_identified_gender",
+              "operator": "EQUAL",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Procedures intended solely to reduce the appearance of aging",
+        "Blepharoplasty",
+        "Lip augmentation",
+        "Cheek implants",
+        "Facelift"
+      ]
+    },
+    {
+      "rule_set_id": "gender_affirming_body_contouring",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "15771",
+            "15772",
+            "15773",
+            "15774",
+            "15830",
+            "15832",
+            "15833",
+            "15834",
+            "15835",
+            "15836",
+            "15837",
+            "15838",
+            "15839",
+            "15847",
+            "15876",
+            "15877",
+            "15878",
+            "15879"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "body_contouring_standard_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "age",
+              "operator": ">=",
+              "value": 18
+            },
+            {
+              "field": "single_letter_of_referral_from_qmhp_within_past_18_months",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "living_in_congruent_gender_role_duration",
+              "operator": ">=",
+              "value": 12,
+              "unit": "months",
+              "notes": "Patient has undergone social transition and has been living in gender congruent identity for at least twelve months"
+            },
+            {
+              "field": "continuous_hormone_therapy_duration",
+              "operator": ">=",
+              "value": 12,
+              "unit": "months",
+              "notes": "Unless medically contraindicated, to allow stable body fat redistribution to occur"
+            },
+            {
+              "field": "bmi",
+              "operator": ">=",
+              "value": 20
+            },
+            {
+              "field": "bmi",
+              "operator": "<=",
+              "value": 30
+            },
+            {
+              "field": "request_is_to_alter_or_augment_appearance_of_body_areas_within_normal_range_using_implants_or_fat_transfer",
+              "operator": "EQUAL",
+              "value": false
+            },
+            {
+              "field": "request_is_for_cosmetic_purposes_only",
+              "operator": "EQUAL",
+              "value": false
+            },
+            {
+              "field": "request_is_for_liposuction_to_belly_or_flanks_alone",
+              "operator": "EQUAL",
+              "value": false
+            },
+            {
+              "field": "request_requires_skin_removal",
+              "operator": "EQUAL",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Abdominoplasty",
+        "Brachioplasty",
+        "Thigh Lift"
+      ]
+    },
+    {
+      "rule_set_id": "sound_health_and_wellness_exclusions",
+      "match_criteria": {
+        "member_group": {
+          "operator": "EQUAL",
+          "value": "Sound Health and Wellness"
+        }
+      },
+      "pathways": [],
+      "exclusions": [
+        "Facial contouring and other facial reconstructive surgeries",
+        "Hairline advancement and transplantation",
+        "Body hair removal (except face/neck and preop genital hair removal)",
+        "Voice modification including speech therapy",
+        "Collagen injections",
+        "Liposuction",
+        "Abdominoplasty",
+        "Other cosmetic procedures"
+      ]
+    },
+    {
+      "rule_set_id": "general_benefit_exclusions",
+      "match_criteria": {
+        "service_type": {
+          "operator": "EQUAL",
+          "value": "Gender Affirming Services"
+        }
+      },
+      "pathways": [],
+      "exclusions": [
+        "Abdominoplasty",
+        "Calf implants",
+        "Collagen injections",
+        "Cryopreservation of fertilized embryos",
+        "Drugs for hair loss or growth",
+        "Facials",
+        "Hair implant",
+        "Mastopexy",
+        "Neck tightening",
+        "Pectoral implants",
+        "Reversal of prior genital surgery or reversal of surgery to revise secondary sex characteristics",
+        "Sperm preservation in advance of hormone treatment or gender surgery",
+        "Ultrasonic Assisted Lymphatic Massage",
+        "All other cosmetic procedures that do not meet medical necessity"
+      ]
+    }
+  ]
+}

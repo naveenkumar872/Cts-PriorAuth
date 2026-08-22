@@ -1,0 +1,299 @@
+{
+  "policy_id": "MRI-87720129",
+  "policy_name": "MRI Joint, Lower Extremity",
+  "rule_sets": [
+    {
+      "rule_set_id": "non_medicare_knee_mri",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "73721",
+            "73722",
+            "73723"
+          ]
+        }
+      },
+      "general_principles": [
+        "In general, MRIs are not appropriate for a knee with arthritis",
+        "Require plain x-rays first",
+        "MRI should only be done if surgical intervention is likely to be indicated AND there is documentation of concern for additional pathology",
+        "High-End Imaging Site of Care review required for requests being performed in a hospital-based imaging department"
+      ],
+      "pathways": [
+        {
+          "pathway_id": "joint_anatomy_or_structural_defect",
+          "logic": "ANY",
+          "conditions": [
+            {
+              "field": "loose_body_or_mechanical_symptoms_in_joint_space",
+              "operator": "EQUAL_TO",
+              "value": "suspected and plain film negative"
+            },
+            {
+              "field": "synovial_pathology",
+              "operator": "IN",
+              "value": [
+                "Chronic synovitis secondary to hemarthrosis of hemophilia",
+                "Intra-articular venous malformation",
+                "Juvenile idiopathic arthritis with knee involvement, for assessment of joint involvement and treatment",
+                "Pigmented villonodular synovitis",
+                "Seronegative spondyloarthropathies (eg, ankylosing spondylitis, psoriatic arthritis) if recommended by Rheumatology",
+                "Synovial sarcoma"
+              ]
+            },
+            {
+              "field": "worrisome_palpable_mass",
+              "operator": "EQUAL_TO",
+              "value": "with normal findings on plain x-ray"
+            }
+          ]
+        },
+        {
+          "pathway_id": "ligament_tear_known_or_suspected",
+          "logic": "ANY",
+          "conditions": [
+            {
+              "field": "acute_injury_with_tearing_or_popping_sound_and_effusion_on_exam",
+              "operator": "EQUAL_TO",
+              "value": true
+            },
+            {
+              "field": "inability_to_bear_weight_after_injury_with_negative_x_rays_and_high_suspicion_for_internal_injury",
+              "operator": "EQUAL_TO",
+              "value": "after one week of conservative treatment",
+              "unit": "weeks",
+              "value_numerical": 1
+            },
+            {
+              "field": "positive_physical_exam_signs_in_comparison_to_normal_knee",
+              "operator": "IN",
+              "value": [
+                "Anterior drawer test",
+                "Lachman test",
+                "Pivot shift test",
+                "Posterior drawer test",
+                "Posterior sag test",
+                "Valgus stress test",
+                "Varus stress test"
+              ]
+            },
+            {
+              "field": "postoperative_assessment_needed_after_ligament_repair_or_reconstruction",
+              "operator": "EQUAL_TO",
+              "value": "suspected graft failure/tear with symptoms of instability (i.e., giving way or buckling, particularly with sudden stops or rotational and cutting maneuvers)"
+            },
+            {
+              "field": "posttraumatic_effusion_with_negative_plain_films",
+              "operator": "EQUAL_TO",
+              "value": true
+            },
+            {
+              "field": "symptoms_of_instability_with_negative_plain_films",
+              "operator": "EQUAL_TO",
+              "value": "giving way or buckling, particularly with sudden stops or rotational and cutting maneuvers"
+            }
+          ]
+        },
+        {
+          "pathway_id": "meniscus_tear_or_injury",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "plain_radiographs",
+              "operator": "EQUAL_TO",
+              "value": "nondiagnostic"
+            },
+            {
+              "field": "significant_arthritis_on_x_ray",
+              "operator": "EQUAL_TO",
+              "value": false
+            },
+            {
+              "field": "clinical_scenario",
+              "operator": "ANY",
+              "scenarios": [
+                {
+                  "scenario_id": "acute_knee_pain_after_injury",
+                  "logic": "ANY",
+                  "conditions": [
+                    {
+                      "field": "symptoms_and_exam_findings_of_locking",
+                      "operator": "EQUAL_TO",
+                      "value": "persistent true locking defined as more than a momentary locking of the joint with the knee in a flexed position"
+                    },
+                    {
+                      "field": "symptoms_of_catching_or_instability_with_one_or_more_physical_exam_findings_of_meniscal_tear",
+                      "operator": "IN",
+                      "value": [
+                        "Joint swelling or effusion",
+                        "Positive McMurray, Thessaly or Apley test",
+                        "Joint line tenderness",
+                        "Inability to fully extend the knee"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "scenario_id": "chronic_knee_pain",
+                  "logic": "ANY",
+                  "conditions": [
+                    {
+                      "field": "symptoms_and_exam_findings_of_locking",
+                      "operator": "EQUAL_TO",
+                      "value": "persistent true locking defined as more than a momentary locking of the joint with the knee in a flexed position"
+                    },
+                    {
+                      "field": "symptoms_of_catching_or_instability_with_conservative_management_and_physical_exam_findings_of_meniscal_tear",
+                      "operator": "ALL",
+                      "conditions": [
+                        {
+                          "field": "conservative_management_duration",
+                          "operator": "BETWEEN",
+                          "value": [
+                            4,
+                            6
+                          ],
+                          "unit": "weeks"
+                        },
+                        {
+                          "field": "physical_exam_findings_of_meniscal_tear",
+                          "operator": "IN",
+                          "value": [
+                            "Joint swelling or effusion and no arthritis on x-ray",
+                            "Positive McMurray, Thessaly or Apley test",
+                            "Joint line tenderness",
+                            "Inability to fully extend the knee"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "scenario_id": "effusion_with_injury_or_activity",
+                  "logic": "ANY",
+                  "conditions": [
+                    {
+                      "field": "effusion_with_acute_injury",
+                      "operator": "EQUAL_TO",
+                      "value": true
+                    },
+                    {
+                      "field": "effusion_with_subsequent_episodes_of_minor_injury_or_vigorous_activity",
+                      "operator": "EQUAL_TO",
+                      "value": true
+                    }
+                  ]
+                },
+                {
+                  "scenario_id": "fractures_with_high_association_of_meniscal_tear",
+                  "operator": "EQUAL_TO",
+                  "value": "tibial plateau"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "pathway_id": "osteomyelitis_or_osteonecrosis",
+          "logic": "ANY",
+          "conditions": [
+            {
+              "field": "suspected_bone_infection",
+              "operator": "EQUAL_TO",
+              "value": "osteomyelitis"
+            },
+            {
+              "field": "suspected_osteochondritis_dissecans_or_suspected_osteonecrosis",
+              "operator": "EQUAL_TO",
+              "value": "clinical picture, including x-rays, is not confirmatory"
+            }
+          ]
+        },
+        {
+          "pathway_id": "cancer_or_neoplasm_evaluation_or_staging",
+          "logic": "ANY",
+          "conditions": [
+            {
+              "field": "bone_neoplasm_benign_or_malignant",
+              "operator": "EQUAL_TO",
+              "value": "abnormal finding on plain x-ray or bone scan"
+            },
+            {
+              "field": "chondrosarcoma_evaluation",
+              "operator": "IN",
+              "value": [
+                "Initial staging",
+                "Monitoring response after treatment completed",
+                "Post-treatment surveillance for local tumor recurrence (low-grade and intercompartmental: every 6 to 12 months for 2 years, then annually as clinically indicated)",
+                "Post-treatment surveillance for local tumor recurrence (high-grade, clear cell, or extra-compartmental: as clinically indicated)"
+              ]
+            },
+            {
+              "field": "ewing_sarcoma_family_of_tumors_evaluation",
+              "operator": "IN",
+              "value": [
+                "Initial staging",
+                "Monitoring response after treatment completed",
+                "Post-treatment surveillance for local tumor recurrence (every 2 to 3 months for first 2 years, then decreasing frequency through year 5)",
+                "Post-treatment surveillance for local tumor recurrence (annually after 5 years)"
+              ]
+            },
+            {
+              "field": "osteosarcoma_evaluation",
+              "operator": "IN",
+              "value": [
+                "Initial staging",
+                "Monitoring response after chemotherapy or radiation therapy",
+                "Post-treatment surveillance for local tumor recurrence (every 3 months for 2 years)",
+                "Post-treatment surveillance for local tumor recurrence (every 4 months for year 3)",
+                "Post-treatment surveillance for local tumor recurrence (every 6 months for years 4 and 5)",
+                "Post-treatment surveillance for local tumor recurrence (annually after 5 years)"
+              ]
+            },
+            {
+              "field": "current_diagnosis_or_history_of_cancer_located_elsewhere",
+              "logic": "ALL",
+              "conditions": [
+                {
+                  "field": "plain_x_ray_or_bone_scan_findings",
+                  "operator": "EQUAL_TO",
+                  "value": "indeterminate"
+                },
+                {
+                  "field": "unexplained_localized_bony_signs_and_symptoms",
+                  "operator": "EQUAL_TO",
+                  "value": "pain"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "medicare_members",
+          "description": "This policy does not apply to Medicare members"
+        },
+        {
+          "exclusion_id": "planned_arthroscopy_or_ligament_reconstruction",
+          "description": "If arthroscopy or ligament reconstruction is definitely planned and the MRI findings are unlikely to change the planned treatment"
+        },
+        {
+          "exclusion_id": "diagnostic_clinical_picture",
+          "description": "If the clinical picture (i.e., history, physical examination, x-rays, etc.) is diagnostic with high degree of certainty of an isolated torn meniscus or loose body"
+        },
+        {
+          "exclusion_id": "rheumatoid_arthritis_or_degenerative_joint_disease",
+          "description": "To diagnose or evaluate rheumatoid arthritis or degenerative joint disease"
+        }
+      ],
+      "documentation_requirements": [
+        "Last 6 months of clinical notes from requesting provider &/or specialist",
+        "Plain films/reports"
+      ]
+    }
+  ]
+}

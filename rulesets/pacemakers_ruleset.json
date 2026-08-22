@@ -1,0 +1,408 @@
+{
+  "policy_id": "PAC-32469538",
+  "policy_name": "Pacemaker & Cardiac Resynchronization Therapy (CRT-D) Defibrillator",
+  "rule_sets": [
+    {
+      "rule_set_id": "leadless_pacemakers",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT",
+          "operator": "IN",
+          "value": [
+            "33274",
+            "33275",
+            "0823T",
+            "0824T",
+            "0825T",
+            "0826T",
+            "0518T",
+            "0861T",
+            "0832T",
+            "0863T"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_leadless_pacemaker",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_plan_type",
+              "operator": "==",
+              "value": "Medicare"
+            },
+            {
+              "field": "cms_approved_ced_study",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "non_medicare_leadless",
+          "description": "Non-Medicare members are considered Not Medically Necessary for leadless pacemakers."
+        },
+        {
+          "exclusion_id": "medicare_outside_ced",
+          "description": "Leadless pacemakers are non-covered for Medicare members when furnished outside of a CMS approved CED study."
+        }
+      ],
+      "documentation_requirements": [
+        "Last 6 months of clinical notes from requesting provider &/or specialist"
+      ]
+    },
+    {
+      "rule_set_id": "single_dual_chamber_pacemakers",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT_HCPCS",
+          "operator": "IN",
+          "value": [
+            "33206",
+            "33207",
+            "33208",
+            "33214",
+            "33216",
+            "33217",
+            "33224",
+            "C1779",
+            "C1785",
+            "C1786",
+            "C1898",
+            "C2619",
+            "C2620",
+            "C2621",
+            "C7537",
+            "C7538",
+            "C7539",
+            "C7540"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_single_dual_chamber",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_plan_type",
+              "operator": "==",
+              "value": "Medicare"
+            },
+            {
+              "field": "level_of_care_review",
+              "operator": "==",
+              "value": "completed"
+            },
+            {
+              "field": "medical_necessity_review_criteria",
+              "operator": "==",
+              "value": "Medicare NCD 20.8.3 and LCD/LCA A54929"
+            }
+          ]
+        },
+        {
+          "pathway_id": "non_medicare_single_dual_chamber",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_plan_type",
+              "operator": "==",
+              "value": "Non-Medicare"
+            },
+            {
+              "field": "level_of_care_review",
+              "operator": "==",
+              "value": "completed"
+            },
+            {
+              "field": "medical_necessity_review_criteria",
+              "operator": "==",
+              "value": "Medicare NCD 20.8.3"
+            }
+          ]
+        }
+      ],
+      "exclusions": [],
+      "documentation_requirements": [
+        "Last 6 months of clinical notes from requesting provider &/or specialist"
+      ]
+    },
+    {
+      "rule_set_id": "cardiac_resynchronization_therapy",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT_HCPCS",
+          "operator": "IN",
+          "value": [
+            "33208",
+            "33224",
+            "33225",
+            "C2621"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "crt_pathway_1",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "LVEF",
+              "operator": "<",
+              "value": 35,
+              "unit": "%"
+            },
+            {
+              "field": "cardiomyopathy",
+              "operator": "IN",
+              "value": [
+                "ischemic",
+                "non-ischemic"
+              ]
+            },
+            {
+              "field": "maximally_tolerated_gdmt_duration",
+              "operator": ">=",
+              "value": 3,
+              "unit": "months"
+            },
+            {
+              "field": "reversible_causes",
+              "operator": "==",
+              "value": false
+            },
+            {
+              "field": "QRS_duration",
+              "operator": ">",
+              "value": 150,
+              "unit": "ms"
+            },
+            {
+              "field": "bundle_branch_block_with_dyssynchrony",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "NYHA_class",
+              "operator": "IN",
+              "value": [
+                "III",
+                "ambulatory IV"
+              ]
+            }
+          ]
+        },
+        {
+          "pathway_id": "crt_pathway_2",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "LVEF",
+              "operator": "<",
+              "value": 35,
+              "unit": "%"
+            },
+            {
+              "field": "maximally_tolerated_gdmt_duration",
+              "operator": ">=",
+              "value": 3,
+              "unit": "months"
+            },
+            {
+              "field": "reversible_causes",
+              "operator": "==",
+              "value": false
+            },
+            {
+              "field": "QRS_duration",
+              "operator": ">",
+              "value": 150,
+              "unit": "ms"
+            },
+            {
+              "field": "LBBB",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "NYHA_class",
+              "operator": "IN",
+              "value": [
+                "II",
+                "III",
+                "ambulatory IV"
+              ]
+            }
+          ]
+        },
+        {
+          "pathway_id": "crt_pathway_3",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "LVEF",
+              "operator": "<",
+              "value": 35,
+              "unit": "%"
+            },
+            {
+              "field": "maximally_tolerated_gdmt_duration",
+              "operator": ">=",
+              "value": 3,
+              "unit": "months"
+            },
+            {
+              "field": "reversible_causes",
+              "operator": "==",
+              "value": false
+            },
+            {
+              "field": "QRS_duration",
+              "operator": "BETWEEN",
+              "value": [
+                130,
+                149
+              ],
+              "unit": "ms"
+            },
+            {
+              "field": "LBBB",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "NYHA_class",
+              "operator": "IN",
+              "value": [
+                "II",
+                "III",
+                "ambulatory IV"
+              ]
+            }
+          ]
+        },
+        {
+          "pathway_id": "crt_pathway_4_av_block",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "cardiac_rhythm",
+              "operator": "IN",
+              "value": [
+                "atrial fibrillation",
+                "sinus rhythm"
+              ]
+            },
+            {
+              "field": "pacemaker_implant_indication",
+              "operator": "IN",
+              "value": [
+                "second degree AV block",
+                "third degree AV block",
+                "AV nodal ablation",
+                "prolonged first degree block with PR > 300 ms"
+              ]
+            },
+            {
+              "field": "EF",
+              "operator": "<",
+              "value": 50,
+              "unit": "%"
+            },
+            {
+              "field": "NYHA_class",
+              "operator": "IN",
+              "value": [
+                "I",
+                "II",
+                "III"
+              ]
+            },
+            {
+              "field": "anticipated_frequent_ventricular_pacing",
+              "operator": "==",
+              "value": true
+            }
+          ]
+        },
+        {
+          "pathway_id": "crt_pathway_5_upgrade",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "frequent_RV_pacing_percentage",
+              "operator": ">=",
+              "value": 40,
+              "unit": "%"
+            },
+            {
+              "field": "worsening_HF_symptoms_NYHA_class",
+              "operator": "IN",
+              "value": [
+                "II",
+                "III",
+                "IV"
+              ]
+            },
+            {
+              "field": "decline_in_LVEF_to_value",
+              "operator": "<",
+              "value": 40,
+              "unit": "%"
+            }
+          ]
+        },
+        {
+          "pathway_id": "crt_pathway_6_generator_replacement",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "existing_CRT_device",
+              "operator": "==",
+              "value": true
+            },
+            {
+              "field": "replacement_reason",
+              "operator": "IN",
+              "value": [
+                "end of battery life",
+                "elective replacement indicator (ERI)",
+                "device malfunction",
+                "lead malfunction"
+              ]
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "qrs_less_than_130",
+          "description": "Patients with a QRS < 130 ms",
+          "exceptions": [
+            "Patients undergoing AV nodal ablation",
+            "Patients in need of RV pacing due to second- or third-degree block or very long first degree block expected to occur a majority of the time"
+          ]
+        },
+        {
+          "exclusion_id": "ef_greater_than_50",
+          "description": "Patients with an EF > 50%"
+        },
+        {
+          "exclusion_id": "advanced_heart_failure_conditions",
+          "description": "CRT in patients with non-ambulatory NYHA IV HF symptoms, or on chronic inotropic HF therapy, or with LV assist devices in place"
+        }
+      ],
+      "documentation_requirements": [
+        "Last 6 months of clinical notes from requesting provider &/or specialist",
+        "For upgrade from standard pacing to CRT: documentation narrative regarding the risk-benefit balance for that individual patient and his/her degree of HF, QRS duration/morphology, etc.",
+        "For patients with AF and HF: narrative in the medical record regarding plans for AF control",
+        "For HF patients with concomitant moderate-severe COPD: documentation related to a reasonable hope for CRT response with a clinically guided rationale that the dyspnea is at least in part significantly related to HF",
+        "For patients with end stage or advanced renal disease: documentation regarding the risk-benefit balance"
+      ]
+    }
+  ]
+}

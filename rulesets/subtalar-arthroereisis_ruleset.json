@@ -1,0 +1,93 @@
+{
+  "policy_id": "SUB-39906453",
+  "policy_name": "Subtalar Arthroereisis for the Treatment of Pes Planus (Flat Feet)",
+  "rule_sets": [
+    {
+      "rule_set_id": "subtalar_arthroereisis_coverage_rules",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "0335T",
+            "S2117",
+            "0510T",
+            "0511T"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "medicare_members_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "==",
+              "value": "Medicare"
+            },
+            {
+              "field": "coverage_status",
+              "operator": "==",
+              "value": "Not covered"
+            },
+            {
+              "field": "source_policy",
+              "operator": "==",
+              "value": "Medicare Benefit Policy Manual (MBPM) Chapter 15 section 290 – Foot Care, B. Exclusions from Coverage"
+            }
+          ]
+        },
+        {
+          "pathway_id": "non_medicare_members_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "member_type",
+              "operator": "==",
+              "value": "Non-Medicare"
+            },
+            {
+              "field": "coverage_status",
+              "operator": "==",
+              "value": "Not medically necessary"
+            },
+            {
+              "field": "clinical_evidence_status",
+              "operator": "==",
+              "value": "Insufficient evidence in the published medical literature to show that this service/therapy is as safe as standard services/therapies and/or provides better long-term outcomes than current standard services/therapies"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "medicare_exclusion",
+          "description": "This service is not covered per Medicare criteria (Medicare Benefit Policy Manual (MBPM) Chapter 15 section 290 – Foot Care, B. Exclusions from Coverage)."
+        },
+        {
+          "exclusion_id": "non_medicare_exclusion",
+          "description": "There is insufficient evidence in the published medical literature to show that this service/therapy is as safe as standard services/therapies and/or provides better long-term outcomes than current standard services/therapies."
+        }
+      ],
+      "considered_not_medically_necessary_codes": [
+        {
+          "code": "0335T",
+          "description": "Insertion of sinus tarsi implant"
+        },
+        {
+          "code": "S2117",
+          "description": "Arthroereisis, subtalar"
+        },
+        {
+          "code": "0510T",
+          "description": "Removal of sinus tarsi implant"
+        },
+        {
+          "code": "0511T",
+          "description": "Removal and reinsertion of sinus tarsi implant"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,354 @@
+{
+  "policy_id": "LUN-80266391",
+  "policy_name": "Patient Referral Guidelines: Lung Transplant",
+  "rule_sets": [
+    {
+      "rule_set_id": "lung_transplant_evaluation",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "32850",
+            "32851",
+            "32852",
+            "32853",
+            "32854",
+            "0494T",
+            "0495T",
+            "0496T",
+            "S2060"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "general_principles",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "abstinence_from_alcohol_and_substances",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months"
+            },
+            {
+              "field": "abstinence_from_tobacco",
+              "operator": ">=",
+              "value": 6,
+              "unit": "months"
+            },
+            {
+              "field": "social_support_system",
+              "operator": "==",
+              "value": "adequate"
+            },
+            {
+              "field": "adherence_to_medical_treatment",
+              "operator": "==",
+              "value": "proven_record"
+            },
+            {
+              "field": "caregiver_availability",
+              "operator": "==",
+              "value": "physically_and_cognitively_able"
+            },
+            {
+              "field": "willingness_to_travel_to_kp_approved_center",
+              "operator": "==",
+              "value": "yes"
+            }
+          ]
+        },
+        {
+          "pathway_id": "group_a_obstructive_lung_disease",
+          "logic": "ANY",
+          "conditions": [
+            {
+              "field": "FEV1",
+              "operator": "<",
+              "value": 25,
+              "unit": "%"
+            },
+            {
+              "field": "DLCO",
+              "operator": "<",
+              "value": 40,
+              "unit": "%"
+            },
+            {
+              "field": "PO2",
+              "operator": "<",
+              "value": 55,
+              "unit": "mmHg"
+            },
+            {
+              "field": "PCO2",
+              "operator": ">",
+              "value": 51,
+              "unit": "mmHg"
+            },
+            {
+              "field": "Bode_Index",
+              "operator": ">",
+              "value": 5
+            }
+          ]
+        },
+        {
+          "pathway_id": "group_b_pulmonary_arterial_hypertension",
+          "logic": "ANY",
+          "conditions": [
+            {
+              "field": "WHO_class",
+              "operator": "IN",
+              "value": [
+                "3",
+                "4"
+              ]
+            },
+            {
+              "field": "six_minute_walk_test",
+              "operator": "<",
+              "value": 350,
+              "unit": "meters"
+            },
+            {
+              "field": "mean_RA",
+              "operator": ">",
+              "value": 15,
+              "unit": "mmHg"
+            },
+            {
+              "field": "cardiac_index",
+              "operator": "<",
+              "value": 2,
+              "unit": "L/min"
+            }
+          ]
+        },
+        {
+          "pathway_id": "group_c_cystic_fibrosis",
+          "logic": "ANY",
+          "conditions": [
+            {
+              "field": "FEV1",
+              "operator": "<",
+              "value": 40,
+              "unit": "%"
+            },
+            {
+              "field": "PO2",
+              "operator": "<",
+              "value": 55,
+              "unit": "mmHg"
+            },
+            {
+              "field": "PCO2",
+              "operator": ">",
+              "value": 51,
+              "unit": "mmHg"
+            },
+            {
+              "field": "clinical_deterioration",
+              "operator": "==",
+              "value": "yes"
+            }
+          ]
+        },
+        {
+          "pathway_id": "group_d_restrictive_lung_disease",
+          "logic": "ANY",
+          "conditions": [
+            {
+              "field": "FVC",
+              "operator": "<",
+              "value": 80,
+              "unit": "%"
+            },
+            {
+              "field": "decline_in_FVC_within_6_months",
+              "operator": ">=",
+              "value": 10,
+              "unit": "%"
+            },
+            {
+              "field": "decline_in_DLCO_within_6_months",
+              "operator": ">=",
+              "value": 15,
+              "unit": "%"
+            },
+            {
+              "field": "diffusing_capacity_corrected_for_alveolar_volume",
+              "operator": "<",
+              "value": 60,
+              "unit": "%"
+            }
+          ]
+        },
+        {
+          "pathway_id": "covid_19_irreversible_pulmonary_failure",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "age_if_ECMO_used",
+              "operator": "<",
+              "value": 65,
+              "unit": "years"
+            },
+            {
+              "field": "disease_progression_despite_maximal_non_invasive_ventilatory_support",
+              "operator": "==",
+              "value": "yes"
+            },
+            {
+              "field": "other_significant_organ_dysfunction",
+              "operator": "==",
+              "value": "no"
+            },
+            {
+              "field": "time_after_ventilator_or_ECMO_dependent_failure",
+              "operator": ">=",
+              "value": 4,
+              "unit": "weeks"
+            },
+            {
+              "field": "time_on_prolonged_O2_therapy_to_determine_irreversibility",
+              "operator": ">=",
+              "value": 3,
+              "unit": "months"
+            },
+            {
+              "field": "evidence_of_irreversible_lung_disease",
+              "operator": "==",
+              "value": "yes"
+            },
+            {
+              "field": "patient_approval_obtained",
+              "operator": "==",
+              "value": "yes"
+            },
+            {
+              "field": "negative_SARS_COV_2_PCR_tests_at_least_24_hours_apart",
+              "operator": "==",
+              "value": 2
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "uncontrollable_active_infection",
+          "description": "Uncontrollable active infection is a contraindication to transplant."
+        },
+        {
+          "exclusion_id": "malignancy_moderate_to_high_recurrence_risk",
+          "description": "History of malignancy with moderate to high risk of recurrence."
+        },
+        {
+          "exclusion_id": "tobacco_use",
+          "description": "Tobacco use within the previous 6 months."
+        },
+        {
+          "exclusion_id": "neurologic_or_psychiatric_dysfunction",
+          "description": "Presence of significant irreversible neurologic dysfunction, active psychological and/or psychiatric conditions, and/or other social behaviors that prevent adherence."
+        },
+        {
+          "exclusion_id": "invasive_mechanical_ventilator_support",
+          "description": "Invasive mechanical ventilator support, except under acceptable case-by-case circumstances where patient was previously listed and ambulatory with rehabilitation potential."
+        },
+        {
+          "exclusion_id": "unresolved_infection",
+          "description": "Unresolved infection (except in cystic fibrosis and bronchiectasis)."
+        },
+        {
+          "exclusion_id": "uncontrolled_chronic_infection",
+          "description": "Uncontrolled chronic infection (e.g., HIV with detectable viral load)."
+        },
+        {
+          "exclusion_id": "diabetes_with_end_organ_effects",
+          "description": "Diabetes with end organ effects (renal, cardiac, or uncorrectable peripheral vascular disease)."
+        },
+        {
+          "exclusion_id": "uncontrolled_hypertension",
+          "description": "Uncontrolled hypertension."
+        },
+        {
+          "exclusion_id": "significant_neurologic_disease_impairing_cognitive_function",
+          "description": "Significant neurologic disease impairing cognitive function."
+        },
+        {
+          "exclusion_id": "malnutrition",
+          "description": "Malnutrition."
+        },
+        {
+          "exclusion_id": "obesity",
+          "description": "Obesity >140% ideal body weight or BMI >32 kg/m2 (except pulmonary fibrosis with BMI >32 but <34 showing willingness to lose weight)."
+        },
+        {
+          "exclusion_id": "advanced_hepatic_dysfunction",
+          "description": "Advanced hepatic dysfunction."
+        },
+        {
+          "exclusion_id": "advanced_renal_dysfunction",
+          "description": "Advanced renal dysfunction (creatinine clearance < 50 ml/min after maximum therapy, except cardiopulmonary causes on a case-by-case basis)."
+        },
+        {
+          "exclusion_id": "coronary_artery_disease_or_low_LVEF",
+          "description": "Evidence of clinically significant obstructive coronary artery disease and/or LVEF <40%."
+        },
+        {
+          "exclusion_id": "active_or_unresolved_peptic_ulcer_disease",
+          "description": "Active or unresolved peptic ulcer disease."
+        },
+        {
+          "exclusion_id": "chronic_opiate_use",
+          "description": "Chronic opiate use."
+        },
+        {
+          "exclusion_id": "uncorrectable_bleeding_diathesis_or_clotting_disorder",
+          "description": "Uncorrectable bleeding diathesis or clotting disorder."
+        }
+      ],
+      "relative_contraindications": [
+        {
+          "id": "previous_thoracotomy_or_sclerosing_procedures",
+          "description": "Patients with previous thoracotomy and/or sclerosing procedures (case-by-case)."
+        },
+        {
+          "id": "systemic_corticosteroid_therapy",
+          "description": "Systemic corticosteroid therapy >10 mgs prednisone daily."
+        },
+        {
+          "id": "esophageal_dysmotility_and_reflux",
+          "description": "Esophageal dysmotility and reflux."
+        },
+        {
+          "id": "age_limit",
+          "description": "Age >70 for lung transplant referral."
+        },
+        {
+          "id": "symptomatic_osteoporosis",
+          "description": "Symptomatic osteoporosis."
+        },
+        {
+          "id": "major_mechanical_chest_deformity",
+          "description": "Major mechanical chest deformity (such as kyphoscoliosis)."
+        },
+        {
+          "id": "short_stature",
+          "description": "Short stature patients (< 4'11\" for females and < 5'4\" for males)."
+        },
+        {
+          "id": "burkholderia_cepacia",
+          "description": "Patients with Burkholderia cepacia (relative contraindication for Cystic Fibrosis)."
+        }
+      ],
+      "documentation_requirements": [
+        {
+          "requirement": "Last 6 months of clinical notes from requesting provider and/or specialist"
+        }
+      ]
+    }
+  ]
+}

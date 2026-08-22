@@ -1,0 +1,109 @@
+{
+  "policy_id": "SEA-65598316",
+  "policy_name": "Seat Lift Chair (Mechanism Only)",
+  "rule_sets": [
+    {
+      "rule_set_id": "non_medicare_members",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "E0627",
+            "E0629",
+            "E0172",
+            "E0628"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "non_medicare_coverage_pathway",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "has_dme_benefit",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "clinical_condition",
+              "operator": "IN",
+              "value": [
+                "severe arthritis of the hip",
+                "severe arthritis of the knee",
+                "severe neuromuscular disease"
+              ]
+            },
+            {
+              "field": "prescribed_by_physician",
+              "operator": "EQUAL",
+              "value": true,
+              "details": "Must be part of the physician's course of treatment and be prescribed to effect improvement, or arrest or retard deterioration in the patient's condition."
+            },
+            {
+              "field": "completely_incapable_of_standing_from_regular_armchair_or_any_home_chair",
+              "operator": "EQUAL",
+              "value": true,
+              "note": "The fact that a patient has difficulty or is even incapable of getting up from a chair, particularly a low chair, is not sufficient justification."
+            },
+            {
+              "field": "ability_to_ambulate_once_standing",
+              "operator": "EQUAL",
+              "value": true
+            },
+            {
+              "field": "mechanism_operation_type",
+              "operator": "IN",
+              "value": [
+                "operates smoothly",
+                "can be controlled by the patient",
+                "effectively assists standing up and sitting down without other assistance"
+              ]
+            },
+            {
+              "field": "ordering_physician_type",
+              "operator": "IN",
+              "value": [
+                "treating physician for the disease or condition",
+                "consulting physician for the disease or condition"
+              ]
+            },
+            {
+              "field": "documented_failed_therapeutic_modalities",
+              "operator": "EQUAL",
+              "value": true,
+              "details": "Physician's record must document that all appropriate therapeutic modalities (e.g., medication, physical therapy) to enable the patient to transfer from a chair to a standing position have been tried and failed."
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        {
+          "exclusion_id": "spring_release_mechanism",
+          "description": "Type of lift which operates by a spring release mechanism with a sudden, catapult-like motion and jolts the patient from a seated to a standing position."
+        },
+        {
+          "exclusion_id": "wheelchair_seat_lifts",
+          "description": "Seat lift mechanisms for wheelchairs (refer to Mobility Assistive Devices criteria)."
+        }
+      ],
+      "limitations": [
+        {
+          "limitation_id": "mechanism_only_coverage",
+          "description": "Coverage is limited to the seat lift mechanism, even if it is incorporated into a chair (E0627)."
+        },
+        {
+          "limitation_id": "least_costly_alternative_payment",
+          "description": "Payment for a seat lift mechanism incorporated into a chair (E0627) is based on the allowance for the least costly alternative (E0628, E0629)."
+        }
+      ],
+      "documentation_requirements": [
+        {
+          "requirement_id": "clinical_notes",
+          "description": "Last 6 months of clinical notes from requesting provider &/or specialist including details outlined in criteria."
+        }
+      ]
+    }
+  ]
+}

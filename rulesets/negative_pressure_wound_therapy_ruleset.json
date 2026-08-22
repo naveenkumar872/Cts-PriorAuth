@@ -1,0 +1,326 @@
+{
+  "policy_id": "NEG-52056623",
+  "policy_name": "Negative Pressure Wound Therapy",
+  "rule_sets": [
+    {
+      "rule_set_id": "traditional_negative_pressure_wound_therapy_pump_tnpwt",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "HCPCS",
+          "operator": "IN",
+          "value": [
+            "A6550",
+            "A7000",
+            "E2402",
+            "K0743",
+            "K0744",
+            "K0745",
+            "K0746"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "tnpwt_initial_coverage_home_setting",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "wound_type",
+              "operator": "IN",
+              "value": [
+                "Stage III pressure ulcer",
+                "Stage IV pressure ulcer",
+                "neuropathic ulcer",
+                "diabetic ulcer",
+                "venous insufficiency ulcer",
+                "arterial ulcer",
+                "chronic ulcer of mixed etiology"
+              ]
+            },
+            {
+              "field": "wound_characteristics",
+              "operator": "CONTAINS",
+              "value": "exudate, size, and depth to require specialized therapy"
+            },
+            {
+              "field": "prior_complete_wound_therapy_program_duration",
+              "operator": ">=",
+              "value": 30,
+              "unit": "days",
+              "exception": "unless edema and/or exudate mandates NPWT"
+            },
+            {
+              "field": "wound_therapy_program_general_measures",
+              "operator": "INCLUDES_ALL",
+              "value": [
+                "Documentation in medical record of evaluation, care, and wound measurements by a licensed medical professional",
+                "Consideration of risk factors addressed in documentation (bleeding, anticoagulants, friable vessels, vascular anastomosis, infected wounds, osteomyelitis, exposed organs/vessels/nerves/tendons/ligaments, sharp edges, spinal cord injury, enteric fistulas)",
+                "Requirement addressed for MRI, hyperbaric chamber, defibrillation, size and weight, use near vagus nerve, circumferential dressing, mode of therapy",
+                "Application of dressings to maintain a moist wound environment",
+                "Debridement of necrotic tissue if present",
+                "Evaluation of and provision for adequate nutritional status"
+              ]
+            },
+            {
+              "field": "goal_of_therapy",
+              "operator": "EQUAL",
+              "value": "clearly stated"
+            }
+          ],
+          "conditional_wound_specific_requirements": [
+            {
+              "wound_type": "Stage III or IV pressure ulcers",
+              "requirements": [
+                "Patient has been appropriately turned and positioned",
+                "Patient's moisture and incontinence have been appropriately managed"
+              ]
+            },
+            {
+              "wound_type": "neuropathic/diabetic ulcers",
+              "requirements": [
+                "Patient with diabetes has been on a comprehensive diabetic management program",
+                "Foot ulcer has been appropriately off-loaded"
+              ]
+            },
+            {
+              "wound_type": "venous insufficiency ulcers",
+              "requirements": [
+                "Compression bandages and/or garments have been consistently applied only after Ankle-Brachial Index has been done per guidelines",
+                "Leg elevation with alternating ambulation has been encouraged"
+              ]
+            }
+          ]
+        },
+        {
+          "pathway_id": "tnpwt_initial_coverage_inpatient_setting",
+          "logic": "OR",
+          "conditions": [
+            {
+              "field": "inpatient_ulcer_or_wound_initiation",
+              "operator": "EQUAL",
+              "value": "initiated after wound treatments described under sections A-a through A-d have been tried or considered and ruled out"
+            },
+            {
+              "field": "surgically_created_or_traumatic_wound_complications",
+              "operator": "EQUAL",
+              "value": "complications of surgically created wound (e.g., dehiscence) or traumatic wound (e.g., pre-operative flap or graft) with documented medical necessity for accelerated formation of granulation tissue which cannot be achieved by other available topical wound treatments"
+            },
+            {
+              "field": "skin_flaps_or_grafts",
+              "operator": "EQUAL",
+              "value": "approved as covered by the health plan in advance of the procedure"
+            }
+          ]
+        },
+        {
+          "pathway_id": "tnpwt_continued_coverage",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "licensed_medical_professional_assessment",
+              "operator": "EQUAL",
+              "value": "directly assess the wound(s) being treated on a regular basis"
+            },
+            {
+              "field": "licensed_medical_professional_supervision",
+              "operator": "EQUAL",
+              "value": "supervise or directly perform the NPWT dressing changes"
+            },
+            {
+              "field": "documentation_frequency",
+              "operator": "at_least_weekly",
+              "value": "document changes in the ulcer's dimensions and characteristics and the degree of granulation and management of exudate"
+            },
+            {
+              "field": "laboratory_values_frequency",
+              "operator": "monthly_intervals",
+              "value": "show a contraindication does not exist"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Presence in the wound of necrotic tissue with eschar, if debridement has not been carried out",
+        "Untreated osteomyelitis within the vicinity of the wound",
+        "Possibility of malignant cells present in the wound",
+        "Presence of a fistula to an organ or body cavity within the vicinity of the wound",
+        "Exposed vascular in the wound",
+        "Exposed nerves in the wound",
+        "Exposed anastomotic site",
+        "Exposed organs",
+        "Recent lab value for albumin equal to or less than 2.5",
+        "Pediatric patients (newborns, infants and children)"
+      ],
+      "coverage_limitations": {
+        "initial_course_duration": {
+          "value": 30,
+          "unit": "days"
+        },
+        "dressing_kits_limit": {
+          "value": 6,
+          "unit": "dressing kits per wound per 30-day period",
+          "code": "A6550",
+          "exception": "unless there is documentation that the wound size requires more than one dressing kit for each dressing change"
+        },
+        "dressing_change_frequency": {
+          "operator": "<=",
+          "value": 3,
+          "unit": "times a week"
+        },
+        "canister_sets_limit": {
+          "value": 2,
+          "unit": "canister sets per 30-day period",
+          "code": "A7000",
+          "exception": "unless there is documentation evidencing a large volume of drainage (greater than 90 ml of exudate per day)"
+        }
+      },
+      "coverage_termination_criteria": [
+        "Criteria for Continued Coverage cease to occur",
+        "In the judgment of the treating physician, adequate wound granulation has occurred to the degree that NPWT may be discontinued",
+        "Wound is not healing progressively (progressive wound healing has failed to occur over the prior 30 days based on documented quantitative measurements of wound characteristics including length, width, or depth, serially observed and documented)"
+      ]
+    },
+    {
+      "rule_set_id": "disposable_single_use_negative_pressure_wound_therapy_snap",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "97607",
+            "97608",
+            "A9272"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "snap_initial_coverage",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "coverage_request_form",
+              "operator": "EQUAL",
+              "value": "completed Kaiser Permanente initial coverage request form and faxed to DME staff at 877-290-4632"
+            },
+            {
+              "field": "wound_characteristics",
+              "operator": "CONTAINS",
+              "value": "exudate, size, and depth to require specialized therapy"
+            },
+            {
+              "field": "prior_complete_wound_therapy_program_duration",
+              "operator": ">=",
+              "value": 30,
+              "unit": "days"
+            },
+            {
+              "field": "wound_size",
+              "operator": "<",
+              "value": "13 cm x 13 cm"
+            },
+            {
+              "field": "wound_drainage",
+              "operator": "<=",
+              "value": 180,
+              "unit": "mL/week",
+              "alternative_value": "20mL/day"
+            },
+            {
+              "field": "dressing_change_frequency",
+              "operator": ">=",
+              "value": 2,
+              "unit": "times/week"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Inadequately drained wounds",
+        "Necrotic tissue such as eschar or adherent slough",
+        "Exposed blood vessels, anastomotic sites, organs, tendons, or nerves",
+        "Wounds containing malignancy",
+        "Fistulas",
+        "Untreated osteomyelitis",
+        "Actively bleeding wounds",
+        "Medicare members (not covered by Medicare)"
+      ],
+      "coverage_limitations": {
+        "device_limit": {
+          "value": 4,
+          "unit": "devices per 30-day period",
+          "exception": "unless there is documented evidence of a larger volume of drainage requiring more frequent replacement"
+        },
+        "billing_code_restrictions": {
+          "codes": [
+            "97607",
+            "97608"
+          ],
+          "restriction": "should only be used when the provider is either initially applying an entirely new SNAP device or removing a SNAP device and replacing it with an entirely new one as clinically required. May not be used if only a dressing change is performed."
+        }
+      },
+      "coverage_termination_criteria": [
+        "Progressive wound healing has failed to occur",
+        "Wound increases in size",
+        "Wound is producing amounts of exudate above the parameters for SNAP"
+      ]
+    },
+    {
+      "rule_set_id": "pico_non_powered",
+      "match_criteria": {
+        "service_code": {
+          "coding_system": "CPT/HCPCS",
+          "operator": "IN",
+          "value": [
+            "97607",
+            "97608",
+            "A9272"
+          ]
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "pico_request",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "medical_necessity_status",
+              "operator": "EQUAL",
+              "value": "Considered Not Medically Necessary"
+            },
+            {
+              "field": "required_documentation",
+              "operator": "EQUAL",
+              "value": "Last 6 months of clinical notes from requesting provider and/or specialist"
+            }
+          ]
+        }
+      ],
+      "exclusions": [
+        "Medicare members (not covered by Medicare)"
+      ]
+    },
+    {
+      "rule_set_id": "single_use_negative_pressure_wound_therapy_s_npwt_prevention_ssi",
+      "match_criteria": {
+        "service_name": {
+          "operator": "EQUAL",
+          "value": "Single Use Negative Pressure Wound Therapy (s-NPWT) for the Prevention of Surgical Site Infections (SSIs) in Closed Surgical Incisions"
+        }
+      },
+      "pathways": [
+        {
+          "pathway_id": "s_npwt_prevention_ssi_reimbursement",
+          "logic": "ALL",
+          "conditions": [
+            {
+              "field": "reimbursement_status",
+              "operator": "EQUAL",
+              "value": "Considered a surgical dressing and covered by the procedure billing code; not separately reimbursable under the Prepayment Bill Review – Line item Deduction payment policy"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
