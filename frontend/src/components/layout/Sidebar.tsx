@@ -66,10 +66,10 @@ export default function Sidebar() {
           </div>
           {!collapsed && (
             <div className="flex-1">
-              <p className="text-base font-extrabold text-slate-900 tracking-tight">
-                Auth<span className="text-blue-600">AI</span>
+              <p className="text-lg font-black text-slate-900 tracking-tight">
+                Prior<span className="text-blue-600">is</span>
               </p>
-              <p className="text-[10px] font-extrabold text-slate-400 tracking-wider uppercase">Enterprise Prior Auth</p>
+              <p className="text-[9px] font-extrabold text-slate-400 tracking-wider uppercase">Prior Auth Intelligence</p>
             </div>
           )}
         </Link>

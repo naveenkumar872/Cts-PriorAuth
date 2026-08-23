@@ -345,35 +345,6 @@ export default function Profile() {
           </div>
         </form>
       </div>
-
-      {/* Role & Permissions Summary */}
-      <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex items-center gap-2 mb-3">
-          <Shield className="h-4.5 w-4.5 text-blue-600" />
-          <h3 className="text-base font-bold text-slate-900">Role Capabilities &amp; Permissions</h3>
-        </div>
-        <p className="text-xs text-slate-500 mb-3">
-          Your account is configured with <strong>{roleLabel}</strong> privileges:
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700">
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100">
-            <CheckCircle2 className="h-4 w-4 text-blue-600" />
-            <span>Full read/write access to authorization queue</span>
-          </div>
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100">
-            <CheckCircle2 className="h-4 w-4 text-blue-600" />
-            <span>AI recommendation review and confidence triage</span>
-          </div>
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100">
-            <CheckCircle2 className="h-4 w-4 text-blue-600" />
-            <span>Policy referencing &amp; medical necessity verification</span>
-          </div>
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100">
-            <CheckCircle2 className="h-4 w-4 text-blue-600" />
-            <span>Audit trail activity logging &amp; decision export</span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

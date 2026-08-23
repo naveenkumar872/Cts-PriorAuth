@@ -207,7 +207,7 @@ def _evaluate_and_store(req: AuthorizationRequest, db: Session) -> Dict[str, Any
         id=f"at-rule-{uuid.uuid4().hex[:12]}", 
         authorization_id=req.id, 
         action="Rule-Based Evaluation Completed", 
-        performed_by="CareAuth Rule Engine + ML Classifier", 
+        performed_by="Prioris Rule Engine + ML Classifier", 
         role="System", 
         details=f"Decision: {result['decision']}. {result['reason']}{ml_info}", 
         new_value=result["decision"], 

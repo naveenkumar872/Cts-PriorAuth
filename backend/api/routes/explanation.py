@@ -31,6 +31,7 @@ from core.database import (
     AuditLog, AuthorizationRequest, PolicyCompanionMessage,
     PolicyEvidence, ValidationResult, get_db,
 )
+from core.privacy import anonymize_text, anonymize_patient_payload
 
 router = APIRouter()
 log    = logging.getLogger(__name__)
@@ -154,10 +155,17 @@ def _build_base_context(
 
     missing_lines = "\n".join(f"  - {m}" for m in (missing_info or [])) or "  None"
 
+    # Scrub PHI from patient demographics and clinical notes before LLM prompt assembly
+    p_name = req.patient.name if req.patient else ""
+    p_mid = req.patient.member_id if req.patient else ""
+    p_dob = str(req.patient.dob) if req.patient and req.patient.dob else ""
+
+    safe_notes = anonymize_text((req.clinical_notes or "")[:600], patient_name=p_name, member_id=p_mid, dob_str=p_dob)
+
     return f"""=== PRIOR AUTHORIZATION CONTEXT ===
 
 CASE: {req.case_number}
-PATIENT: {req.patient.name if req.patient else 'Unknown'} | Member ID: {req.patient.member_id if req.patient else 'N/A'}
+PATIENT: [PATIENT_NAME_REDACTED] | Member ID: [MEMBER_ID_REDACTED]
 POLICY ID: {req.policy_id or 'N/A'}
 
 REQUESTED PROCEDURES:
@@ -167,7 +175,7 @@ DIAGNOSES:
 {diag_lines or '  (none)'}
 
 CLINICAL NOTES (excerpt):
-  {(req.clinical_notes or '')[:600]}{'...' if len(req.clinical_notes or '') > 600 else ''}
+  {safe_notes}{'...' if len(req.clinical_notes or '') > 600 else ''}
 
 APPLICABLE RULE SETS:
 {chr(10).join(ruleset_lines) or '  (no ruleset matched)'}
@@ -290,7 +298,7 @@ def generate_explanation(auth_id: str, db: Session) -> Optional[Dict[str, Any]]:
         id               = f"at-{uuid.uuid4().hex[:8]}",
         authorization_id = auth_id,
         action           = "Policy Explanation Generated",
-        performed_by     = "CareAuth Explanation Engine (Gemini + Rule Context)",
+        performed_by     = "Prioris Explanation Engine (Gemini + Rule Context)",
         role             = "System",
         timestamp        = datetime.utcnow(),
         details          = f"Decision: {rule_decision}. Explanation generated from rule evaluation context in {duration_ms}ms.",
@@ -501,7 +509,7 @@ def _rewrite_user_query(user_query: str, req: Optional[AuthorizationRequest], db
       3. Rule Set Decision (status, reasoning, missing criteria, pathways)
       4. User Input / Question (typed prompt e.g. 'explain conclusion')
     """
-    raw = user_query.strip()
+    raw = anonymize_text(user_query.strip())
     if not req:
         return f"POL-001 medical necessity policy criteria {raw}"
 

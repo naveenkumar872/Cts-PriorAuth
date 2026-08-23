@@ -11,12 +11,6 @@ import {
 } from "recharts";
 import { api } from "@/lib/api";
 import type { AuthorizationRequest } from "@/types";
-import {
-  DEMO_AUTHORIZATION_REQUESTS,
-  DEMO_KPI_METRICS,
-  DEMO_CHART_DATA,
-  DEMO_ANALYTICS,
-} from "@/lib/mock-data-master";
 
 export default function ReviewerDashboard() {
   const location = useLocation();
@@ -38,23 +32,22 @@ export default function ReviewerDashboard() {
       api.getAIPerformance(),
     ]).then(([authData, kpiData, trendData, svcData, aiData]) => {
       const fetchedCases = (authData as any)?.cases;
-      setRequests(fetchedCases && fetchedCases.length > 0 ? fetchedCases : DEMO_AUTHORIZATION_REQUESTS);
+      setRequests(fetchedCases || []);
       
-      setKpis((kpiData as any)?.totalRequests ? kpiData : DEMO_KPI_METRICS);
+      setKpis(kpiData || null);
       
       const fetchedTrends = (trendData as any)?.monthlyRequests;
-      setTrends(fetchedTrends && fetchedTrends.length > 0 ? fetchedTrends : DEMO_CHART_DATA.monthlyRequests);
+      setTrends(fetchedTrends || []);
       
-      setByService(svcData && (svcData as any[]).length > 0 ? (svcData as any[]) : DEMO_CHART_DATA.requestsByService);
+      setByService((svcData as any[]) || []);
       
-      const aiAcc = (aiData as any)?.accuracy ?? (aiData as any)?.aiAccuracy;
-      setAiPerf(aiAcc ? aiData : DEMO_ANALYTICS);
+      setAiPerf(aiData || null);
     }).catch(() => {
-      setRequests(DEMO_AUTHORIZATION_REQUESTS);
-      setKpis(DEMO_KPI_METRICS);
-      setTrends(DEMO_CHART_DATA.monthlyRequests);
-      setByService(DEMO_CHART_DATA.requestsByService);
-      setAiPerf(DEMO_ANALYTICS);
+      setRequests([]);
+      setKpis(null);
+      setTrends([]);
+      setByService([]);
+      setAiPerf(null);
     })
       .finally(() => setLoading(false));
   }, [location.key]);
@@ -89,19 +82,18 @@ export default function ReviewerDashboard() {
     })),
   [byService]);
 
-  const currentKpis = kpis || DEMO_KPI_METRICS;
   const reviewerMetrics = [
     { label: "New Requests",    value: statusBreakdown.new + statusBreakdown.underReview,
-      change: currentKpis.casesThisMonth ?? 184, changeLabel: "awaiting review",          trend: "up",   icon: "Inbox", color: "slate" },
-    { label: "Under Review",    value: statusBreakdown.underReview || 12,
-      change: statusBreakdown.underReview || 12, changeLabel: "in progress",       trend: "up",   icon: "Eye", color: "blue" },
-    { label: "Pending Info",    value: statusBreakdown.moreInfo || 18,
-      change: statusBreakdown.moreInfo || 18, changeLabel: "awaiting response",    trend: "down", icon: "AlertCircle", color: "amber" },
-    { label: "Avg Review Time", value: `${currentKpis.averageReviewTime ?? 4.2}h`,
+      change: kpis?.casesThisMonth ?? 0, changeLabel: "awaiting review",          trend: "up",   icon: "Inbox", color: "slate" },
+    { label: "Under Review",    value: statusBreakdown.underReview || 0,
+      change: statusBreakdown.underReview || 0, changeLabel: "in progress",       trend: "up",   icon: "Eye", color: "blue" },
+    { label: "Pending Info",    value: statusBreakdown.moreInfo || 0,
+      change: statusBreakdown.moreInfo || 0, changeLabel: "awaiting response",    trend: "down", icon: "AlertCircle", color: "amber" },
+    { label: "Avg Review Time", value: `${kpis?.averageReviewTime ?? 0}h`,
       change: 0.5, changeLabel: "faster than last week",                     trend: "down", icon: "Zap", color: "emerald" },
   ];
 
-  const currentAiPerf = aiPerf || DEMO_ANALYTICS;
+  const currentAiPerf = aiPerf || {};
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">

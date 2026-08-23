@@ -1,58 +1,21 @@
 import type { AIRecommendation } from "@/types";
-import { cn } from "@/lib/utils";
+import { cn, formatDateTime } from "@/lib/utils";
 import { ConfidenceScore } from "./ConfidenceScore";
 import {
   Brain,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  ArrowUpRight,
   TrendingUp,
   TrendingDown,
   Minus,
   FileText,
   Clock,
+  AlertCircle,
 } from "lucide-react";
-import { formatDateTime } from "@/lib/utils";
+import { RuleEngineDecisionBadge, getRuleEngineDecision, RULE_DECISION_CONFIG } from "./RuleEngineDecisionBadge";
 
 interface AIRecommendationCardProps {
   recommendation: AIRecommendation;
   compact?: boolean;
 }
-
-const decisionConfig: Record<
-  string,
-  { icon: React.ComponentType<{ className?: string }>; bg: string; text: string; border: string; badge: string }
-> = {
-  Approve: {
-    icon: CheckCircle,
-    bg: "bg-green-50",
-    text: "text-green-700",
-    border: "border-green-200",
-    badge: "bg-green-100 text-green-700",
-  },
-  Deny: {
-    icon: XCircle,
-    bg: "bg-red-50",
-    text: "text-red-700",
-    border: "border-red-200",
-    badge: "bg-red-100 text-red-700",
-  },
-  "Request More Info": {
-    icon: AlertCircle,
-    bg: "bg-blue-50",
-    text: "text-blue-700",
-    border: "border-blue-200",
-    badge: "bg-blue-100 text-blue-700",
-  },
-  Escalate: {
-    icon: ArrowUpRight,
-    bg: "bg-amber-50",
-    text: "text-amber-700",
-    border: "border-amber-200",
-    badge: "bg-amber-100 text-amber-700",
-  },
-};
 
 const impactIcon: Record<string, React.ComponentType<{ className?: string }>> = {
   positive: TrendingUp,
@@ -67,25 +30,28 @@ const impactColor: Record<string, string> = {
 };
 
 export function AIRecommendationCard({ recommendation, compact = false }: AIRecommendationCardProps) {
-  const config = decisionConfig[recommendation.decision];
+  const normDecision = getRuleEngineDecision(recommendation.decision);
+  const config = RULE_DECISION_CONFIG[normDecision];
   const Icon = config.icon;
 
   return (
-    <div className={cn("card overflow-hidden border-2", config.border)}>
+    <div className={cn("card overflow-hidden border-2 shadow-xs", config.border)}>
       {/* Header */}
       <div className={cn("flex items-center justify-between px-5 py-4", config.bg)}>
         <div className="flex items-center gap-3">
-          <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl", config.bg, "border", config.border)}>
-            <Icon className={cn("h-5 w-5", config.text)} />
+          <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl border bg-white shadow-2xs", config.border)}>
+            <Icon className="h-5 w-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
-                AI Recommendation
+              <span className="text-[11px] font-bold uppercase tracking-widest text-slate-600">
+                Rule Engine Decision
               </span>
-              <Brain className="h-3.5 w-3.5 text-slate-400" />
+              <Brain className="h-3.5 w-3.5 text-slate-500" />
             </div>
-            <p className={cn("text-xl font-bold", config.text)}>{recommendation.decision}</p>
+            <div className="mt-1">
+              <RuleEngineDecisionBadge decision={normDecision} size="md" />
+            </div>
           </div>
         </div>
         <ConfidenceScore score={recommendation.confidence} size="md" />

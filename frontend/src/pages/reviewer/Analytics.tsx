@@ -9,7 +9,6 @@ import {
   XCircle, Brain, Download, Calendar, Zap, ShieldCheck,
 } from "lucide-react";
 import { api } from "@/lib/api";
-import { DEMO_KPI_METRICS, DEMO_CHART_DATA, DEMO_ANALYTICS } from "@/lib/mock-data-master";
 
 export default function Analytics() {
   const location = useLocation();
@@ -28,15 +27,15 @@ export default function Analytics() {
       api.getServiceBreakdown(),
       api.getAIPerformance(),
     ]).then(([k, t, s, a]) => {
-      setKpis((k as any)?.totalRequests ? k : DEMO_KPI_METRICS);
-      setTrends((t as any)?.monthlyRequests ?? DEMO_CHART_DATA.monthlyRequests);
-      setByService((s as any[])?.length > 0 ? (s as any[]) : DEMO_CHART_DATA.requestsByService);
-      setAiPerf((a as any)?.accuracy ? a : DEMO_ANALYTICS);
+      setKpis(k || null);
+      setTrends((t as any)?.monthlyRequests || (Array.isArray(t) ? t : []));
+      setByService((s as any[]) || []);
+      setAiPerf(a || null);
     }).catch(() => {
-      setKpis(DEMO_KPI_METRICS);
-      setTrends(DEMO_CHART_DATA.monthlyRequests);
-      setByService(DEMO_CHART_DATA.requestsByService);
-      setAiPerf(DEMO_ANALYTICS);
+      setKpis(null);
+      setTrends([]);
+      setByService([]);
+      setAiPerf(null);
     })
       .finally(() => setLoading(false));
   }, [location.key]);

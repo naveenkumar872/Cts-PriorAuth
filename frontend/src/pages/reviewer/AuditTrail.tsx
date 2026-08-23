@@ -38,8 +38,6 @@ function formatRelativeTime(iso: string) {
   return `${Math.max(mins, 1)}m ago`;
 }
 
-import { DEMO_AUTHORIZATION_REQUESTS } from "@/lib/mock-data-master";
-
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
   submission:  { bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-200" },
   evaluation:  { bg: "bg-purple-50",  text: "text-purple-700",  border: "border-purple-200" },
@@ -57,20 +55,14 @@ export default function AuditTrail() {
   const [roleFilter, setRoleFilter] = useState("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const fallbackAudit = DEMO_AUTHORIZATION_REQUESTS.flatMap(r => (r.auditLog || []).map(a => ({
-    ...a,
-    caseNumber: r.caseNumber,
-    authorizationId: r.id,
-  })));
-
   useEffect(() => {
     setLoading(true);
     api.getAuditTrail()
       .then(d => {
         const fetched = d as any[];
-        setEntries(fetched && fetched.length > 0 ? fetched : fallbackAudit);
+        setEntries(fetched || []);
       })
-      .catch(() => setEntries(fallbackAudit))
+      .catch(() => setEntries([]))
       .finally(() => setLoading(false));
   }, [location.key]);
 

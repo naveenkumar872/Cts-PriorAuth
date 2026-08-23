@@ -131,7 +131,7 @@ export default function GoogleCallback() {
       </div>
 
       <footer className="w-full text-center py-4 text-[10px] text-slate-400 border-t border-slate-200 bg-white">
-        CareAuth AI · Google OAuth Authorization Callback
+        Prioris · Google OAuth Authorization Callback
       </footer>
     </div>
   );

@@ -176,7 +176,7 @@ export default function LandingHome() {
     },
     {
       q: "Is the platform HIPAA compliant?",
-      a: "Yes. CareAuth AI includes role-based access controls (RBAC), end-to-end encryption in transit (TLS 1.3), and audited TiDB database execution logs.",
+      a: "Yes. Prioris includes role-based access controls (RBAC), end-to-end encryption in transit (TLS 1.3), and audited TiDB database execution logs.",
     },
   ];
 
@@ -191,8 +191,8 @@ export default function LandingHome() {
             <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-600/25">
               <Briefcase className="w-5.5 h-5.5" />
             </div>
-            <span className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-              Auth<span className="text-blue-600">AI</span>
+            <span className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              Prior<span className="text-blue-600">is</span>
             </span>
           </div>
 
@@ -239,17 +239,17 @@ export default function LandingHome() {
           <div className="lg:col-span-6 space-y-7">
             {/* Pill Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-100/80 border border-blue-200 text-blue-800 text-xs sm:text-sm font-bold shadow-xs">
-              <span>Next-Gen Healthcare Prior Auth Platform</span>
+              <span>Prioris — Prior Authorization Intelligence System</span>
             </div>
 
             {/* Main Headline */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.12]">
-              Autonomous Prior Auth Triage & Clinical Policy <span className="text-blue-600">Intelligence</span>
+              Intelligent Policy Evaluation & Triage
             </h1>
 
             {/* Subtitle */}
             <p className="text-slate-600 text-base sm:text-lg leading-relaxed max-w-xl">
-              AuthAI connects healthcare provider systems and insurance payers with 100% deterministic rule verification, clinical document OCR, and Weaviate vector policy evidence.
+              Prioris connects healthcare provider systems and insurance payers with 100% deterministic rule verification, clinical document OCR, and Weaviate vector policy evidence.
             </p>
 
             {/* CTA Buttons */}

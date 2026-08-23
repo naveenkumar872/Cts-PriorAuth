@@ -19,6 +19,10 @@ export const api = {
     return request<{ total: number; cases: unknown[] }>(`/authorizations${qs}`);
   },
   getAuthorization: (id: string) => request<unknown>(`/authorizations/${id}`),
+  verifyMemberId: (memberId: string) =>
+    request<{ exists: boolean; memberId: string; patient?: any; message: string }>(
+      `/authorizations/patients/verify-member/${encodeURIComponent(memberId)}`
+    ),
   createAuthorization: (data: unknown) =>
     request<unknown>("/authorizations", { method: "POST", body: JSON.stringify(data) }),
   processAuthorization: (id: string) =>

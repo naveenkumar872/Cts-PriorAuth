@@ -459,10 +459,10 @@ for req_id, case_num, pat_id, prov_id, _, proc_json, status, priority, _, sub_at
     # AI triage entry
     ai_at = (sub_dt + timedelta(minutes=12)).strftime("%Y-%m-%d %H:%M:%S")
     audit_entries.append((
-        f"at-ai-{req_id}",req_id,"AI Triage Completed","CareAuth AI Engine","System",
+        f"at-ai-{req_id}",req_id,"AI Triage Completed","Prioris Engine","System",
         ai_at, f"AI recommendation: {ai['decision']} with {ai['confidence']}% confidence. {len(ai.get('keyFactors',[]))} clinical factors evaluated.",
         None, ai["decision"], "ai_analysis",
-        json.dumps({"Model":"CareAuth Clinical LLM v2.1","Confidence":f"{ai['confidence']}%","Decision":ai["decision"]}),
+        json.dumps({"Model":"Prioris Clinical Engine v2.1","Confidence":f"{ai['confidence']}%","Decision":ai["decision"]}),
     ))
     # Decision entry for resolved cases
     if status in ("Approved","Rejected"):

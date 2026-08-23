@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Bell, ChevronDown, LogOut, User, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { DEMO_NOTIFICATIONS } from "@/lib/mock-data-master";
+import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useSidebar } from "@/context/SidebarContext";
 import { ROLE_CONFIGS } from "@/lib/roles";
@@ -25,11 +25,20 @@ function formatRelativeTime(timestamp: string): string {
 export default function TopBar() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [unread, setUnread] = useState(0);
   const { user, logout } = useAuth();
   const { toggleSidebar } = useSidebar();
   const navigate = useNavigate();
 
-  const unread = DEMO_NOTIFICATIONS.filter((n) => !n.read).length;
+  useEffect(() => {
+    api.getNotifications()
+      .then((data: any) => {
+        if (Array.isArray(data)) {
+          setUnread(data.filter((n: any) => !n.read && !n.isRead).length);
+        }
+      })
+      .catch(() => setUnread(0));
+  }, []);
 
   const notifDot: Record<string, string> = {
     warning: "bg-amber-500",

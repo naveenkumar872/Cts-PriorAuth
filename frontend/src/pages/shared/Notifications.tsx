@@ -6,7 +6,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
-import { DEMO_NOTIFICATIONS } from "@/lib/mock-data-master";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -83,10 +82,10 @@ export default function Notifications() {
           }));
           setNotifs(mapped);
         } else {
-          setNotifs(DEMO_NOTIFICATIONS as any[]);
+          setNotifs([]);
         }
       })
-      .catch(() => setNotifs(DEMO_NOTIFICATIONS as any[]))
+      .catch(() => setNotifs([]))
       .finally(() => setLoading(false));
   }, []);
 

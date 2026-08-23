@@ -245,6 +245,40 @@ def get_authorization(case_id: str, db: Session = Depends(get_db)):
     return _ser(req)
 
 
+@router.get("/patients/verify-member/{member_id}")
+def verify_member_id(member_id: str, db: Session = Depends(get_db)):
+    """Check whether a patient's insurance member ID is present in the database."""
+    mid = (member_id or "").strip()
+    if not mid:
+        return {"exists": False, "memberId": "", "message": "Member ID is empty."}
+
+    patient = db.query(Patient).filter(Patient.member_id.ilike(mid)).first()
+    if patient:
+        return {
+            "exists": True,
+            "memberId": patient.member_id,
+            "patient": {
+                "id": patient.id,
+                "name": patient.name,
+                "dob": patient.dob.isoformat() if patient.dob else None,
+                "payer": patient.payer or "Apex Health Plan",
+                "plan": patient.plan or "Gold HMO Plan",
+                "groupId": patient.group_id or "",
+                "gender": patient.gender or "Other",
+                "phone": patient.phone or "",
+                "primaryCare": patient.primary_care or "",
+            },
+            "message": f"Member ID '{patient.member_id}' is verified in database ({patient.name})."
+        }
+
+    return {
+        "exists": False,
+        "memberId": mid,
+        "patient": None,
+        "message": f"Member ID '{mid}' was not found in the patient database."
+    }
+
+
 from api.routes.context import _get_index
 
 
@@ -450,7 +484,7 @@ def create_authorization(payload: CreateAuthPayload, db: Session = Depends(get_d
                         id=f"at-{uuid.uuid4().hex[:8]}",
                         authorization_id=auth_id,
                         action="Context & Policy Mapping Completed" if matched else "Context Mapping — No Match",
-                        performed_by="CareAuth Policy Engine",
+                        performed_by="Prioris Policy Engine",
                         role="System",
                         timestamp=datetime.utcnow(),
                         details=(

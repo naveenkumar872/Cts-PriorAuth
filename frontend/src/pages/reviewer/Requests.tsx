@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Search, Filter, CheckCircle, XCircle, Clock, AlertCircle, ChevronRight } from "lucide-react";
 import { api } from "@/lib/api";
 import type { AuthorizationRequest, AuthorizationStatus } from "@/types";
-import { DEMO_AUTHORIZATION_REQUESTS } from "@/lib/mock-data-master";
+import { RuleEngineDecisionBadge, RuleEngineDecisionLegend, getRuleEngineDecision } from "@/components/ui/RuleEngineDecisionBadge";
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; border: string; icon: React.ComponentType<{ className?: string }> }> = {
   "Approved":                   { label: "Approved",     bg: "bg-emerald-50",  text: "text-emerald-700",  border: "border-emerald-200", icon: CheckCircle },
@@ -26,13 +26,6 @@ function getMappedPriority(p: string): "high" | "medium" | "low" {
   return "medium";
 }
 
-const AI_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  "Approve":           { bg: "bg-emerald-50",  text: "text-emerald-700",  border: "border-emerald-200" },
-  "Deny":              { bg: "bg-rose-50",    text: "text-rose-700",    border: "border-rose-200" },
-  "Request More Info": { bg: "bg-amber-50",  text: "text-amber-700",  border: "border-amber-200" },
-  "Escalate":          { bg: "bg-blue-50",   text: "text-blue-700",   border: "border-blue-200" },
-};
-
 export default function ReviewerRequests() {
   const location = useLocation();
   const [all, setAll]                     = useState<AuthorizationRequest[]>([]);
@@ -47,9 +40,9 @@ export default function ReviewerRequests() {
     api.getAuthorizations()
       .then(d => {
         const fetched = (d as any)?.cases;
-        setAll(fetched && fetched.length > 0 ? fetched : DEMO_AUTHORIZATION_REQUESTS);
+        setAll(fetched || []);
       })
-      .catch(() => setAll(DEMO_AUTHORIZATION_REQUESTS))
+      .catch(() => setAll([]))
       .finally(() => setLoading(false));
   }, [location.key]);
 
@@ -133,6 +126,9 @@ export default function ReviewerRequests() {
         </div>
       </div>
 
+      {/* Rule Engine Decision Legend Definition */}
+      <RuleEngineDecisionLegend />
+
       <p className="text-sm text-slate-500">{filtered.length} request{filtered.length !== 1 ? "s" : ""} found</p>
 
       {filtered.length === 0 ? (
@@ -145,7 +141,7 @@ export default function ReviewerRequests() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50">
-                {["Case #", "Patient", "Provider", "Service", "Status", "AI Rec.", "Due", ""].map(h => (
+                {["Case #", "Patient", "Provider", "Service", "Status", "Rule Engine Decision", "Due", ""].map(h => (
                   <th key={h} className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">{h}</th>
                 ))}
               </tr>
@@ -155,19 +151,18 @@ export default function ReviewerRequests() {
                 const cfg       = STATUS_CONFIG[req.status] ?? { label: req.status, bg: "bg-slate-100", text: "text-slate-600", icon: AlertCircle };
                 const StatusIcon = cfg.icon;
                 const ruleEval  = req.ruleEvaluation || (req.policyContext as any)?.ruleEvaluation;
-                const ai        = req.aiRecommendation || (ruleEval ? {
-                  decision: ruleEval.decision === "Approved" ? "Approve" : ruleEval.decision === "More Information Required" ? "Request More Info" : ruleEval.decision === "Denied" ? "Deny" : "Escalate",
-                  confidence: ruleEval.decision === "Approved" ? 94 : ruleEval.decision === "More Information Required" ? 82 : ruleEval.decision === "Denied" ? 88 : 85
-                } : null);
-                const aiColor   = AI_COLORS[ai?.decision ?? ""] ?? { bg: "bg-slate-100", text: "text-slate-600" };
+                const decision  = ruleEval?.decision || req.aiRecommendation?.decision || req.status;
+                const isNurseReview = getRuleEngineDecision(decision) === "Nurse Review Required";
 
                 return (
                   <tr key={req.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-5 py-4">
                       <span className="font-mono text-xs font-bold text-blue-600">{req.caseNumber}</span>
-                      <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] font-bold ${PRIORITY_COLORS[getMappedPriority(req.priority)] ?? ""}`}>
-                        {getMappedPriority(req.priority).toUpperCase()}
-                      </span>
+                      {isNurseReview && (
+                        <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] font-bold ${PRIORITY_COLORS[getMappedPriority(req.priority)] ?? ""}`}>
+                          {getMappedPriority(req.priority).toUpperCase()}
+                        </span>
+                      )}
                     </td>
                     <td className="px-5 py-4">
                       <p className="font-medium text-slate-900">{req.patient?.name}</p>
@@ -187,9 +182,7 @@ export default function ReviewerRequests() {
                       </span>
                     </td>
                     <td className="px-5 py-4 hidden sm:table-cell">
-                      {ai ? (
-                        <span className={`px-2 py-0.5 rounded border text-[10px] font-bold ${aiColor.bg} ${aiColor.text} ${aiColor.border}`}>{ai.decision}</span>
-                      ) : <span className="text-xs text-slate-400">—</span>}
+                      <RuleEngineDecisionBadge decision={decision} size="sm" />
                     </td>
                     <td className="px-5 py-4 hidden xl:table-cell text-xs text-slate-500">
                       {req.dueDate ? new Date(req.dueDate).toLocaleDateString() : "—"}
