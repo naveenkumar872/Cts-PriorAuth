@@ -11,6 +11,12 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
+    # Google OAuth
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    GOOGLE_REDIRECT_URI: str = "http://localhost:8000/google/callback"
+    FRONTEND_URL: str = "http://localhost:5173"
+
     # CORS — includes Vite dev server (5173) and legacy ports
     CORS_ORIGINS: List[str] = [
         "http://localhost:5173",
@@ -23,10 +29,17 @@ class Settings(BaseSettings):
 
     # Database — TiDB / MySQL (override via .env)
     DATABASE_URL: str = "mysql+pymysql://root:password@localhost:4000/prior_auth"
+    DB_HOST: str = ""
+    DB_PORT: int = 4000
+    DB_USER: str = ""
+    DB_PASSWORD: str = ""
+    DB_NAME: str = ""
 
     # Gemini AI
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-3.5-flash-lite"
+    GEMINI_MODEL: str = "gemini-3.6-flash"
+
+
 
     # File uploads
     UPLOAD_DIR: str = "uploads"
@@ -53,7 +66,9 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = str(_REPO_ROOT / ".env")
-        case_sensitive = True
+        case_sensitive = False
+        extra = "ignore"
+
 
 
 settings = Settings()

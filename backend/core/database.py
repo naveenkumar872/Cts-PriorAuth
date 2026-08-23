@@ -14,18 +14,24 @@ from datetime import datetime
 from core.config import settings
 
 # ── Engine ────────────────────────────────────────────────────────────────────
-connect_args = {}
+connect_args = {
+    "connect_timeout": 5,
+    "read_timeout": 10,
+    "write_timeout": 10,
+    "autocommit": False,
+}
 if "tidbcloud.com" in settings.DATABASE_URL or "ssl" in settings.DATABASE_URL.lower():
-    connect_args = {"ssl": {"ssl_mode": "REQUIRED"}}
+    connect_args["ssl"] = {"ssl_mode": "REQUIRED"}
 
 engine = create_engine(
     settings.DATABASE_URL,
-    pool_pre_ping=True,
-    pool_recycle=1800,
-    pool_size=5,
-    max_overflow=10,
+    pool_pre_ping=False,
+    pool_recycle=300,
+    pool_size=15,
+    max_overflow=25,
     connect_args=connect_args,
 )
+
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()

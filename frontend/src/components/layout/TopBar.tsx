@@ -80,81 +80,13 @@ export default function TopBar() {
       </div>
 
       <div className="flex items-center gap-3">
-        {/* Notifications */}
-        <div className="relative">
-          <button
-            onClick={() => {
-              setNotifOpen(!notifOpen);
-              setProfileOpen(false);
-            }}
-            className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900 shadow-sm"
-          >
-            <Bell className="h-5 w-5" strokeWidth={1.75} />
-            {unread > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white shadow-sm border border-white">
-                {unread}
-              </span>
-            )}
-          </button>
-
-          {notifOpen && (
-            <div className="absolute right-0 top-12 z-50 w-96 rounded-lg border border-slate-200 bg-white shadow-lg py-1">
-              <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">Notifications</p>
-                  <p className="text-xs text-slate-500">{unread} unread</p>
-                </div>
-                <button className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors">
-                  Mark all read
-                </button>
-              </div>
-              <div className="max-h-80 overflow-y-auto">
-                {DEMO_NOTIFICATIONS.map((n) => (
-                  <div
-                    key={n.id}
-                    className={cn(
-                      "flex gap-3 border-b border-slate-100 px-4 py-3 transition-colors hover:bg-slate-50 cursor-pointer",
-                      !n.read && "bg-slate-50/50"
-                    )}
-                  >
-                    <div className={cn("mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full", notifDot[n.type])} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-slate-800">{n.title}</p>
-                      <p className="text-xs text-slate-500 line-clamp-2 mt-0.5">{n.message}</p>
-                      <p className="mt-1 text-[10px] text-slate-400">
-                        {formatRelativeTime(n.timestamp)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="border-t border-slate-100 px-4 py-2 text-center">
-                <button
-                  onClick={() => {
-                    setNotifOpen(false);
-                    navigate("/notifications");
-                  }}
-                  className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
-                >
-                  View all notifications
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="h-5 w-px bg-slate-200" />
-
         {/* Profile Dropdown */}
         <div className="relative">
           <button
-            onClick={() => {
-              setProfileOpen(!profileOpen);
-              setNotifOpen(false);
-            }}
-            className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 transition-all hover:bg-slate-50 shadow-sm cursor-pointer"
+            onClick={() => setProfileOpen(!profileOpen)}
+            className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 transition-all hover:bg-slate-50 shadow-xs cursor-pointer"
           >
-            <div className={cn("flex h-6 w-6 items-center justify-center rounded-md text-[10px] font-bold shadow-sm", avatarBg)}>
+            <div className={cn("flex h-6 w-6 items-center justify-center rounded-md text-[10px] font-bold shadow-xs", avatarBg)}>
               {initials}
             </div>
             <div className="hidden sm:block text-left">
@@ -165,6 +97,7 @@ export default function TopBar() {
             </div>
             <ChevronDown className="h-3 w-3 text-slate-400" />
           </button>
+
 
           {profileOpen && (
             <div className="absolute right-0 top-12 z-50 w-72 rounded-lg border border-slate-200 bg-white shadow-lg py-1.5">

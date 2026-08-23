@@ -116,12 +116,6 @@ export const ROLE_NAV_GROUPS: Record<
       ],
     },
     {
-      label: "Workspace",
-      items: [
-        { href: "/notifications", label: "Notifications", icon: "Bell" },
-      ],
-    },
-    {
       label: "Account",
       items: [
         { href: "/profile", label: "Profile", icon: "User" },
@@ -135,7 +129,7 @@ export const ROLE_NAV_GROUPS: Record<
       label: "Main",
       items: [
         { href: "/reviewer/dashboard", label: "Dashboard", icon: "LayoutDashboard" },
-        { href: "/reviewer/review-queue", label: "Review Queue", icon: "Stethoscope" },
+        { href: "/reviewer/review-queue", label: "Nurse Queue", icon: "Stethoscope" },
         { href: "/reviewer/requests", label: "All Requests", icon: "FileText" },
       ],
     },
@@ -155,9 +149,9 @@ export const ROLE_NAV_GROUPS: Record<
     {
       label: "Account",
       items: [
-        { href: "/notifications", label: "Notifications", icon: "Bell" },
         { href: "/profile", label: "Profile", icon: "User" },
       ],
     },
   ],
 };
+

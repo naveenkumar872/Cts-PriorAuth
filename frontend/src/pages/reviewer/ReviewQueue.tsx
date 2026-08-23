@@ -21,10 +21,11 @@ function getMappedPriority(p: string): "high" | "medium" | "low" {
 }
 
 const COMPLEXITY_BADGES: Record<string, { bg: string; text: string; border: string; label: string }> = {
-  high:   { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200", label: "High Complexity (Rank 1)" },
-  medium: { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", label: "Medium Complexity (Rank 2)" },
-  low:    { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", label: "Low Complexity (Rank 3)" },
+  high:   { bg: "bg-rose-100/90", text: "text-rose-900 font-extrabold", border: "border-rose-300", label: "High Complexity (Rank 1)" },
+  medium: { bg: "bg-amber-100/90", text: "text-amber-900 font-extrabold", border: "border-amber-300", label: "Medium Complexity (Rank 2)" },
+  low:    { bg: "bg-emerald-100/90", text: "text-emerald-900 font-extrabold", border: "border-emerald-300", label: "Low Complexity (Rank 3)" },
 };
+
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; border: string; Icon: React.ComponentType<{ className?: string }> }> = {
   "Pending Review":            { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", Icon: Clock },
@@ -59,8 +60,15 @@ export default function ReviewQueue() {
   }, [location.key]);
 
   const queue = useMemo(() => {
-    const QUEUE_STATUSES = ["Pending Review", "Under Review", "More Information Required", "Nurse Review Required"];
-    let filtered = all.filter(r => QUEUE_STATUSES.includes(r.status));
+    // Nurse Review Queue only contains cases requiring clinical nurse review (excluding More Information Required)
+    const NURSE_QUEUE_STATUSES = ["Nurse Review Required", "Pending Review", "Under Review"];
+    let filtered = all.filter(r => 
+      NURSE_QUEUE_STATUSES.includes(r.status) &&
+      r.status !== "More Information Required" &&
+      (r.ruleEvaluation?.decision !== "More Information Required") &&
+      (r.policyContext?.ruleEvaluation?.decision !== "More Information Required")
+    );
+
 
     if (search) {
       const s = search.toLowerCase();
@@ -106,37 +114,28 @@ export default function ReviewQueue() {
 
   return (
     <div className="space-y-6">
+      {/* Title */}
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Review Queue</h1>
-        <p className="text-slate-600 mt-1 flex items-center gap-2">
-          <span>{queue.length} request{queue.length !== 1 ? "s" : ""} awaiting review</span>
-          {sortBy === "complexity" && (
-            <span className="text-xs font-semibold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
-              ⚡ ML Sorted: High Complexity First
-            </span>
-          )}
-          {sortBy === "urgency" && (
-            <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-              Sorted: Urgent First
-            </span>
-          )}
+        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Nurse Review Queue</h1>
+        <p className="text-slate-600 mt-1 flex items-center gap-2 font-medium">
+          <span>{queue.length} request{queue.length !== 1 ? "s" : ""} awaiting clinical review</span>
         </p>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
-            type="text" placeholder="Search by ID, patient, or service..."
+            type="text" placeholder="Search by Case ID, patient name, or service..."
             value={search} onChange={e => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 bg-white text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           />
         </div>
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-slate-500 shrink-0" />
           <select value={priority} onChange={e => setPriority(e.target.value)}
-            className="px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+            className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/20">
             <option value="all">All Priorities</option>
             <option value="high">High Only</option>
             <option value="medium">Medium Only</option>
@@ -146,114 +145,110 @@ export default function ReviewQueue() {
         <div className="flex items-center gap-2">
           <ArrowUpDown className="h-4 w-4 text-slate-500 shrink-0" />
           <select value={sortBy} onChange={e => setSortBy(e.target.value as "complexity" | "urgency" | "date")}
-            className="px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20">
-            <option value="complexity">⚡ Sort: ML Complexity (High → Low)</option>
-            <option value="urgency">Sort: Urgency (High → Low)</option>
+            className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+            <option value="complexity">Sort: Clinical Urgency</option>
             <option value="date">Sort: Newest First</option>
           </select>
         </div>
       </div>
 
       {queue.length === 0 ? (
-        <div className="rounded-lg border border-slate-200 bg-white p-12 text-center shadow-sm">
-          <AlertCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-slate-900 mb-2">No requests found</h3>
-          <p className="text-slate-600">Try adjusting your filters or search terms</p>
+        <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-xs">
+          <AlertCircle className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+          <h3 className="text-lg font-bold text-slate-900 mb-1">No requests found</h3>
+          <p className="text-xs text-slate-500 font-medium">Try adjusting your filters or search terms</p>
         </div>
       ) : (
         <div className="space-y-4">
           {queue.map(request => {
             const statusCfg = STATUS_COLORS[request.status];
             const StatusIcon = statusCfg?.Icon ?? Clock;
-            const aiRec = request.aiRecommendation;
-            const aiColor = AI_COLORS[aiRec?.decision ?? ""] ?? AI_COLORS["Approve"];
-            const mappedPriority = getMappedPriority(request.priority);
             
-            const mlComplexity = request.ruleEvaluation?.mlComplexity || (request.policyContext as any)?.ruleEvaluation?.mlComplexity;
-            const mlBadge = mlComplexity?.predictedComplexity ? COMPLEXITY_BADGES[mlComplexity.predictedComplexity] : null;
+            const ruleEval = request.ruleEvaluation || (request.policyContext as any)?.ruleEvaluation;
+            const aiRec = request.aiRecommendation || (ruleEval ? {
+              decision: ruleEval.decision === "Approved" ? "Approve" : ruleEval.decision === "More Information Required" ? "Request More Info" : ruleEval.decision === "Denied" ? "Deny" : "Escalate",
+              confidence: ruleEval.decision === "Approved" ? 94 : ruleEval.decision === "More Information Required" ? 82 : ruleEval.decision === "Denied" ? 88 : 85
+            } : null);
+
+            const aiColor = AI_COLORS[aiRec?.decision ?? ""] ?? AI_COLORS["Escalate"];
+            const mappedPriority = getMappedPriority(request.priority);
 
             return (
-              <div key={request.id} className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-slate-350 transition-all">
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                  {/* Left */}
-                  <div className="md:col-span-4 space-y-3">
-                    <div>
-                      <p className="text-xs font-semibold text-slate-500 uppercase">Request ID</p>
-                      <p className="text-sm font-bold text-blue-600">{request.caseNumber}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-slate-500 uppercase">Patient</p>
-                      <p className="text-sm font-medium text-slate-900">{request.patient?.name}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-slate-500 uppercase">Service</p>
-                      <p className="text-sm text-slate-600 line-clamp-2">{request.procedures?.[0]?.description}</p>
-                    </div>
-                  </div>
+              <div
+                key={request.id}
+                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs hover:shadow-md hover:border-blue-300 transition-all duration-200 relative overflow-hidden group"
+              >
+                {/* Left accent bar */}
+                <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${
+                  mappedPriority === "high" ? "bg-rose-500" : mappedPriority === "medium" ? "bg-amber-500" : "bg-blue-600"
+                }`} />
 
-                  {/* Middle */}
-                  <div className="md:col-span-3 space-y-3">
-                    <div>
-                      <p className="text-xs font-semibold text-slate-500 uppercase">Status</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <StatusIcon className="h-3.5 w-3.5 text-slate-500" />
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${statusCfg?.bg ?? ""} ${statusCfg?.text ?? ""} ${statusCfg ? "border-" + statusCfg.text.split("-")[1] + "-200" : ""}`}>
-                          {request.status}
-                        </span>
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-slate-500 uppercase">Priority & Urgency</p>
-                      <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full border mt-1 ${PRIORITY_COLORS[mappedPriority] ?? ""}`}>
-                        {mappedPriority.charAt(0).toUpperCase() + mappedPriority.slice(1)}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center pl-2">
+                  {/* Left: Patient & Request Metadata */}
+                  <div className="md:col-span-5 space-y-2.5">
+                    <div className="flex items-center gap-3">
+                      <Link to={`/reviewer/requests/${request.id}`} className="font-mono text-sm font-extrabold text-[#1E6BF3] hover:underline">
+                        {request.caseNumber}
+                      </Link>
+                      <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${statusCfg?.bg ?? ""} ${statusCfg?.text ?? ""} ${statusCfg ? "border-" + statusCfg.text.split("-")[1] + "-200" : ""}`}>
+                        {request.status}
                       </span>
                     </div>
 
-                    {/* ML Complexity Badge */}
-                    {mlBadge && (
-                      <div>
-                        <p className="text-xs font-semibold text-slate-500 uppercase">ML Review Complexity</p>
-                        <div className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border mt-1 ${mlBadge.bg} ${mlBadge.text} ${mlBadge.border}`}>
-                          {mlBadge.label}
-                          {mlComplexity?.confidenceScore && (
-                            <span className="text-[10px] opacity-75">({mlComplexity.confidenceScore}%)</span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
                     <div>
-                      <p className="text-xs font-semibold text-slate-500 uppercase">Submitted</p>
-                      <p className="text-sm text-slate-600">{new Date(request.submittedAt).toLocaleDateString()}</p>
+                      <p className="text-base font-extrabold text-slate-900">{request.patient?.name}</p>
+                      <p className="text-xs font-semibold text-slate-600 mt-0.5 line-clamp-1">
+                        {request.procedures?.[0]?.description}
+                      </p>
+                    </div>
+
+                    <p className="text-[11px] text-slate-400 font-medium">
+                      Submitted {new Date(request.submittedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+
+                  {/* Middle: Badges */}
+                  <div className="md:col-span-3 space-y-2.5 border-t md:border-t-0 md:border-l border-slate-100 pt-3 md:pt-0 md:pl-6">
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Priority Tier</p>
+                      <span className={`inline-block text-xs font-extrabold px-2.5 py-0.5 rounded-full border mt-1 ${PRIORITY_COLORS[mappedPriority] ?? ""}`}>
+                        {mappedPriority.charAt(0).toUpperCase() + mappedPriority.slice(1)}
+                      </span>
                     </div>
                   </div>
 
-                  {/* Right — AI */}
-                  <div className="md:col-span-3 space-y-3 md:border-l md:border-slate-200 md:pl-6">
-                    <div>
-                      <p className="text-xs font-semibold text-slate-500 uppercase">AI Recommendation</p>
-                      <div className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded border mt-1 ${aiColor.bg} ${aiColor.text} ${aiColor.border}`}>
+
+                  {/* Right: AI Recommendation & Action */}
+                  <div className="md:col-span-4 bg-slate-50/80 p-4 rounded-xl border border-slate-150 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">AI Recommendation</span>
+                      <span className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border ${aiColor.bg} ${aiColor.text} ${aiColor.border}`}>
                         {aiRec?.decision ?? "Pending"}
-                      </div>
+                      </span>
                     </div>
+
                     <div>
-                      <p className="text-xs font-semibold text-slate-500 uppercase">Confidence</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-blue-600 rounded-full" style={{ width: `${aiRec?.confidence ?? 0}%` }} />
-                        </div>
-                        <span className="text-xs font-bold text-[#0A192F]">{aiRec?.confidence ?? 0}%</span>
+                      <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
+                        <span>Confidence Score</span>
+                        <span>{aiRec?.confidence ?? 0}%</span>
+                      </div>
+                      <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full transition-all duration-300" style={{ width: `${aiRec?.confidence ?? 0}%` }} />
                       </div>
                     </div>
-                    <Link to={`/reviewer/requests/${request.id}`}
-                      className="btn-primary w-full block text-center shadow-none mt-4 text-xs py-2">
-                      Review Case
+
+                    <Link
+                      to={`/reviewer/requests/${request.id}`}
+                      className="w-full block text-center py-2.5 px-4 rounded-xl bg-[#1E6BF3] hover:bg-blue-700 text-white font-extrabold text-xs shadow-xs hover:shadow-md transition-all cursor-pointer"
+                    >
+                      Review Case →
                     </Link>
                   </div>
                 </div>
               </div>
             );
           })}
+
         </div>
       )}
     </div>

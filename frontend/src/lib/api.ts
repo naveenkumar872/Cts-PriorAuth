@@ -104,6 +104,12 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ email, password }),
     }),
+  register: (data: { name: string; email: string; password: string; role: string; organization?: string; contact?: string }) =>
+    request<unknown>("/users/register", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
   getNotifications: () => request<unknown[]>("/users/notifications"),
   markNotificationRead: (id: string) =>
     request<unknown>(`/users/notifications/${id}/read`, { method: "PATCH" }),

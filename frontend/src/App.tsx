@@ -7,6 +7,10 @@ import RootLayout from "@/components/layout/RootLayout";
 
 // Auth Pages
 import Login from "@/pages/auth/Login";
+import SignUp from "@/pages/auth/SignUp";
+import GoogleCallback from "@/pages/auth/GoogleCallback";
+
+
 
 // Provider Pages
 import ProviderDashboard from "@/pages/provider/Dashboard";
@@ -83,6 +87,10 @@ function AppRoutes() {
       <Route path="/" element={<LandingHome />} />
       <Route path="/home" element={<LandingHome />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<SignUp />} />
+      <Route path="/google/callback" element={<GoogleCallback />} />
+
+
 
       {/* PROTECTED ROUTES WITH LAYOUT */}
       <Route

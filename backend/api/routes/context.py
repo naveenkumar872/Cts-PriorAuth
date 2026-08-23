@@ -241,6 +241,9 @@ def map_policy(payload: MapPolicyRequest) -> Dict[str, Any]:
     }
 
 
+from core.cache import get_cache, set_cache
+
+
 @router.get("/index")
 def get_policy_index() -> Dict[str, Any]:
     """
@@ -248,8 +251,12 @@ def get_policy_index() -> Dict[str, Any]:
     and service codes. Used by the frontend to populate policy ID dropdowns
     and show the provider what policies exist.
     """
+    cached = get_cache("policy_index")
+    if cached is not None:
+        return cached
+
     index = _get_index()
-    return {
+    res = {
         "total": len(index),
         "policies": [
             {
@@ -262,6 +269,9 @@ def get_policy_index() -> Dict[str, Any]:
             for pid, meta in sorted(index.items(), key=lambda x: x[1]["policy_name"])
         ],
     }
+    set_cache("policy_index", res, ttl_seconds=300)
+    return res
+
 
 
 @router.get("/lookup/{policy_id}")

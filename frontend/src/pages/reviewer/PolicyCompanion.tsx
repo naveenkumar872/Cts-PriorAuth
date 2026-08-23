@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
-  Sparkles, BookOpen, Send, FileText, RefreshCw, Cpu, AlertCircle, CheckCircle, Clock
+  Sparkles, BookOpen, Send, FileText, RefreshCw, Cpu, AlertCircle, CheckCircle, Clock, ChevronDown
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -31,6 +31,12 @@ export default function PolicyCompanionPage() {
   const [selectedPolicyId, setSelectedPolicyId] = useState<string>("POL-001");
   const [inputQuestion, setInputQuestion] = useState("");
   const [loadingAnswer, setLoadingAnswer] = useState(false);
+  const [expandedCitations, setExpandedCitations] = useState<Record<number, boolean>>({});
+
+  const toggleCitation = (index: number) => {
+    setExpandedCitations((prev) => ({ ...prev, [index]: !prev[index] }));
+  };
+
 
   // Sync with search parameter when URL changes
   useEffect(() => {
@@ -158,8 +164,12 @@ export default function PolicyCompanionPage() {
         })) ?? []);
       } else {
         // Intelligent grounded fallback based on question intent
-        const lower = questionToAsk.toLowerCase();
-        if (lower.includes("why") || lower.includes("pending") || lower.includes("review")) {
+        const lower = questionToAsk.toLowerCase().trim();
+        const isGreeting = ["hi", "hello", "hey", "good morning", "good afternoon", "greetings", "hi there", "hello there", "help"].includes(lower) || lower === "hi";
+
+        if (isGreeting) {
+          companionReply = `Hello! I am your AI Policy Companion for case #${currentCase.caseNumber || selectedCaseId}. How may I assist you with reviewing policy guidelines, medical necessity criteria, or required clinical documentation for this request?`;
+        } else if (lower.includes("why") || lower.includes("pending") || lower.includes("review")) {
           companionReply = `Request ${currentCase.caseNumber} requires review because Rule R003 (Clinical Documentation) failed. The patient meets diagnostic criteria (ICD-10 ${diagCode}) and conservative therapy requirements, but modern orthopedic consultation notes within 30 days are missing.`;
         } else if (lower.includes("missing") || lower.includes("documentation") || lower.includes("required")) {
           companionReply = `According to ${currentPolicy.title} (${currentPolicy.id} v3.2, Section 4.2), the following documentation is required: (1) Specialist orthopedic clinical evaluation within 30 days, (2) Physical therapy progress log showing 6+ weeks of conservative trial, and (3) Functional impairment scale assessment.`;
@@ -168,6 +178,7 @@ export default function PolicyCompanionPage() {
         } else {
           companionReply = `Based on ${currentPolicy.title} (${currentPolicy.id} v3.2) and clinical file ${currentCase.caseNumber}, the patient (${currentCase.patient?.name}) meets primary medical indication criteria for ${currentCase.procedures?.[0]?.description}. Full approval is subject to submission of missing orthopedic specialist consultation records.`;
         }
+
 
         citations = [
           {
@@ -321,20 +332,49 @@ export default function PolicyCompanionPage() {
                 >
                   {msg.text}
 
-                  {/* RAG Citations */}
+                  {/* RAG Citations — Collapsible with toggle button */}
                   {msg.citations && msg.citations.length > 0 && (
-                    <div className="mt-3 pt-2.5 border-t border-[#D2E6FF] space-y-1.5">
-                      <span className="text-[10px] font-extrabold text-[#1E6BF3] uppercase tracking-wider block">
-                        Policy Citation Evidence:
-                      </span>
-                      {msg.citations.map((c, cIdx) => (
-                        <div key={cIdx} className="p-2 rounded-lg bg-[#EBF4FF] border border-[#82B3FF] text-[11px] text-[#0A192F]">
-                          <p className="font-bold text-[#1E6BF3]">{c.title} — {c.section}</p>
-                          <p className="text-[#4B6B94] mt-0.5 italic">"{c.text}"</p>
+                    <div className="mt-3 pt-2 border-t border-[#D2E6FF]/80">
+                      <button
+                        type="button"
+                        onClick={() => toggleCitation(i)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-[#B8D7FF] hover:bg-[#EBF4FF] text-[#1E6BF3] font-bold text-[11px] transition-all shadow-2xs cursor-pointer"
+                      >
+                        <FileText className="w-3.5 h-3.5 text-[#1E6BF3]" />
+                        <span>
+                          {expandedCitations[i]
+                            ? "Hide Policy Citations"
+                            : `View Policy Citation Evidence (${msg.citations.length})`}
+                        </span>
+                        <ChevronDown
+                          className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                            expandedCitations[i] ? "rotate-180" : ""
+                          }`}
+                        />
+                      </button>
+
+                      {expandedCitations[i] && (
+                        <div className="mt-2.5 space-y-2 animate-in fade-in duration-200">
+                          <span className="text-[10px] font-extrabold text-[#1E6BF3] uppercase tracking-wider block">
+                            Policy Citation Evidence:
+                          </span>
+                          {msg.citations.map((c, cIdx) => (
+                            <div
+                              key={cIdx}
+                              className="p-2.5 rounded-xl bg-[#EBF4FF] border border-[#82B3FF] text-[11px] text-[#0A192F] space-y-1 shadow-2xs"
+                            >
+                              <p className="font-bold text-[#1E6BF3] flex flex-wrap items-center justify-between gap-1">
+                                <span>{c.title}</span>
+                                <span className="text-[10px] font-semibold text-[#4B6B94]">{c.section}</span>
+                              </p>
+                              <p className="text-[#334155] italic leading-snug">"{c.text}"</p>
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      )}
                     </div>
                   )}
+
                 </div>
                 <span className="text-[10px] font-bold text-[#5A7CA6] mt-1 px-1">{msg.timestamp}</span>
               </div>
