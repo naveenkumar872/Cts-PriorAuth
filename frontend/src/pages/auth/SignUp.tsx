@@ -92,8 +92,8 @@ export default function SignUp() {
           <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-600/25">
             <Briefcase className="w-4.5 h-4.5" />
           </div>
-          <span className="text-lg font-extrabold text-slate-900 tracking-tight">
-            Auth<span className="text-blue-600">AI</span>
+          <span className="text-lg font-black text-slate-900 tracking-tight">
+            Prior<span className="text-blue-600">is</span>
           </span>
         </div>
       </header>
@@ -106,13 +106,13 @@ export default function SignUp() {
           <div className="lg:col-span-5 bg-gradient-to-br from-blue-100/90 via-blue-50/70 to-slate-50 border-r border-blue-200/90 p-6 lg:p-8 flex flex-col justify-between text-slate-700">
             <div className="space-y-4">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-600 text-white text-[11px] font-extrabold uppercase tracking-wider shadow-xs">
-                ENTERPRISE ACCOUNT REGISTRATION
+                PRIORIS ACCOUNT REGISTRATION
               </div>
               <h2 className="text-xl lg:text-2xl font-extrabold text-slate-900 tracking-tight leading-tight">
-                Join AuthAI Workspace
+                Join Prioris Workspace
               </h2>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Create your verified account to access automated prior authorization triage, clinical policy companion, and transparent decision engines.
+                Prioris — Prior Authorization Intelligence System: intelligent policy evaluation and triage for providers and payers.
               </p>
             </div>
 

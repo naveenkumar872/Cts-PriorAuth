@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 
 from core.config import settings
 from core.database import AuditLog, AuthorizationRequest, get_db
+from core.privacy import anonymize_text, anonymize_patient_payload
 
 router = APIRouter()
 log = logging.getLogger("ai_triage")
@@ -80,6 +81,9 @@ def _generate_recommendation(
             diag_text = ", ".join(f"{d.get('code','')} ({d.get('description','')})" for d in (diagnoses or []))
             proc_text = ", ".join(f"{p.get('code','')} ({p.get('description','')})" for p in (procedures or []))
 
+            # Sanitize clinical notes to scrub any PHI before sending to Gemini LLM
+            safe_notes = anonymize_text(clinical_notes or "")
+
             prompt = f"""=== CLINICAL RULE ENGINE DECISION & PROVIDER CONTEXT ===
 RULE ENGINE DECISION: {rule_decision} (Mapped UI Recommendation: {final_decision})
 RULE ENGINE REASON: {rule_reason}
@@ -88,7 +92,7 @@ POLICY ID: {policy_id}
 REQUESTED PROCEDURES: {proc_text or 'Unspecified'}
 DIAGNOSES: {diag_text or 'Unspecified'}
 CLINICAL NOTES:
-{(clinical_notes or '')[:1500]}
+{safe_notes[:1500]}
 
 TASK: You are an expert clinical medical reviewer. The deterministic Rule Engine has already made the decision above ({final_decision}).
 Your job is to generate clear clinical reasoning and factor analysis explaining WHY the Rule Engine reached this decision.
@@ -191,7 +195,7 @@ def run_triage(payload: TriageRequest, db: Session = Depends(get_db)):
         id=f"at-{uuid.uuid4().hex[:8]}",
         authorization_id=req.id,
         action="LLM Reasoning Generated for Rule Decision",
-        performed_by="CareAuth Gemini Reasoning Engine",
+        performed_by="Prioris Gemini Reasoning Engine",
         role="System",
         timestamp=datetime.utcnow(),
         details=f"Rule Engine Decision: {rule_decision}. LLM Reasoning generated: {recommendation['reasoning']}",

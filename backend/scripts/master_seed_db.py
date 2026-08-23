@@ -22,6 +22,7 @@ import json
 import uuid
 import random
 import logging
+import bcrypt
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -66,12 +67,13 @@ def seed_database():
 
         # ── 2. Seed Users ─────────────────────────────────────────────────────
         log.info("Seeding Users...")
+        default_hash = bcrypt.hashpw(b"password123", bcrypt.gensalt()).decode()
         users = [
-            User(id="user-001", name="Dr. Robert Smith, MD", email="dr.smith@metrohealth.org", password_hash="pbkdf2_sha256$hash123", role="provider", organization="MetroHealth Medical Center", contact="+1 (555) 234-5678"),
-            User(id="user-002", name="Dr. Sarah Chen, MD", email="dr.chen@citygeneral.org", password_hash="pbkdf2_sha256$hash123", role="provider", organization="City General Hospital", contact="+1 (555) 345-6789"),
-            User(id="user-003", name="Nurse Emma Johnson, RN", email="nurse.johnson@apexpayer.com", password_hash="pbkdf2_sha256$hash123", role="reviewer", organization="Apex Health Plan", contact="+1 (555) 876-5432"),
-            User(id="user-004", name="Dr. Michael Davis, MD", email="reviewer.davis@apexpayer.com", password_hash="pbkdf2_sha256$hash123", role="reviewer", organization="Apex Health Plan", contact="+1 (555) 987-6543"),
-            User(id="user-005", name="System Admin", email="admin@apexpayer.com", password_hash="pbkdf2_sha256$hash123", role="admin", organization="Apex Health Plan", contact="+1 (555) 111-2222"),
+            User(id="user-001", name="Dr. Robert Smith, MD", email="dr.smith@metrohealth.org", password_hash=default_hash, role="provider", organization="MetroHealth Medical Center", contact="+1 (555) 234-5678"),
+            User(id="user-002", name="Dr. Sarah Chen, MD", email="dr.chen@citygeneral.org", password_hash=default_hash, role="provider", organization="City General Hospital", contact="+1 (555) 345-6789"),
+            User(id="user-003", name="Nurse Emma Johnson, RN", email="nurse.johnson@apexpayer.com", password_hash=default_hash, role="reviewer", organization="Apex Health Plan", contact="+1 (555) 876-5432"),
+            User(id="user-004", name="Dr. Michael Davis, MD", email="reviewer.davis@apexpayer.com", password_hash=default_hash, role="reviewer", organization="Apex Health Plan", contact="+1 (555) 987-6543"),
+            User(id="user-005", name="System Admin", email="admin@apexpayer.com", password_hash=default_hash, role="admin", organization="Apex Health Plan", contact="+1 (555) 111-2222"),
         ]
         db.add_all(users)
         db.commit()
@@ -107,6 +109,14 @@ def seed_database():
             ("pat-013", "Joseph Martin", "1961-09-09", "MEM-1013", "GRP-504", "Advantage Senior Plan", "Apex Health Plan", "Male", "+1 (555) 123-0013", "258 Willow Drive, Wheaton, IL", "Dr. Alan Vance, MD"),
             ("pat-014", "Margaret Thompson", "1982-04-03", "MEM-1014", "GRP-501", "Gold HMO Plan", "Apex Health Plan", "Female", "+1 (555) 123-0014", "147 Park Ave, Oak Brook, IL", "Dr. Maria Santos, MD"),
             ("pat-015", "Christopher Garcia", "1990-12-25", "MEM-1015", "GRP-502", "Platinum PPO", "Apex Health Plan", "Male", "+1 (555) 123-0015", "369 Summit St, Highland Park, IL", "Dr. James Wilson, MD"),
+            ("pat-016", "John Anderson", "1965-03-22", "BCB-4821-001", "GRP-77821", "BlueCross PPO Gold", "BlueCross BlueShield", "Male", "(312) 555-0147", "4821 Lakeview Dr, Chicago, IL", "Dr. James Collins"),
+            ("pat-017", "Sarah Martinez", "1978-07-15", "AET-2231-002", "GRP-43301", "Aetna HMO Silver", "Aetna", "Female", "(415) 555-0299", "1090 Market St, San Francisco, CA", "Dr. Susan Park"),
+            ("pat-018", "Michael Johnson", "1952-11-08", "UHC-9910-003", "GRP-19284", "UnitedHealth Choice Plus", "UnitedHealthcare", "Male", "(713) 555-0871", "3311 Westheimer Rd, Houston, TX", "Dr. David Kim"),
+            ("pat-019", "Emily Rodriguez", "1995-01-30", "HUM-5555-004", "GRP-55555", "Humana Gold Plus", "Humana", "Female", "(404) 555-0234", "789 Peachtree St, Atlanta, GA", "Dr. Michelle Brown"),
+            ("pat-020", "Robert Wilson", "1970-05-12", "CVS-3333-005", "GRP-33333", "CVS Health Select", "CVS Health", "Male", "(617) 555-0456", "100 Federal St, Boston, MA", "Dr. Richard Thompson"),
+            ("pat-021", "qwerty", "2018-06-12", "bcb457", "pt0987", "Platinum", "BlueCross BlueShield Insurance", "Male", "(555) 019-2831", "123 Main St, Chicago, IL", "Dr. James Collins"),
+            ("pat-022", "Naveen", "2026-08-01", "72837286", "pt0987", "Platinum", "BlueCross BlueShield Insurance", "Male", "(555) 019-2832", "456 State St, Chicago, IL", "Dr. James Collins"),
+            ("pat-023", "KANI", "1985-05-15", "pt0987", "GRP-8812", "Platinum", "BlueCross BlueShield Insurance", "Female", "(555) 019-2833", "789 Lake St, Chicago, IL", "Dr. James Collins"),
         ]
         patients = [
             Patient(id=pid, name=name, dob=datetime.strptime(dob, "%Y-%m-%d").date(), member_id=mid, group_id=gid, plan=plan, payer=payer, gender=gen, phone=ph, address=addr, primary_care=pc)
@@ -444,7 +454,7 @@ def seed_database():
                 id=f"at-{uuid.uuid4().hex[:8]}",
                 authorization_id=req.id,
                 action="Rule Engine Evaluation Completed",
-                performed_by="CareAuth Rule Engine + ML Classifier",
+                performed_by="Prioris Rule Engine + ML Classifier",
                 role="System",
                 timestamp=sub_dt + timedelta(seconds=15),
                 details=f"Decision: {c['target_decision']}. {c['target_reason']}",

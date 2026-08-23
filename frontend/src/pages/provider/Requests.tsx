@@ -4,7 +4,7 @@ import { Search, Filter, Plus, CheckCircle, XCircle, Clock, AlertCircle } from "
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import type { AuthorizationRequest, AuthorizationStatus } from "@/types";
-import { DEMO_AUTHORIZATION_REQUESTS } from "@/lib/mock-data-master";
+import { getRuleEngineDecision } from "@/components/ui/RuleEngineDecisionBadge";
 
 const STATUS_CONFIG: Record<AuthorizationStatus, { label: string; bg: string; text: string; border: string; icon: React.ComponentType<{ className?: string }> }> = {
   "Approved":                   { label: "Approved",     bg: "bg-emerald-50",  text: "text-emerald-700",  border: "border-emerald-200", icon: CheckCircle },
@@ -37,9 +37,9 @@ export default function ProviderRequests() {
     api.getAuthorizations()
       .then(d => {
         const fetched = (d as any)?.cases;
-        setAll(fetched && fetched.length > 0 ? fetched : DEMO_AUTHORIZATION_REQUESTS);
+        setAll(fetched || []);
       })
-      .catch(() => setAll(DEMO_AUTHORIZATION_REQUESTS))
+      .catch(() => setAll([]))
       .finally(() => setLoading(false));
   }, [location.key]);
 
@@ -169,9 +169,11 @@ export default function ProviderRequests() {
                       </span>
                     </td>
                     <td className="px-5 py-4 hidden lg:table-cell">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${PRIORITY_CONFIG[req.priority] ?? "bg-slate-50 text-slate-600 border border-slate-200"}`}>
-                        {req.priority.charAt(0).toUpperCase() + req.priority.slice(1)}
-                      </span>
+                      {getRuleEngineDecision(req.ruleEvaluation?.decision || req.aiRecommendation?.decision || req.status) === "Nurse Review Required" ? (
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${PRIORITY_CONFIG[req.priority] ?? "bg-slate-50 text-slate-600 border border-slate-200"}`}>
+                          {req.priority.charAt(0).toUpperCase() + req.priority.slice(1)}
+                        </span>
+                      ) : <span className="text-xs text-slate-300">—</span>}
                     </td>
                     <td className="px-5 py-4 text-right">
                       <Link to={`/provider/requests/${req.id}`}

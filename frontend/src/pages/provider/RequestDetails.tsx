@@ -7,6 +7,7 @@ import {
 import { api } from "@/lib/api";
 import type { AuthorizationRequest, AuthorizationStatus, ClinicalDocument } from "@/types";
 import { DocumentPreviewModal, DOC_TYPE_CONFIG } from "@/components/ui/DocumentPreviewModal";
+import { RuleEngineDecisionBadge, getRuleEngineDecision } from "@/components/ui/RuleEngineDecisionBadge";
 
 const PRIORITY_CONFIG: Record<string, string> = {
   urgent: "bg-red-100 text-red-700 border border-red-200",
@@ -108,13 +109,25 @@ export default function ProviderRequestDetails() {
         <div className="flex-1">
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-xl font-bold text-slate-900 font-mono">{request.caseNumber}</h1>
+            
+            {/* Highlighted Rule Engine Decision next to PA Request */}
+            <div className="flex items-center gap-1.5 bg-slate-100/90 px-3 py-1 rounded-xl border border-slate-200 shadow-2xs">
+              <span className="text-[10px] font-black uppercase text-slate-600 tracking-wider">Rule Engine Decision:</span>
+              <RuleEngineDecisionBadge
+                decision={request.ruleEvaluation?.decision || request.aiRecommendation?.decision || request.status}
+                size="sm"
+              />
+            </div>
+
             <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${statusBadgeStyle}`}>
               <StatusBadgeIcon className="h-3.5 w-3.5" />
               {statusLabel}
             </span>
-            <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${PRIORITY_CONFIG[request.priority] ?? ""}`}>
-              {request.priority.charAt(0).toUpperCase() + request.priority.slice(1)} Priority
-            </span>
+            {getRuleEngineDecision(request.ruleEvaluation?.decision || request.aiRecommendation?.decision || request.status) === "Nurse Review Required" && (
+              <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${PRIORITY_CONFIG[request.priority] ?? ""}`}>
+                {request.priority.charAt(0).toUpperCase() + request.priority.slice(1)} Priority
+              </span>
+            )}
           </div>
           <p className="text-sm text-slate-500 mt-1">
             Submitted {new Date(request.submittedAt).toLocaleDateString("en-US", {

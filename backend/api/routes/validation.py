@@ -59,6 +59,7 @@ from core.database import (
     AuditLog, AuthorizationRequest, Document,
     Patient, Provider, ValidationResult, get_db,
 )
+from core.privacy import anonymize_text, anonymize_patient_payload
 
 log = logging.getLogger(__name__)
 
@@ -143,7 +144,7 @@ def _serialize(vr: ValidationResult) -> Dict[str, Any]:
 # Step 1 — Validate required fields (pure Python, no AI)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _run_step1(req: AuthorizationRequest) -> Dict[str, Any]:
+def _run_step1(req: AuthorizationRequest, db: Optional[Session] = None) -> Dict[str, Any]:
     issues: List[Dict] = []
     patient  = req.patient
     provider = req.provider
@@ -177,6 +178,15 @@ def _run_step1(req: AuthorizationRequest) -> Dict[str, Any]:
             issue("patient.memberId", "critical", "Insurance Member ID is required.", "Enter the patient's insurance member ID.")
         elif not MEMBER_RE.match(mid):
             issue("patient.memberId", "warning", f"Member ID '{mid}' format looks unusual.", "Standard member IDs are 4–20 alphanumeric characters.")
+        elif db is not None:
+            db_patient = db.query(Patient).filter(Patient.member_id.ilike(mid)).first()
+            if not db_patient:
+                issue(
+                    "patient.memberId",
+                    "warning",
+                    f"Member ID '{mid}' is not currently registered in the database.",
+                    "Verify member ID against health plan eligibility database or register patient."
+                )
         # Patient Payer and Plan are auto-populated by active session context, not input in provider form
 
     # Provider (auto-populated by authenticated provider session)
@@ -283,53 +293,15 @@ def _extract_text_with_kreuzberg(file_path: Path) -> Tuple[str, float, str]:
     return "", 0.0, "kreuzberg"
 
 
-def _ocr_with_gemini_vision(client: Any, file_path: Path, doc_type: str) -> Tuple[str, float]:
-    """Run Gemini Vision OCR on handwritten notes, clinical scan images, and photos."""
-    ext = file_path.suffix.lower()
-    try:
-        img_bytes = file_path.read_bytes()
-        mime_map = {
-            ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
-            ".tiff": "image/tiff", ".tif": "image/tiff", ".pdf": "application/pdf"
-        }
-        mime = mime_map.get(ext, "image/png")
-        prompt = (
-            f"This is a medical document scan / clinical note of type: {doc_type}. "
-            "Extract ALL text exactly as it appears, including handwritten annotations, doctor signatures, prescription orders, and values. "
-            "Do NOT summarize — output the full verbatim text."
-        )
-        response = client.models.generate_content(
-            model=GEMINI_MODEL,
-            contents=[
-                genai_types.Part.from_bytes(data=img_bytes, mime_type=mime),
-                prompt,
-            ],
-        )
-        text = (response.text or "").strip()
-        return (text, 0.92) if text else ("No text found in document.", 0.4)
-    except Exception as e:
-        return (f"Gemini Vision OCR error: {e}", 0.0)
-
-
 def _extract_document_text(client: Any, file_path: Path, doc_type: str) -> Tuple[str, float, str]:
     """
-    Kreuzberg Unified Document Extractor:
-    - Primary: Kreuzberg (PDF, DOCX, TXT, CSV, Images)
-    - Fallback: Gemini 2.5 Flash Vision for handwritten scans or complex images
-    Returns (extracted_text, confidence, engine_name).
+    Kreuzberg 100% Local Document Extractor:
+    Extracts text from PDFs, DOCX, TXT, CSV, and images completely offline using Kreuzberg.
+    Zero document images or bytes leave the local server.
     """
     text, conf, engine = _extract_text_with_kreuzberg(file_path)
-    if conf >= 0.8 and text:
-        return text, conf, engine
-
-    ext = file_path.suffix.lower()
-    if ext in (".png", ".jpg", ".jpeg", ".tiff", ".tif", ".pdf") and client:
-        gem_text, gem_conf = _ocr_with_gemini_vision(client, file_path, doc_type)
-        if gem_conf > conf and gem_text:
-            return gem_text, gem_conf, "gemini-2.5-flash-vision"
-
     if text:
-        return text, 0.85, "kreuzberg"
+        return text, max(conf, 0.85), "kreuzberg"
 
     return "No readable text extracted from document.", 0.3, "kreuzberg"
 
@@ -551,6 +523,12 @@ def _run_step3(req: AuthorizationRequest, extracted_docs: List[Dict], field_hint
         }
 
     full_text = "\n\n".join(text_parts)
+
+    # Anonymize clinical text to scrub PHI before sending to external Gemini LLM
+    p_name = req.patient.name if req.patient else ""
+    p_mid = req.patient.member_id if req.patient else ""
+    p_dob = str(req.patient.dob) if req.patient and req.patient.dob else ""
+    full_text = anonymize_text(full_text, patient_name=p_name, member_id=p_mid, dob_str=p_dob)
 
     field_hint_block = ""
     if field_hints:
@@ -802,7 +780,7 @@ def _run_pipeline(
 
     field_hints = _collect_ruleset_field_hints(applicable_rule_sets)
 
-    s1 = _run_step1(req)
+    s1 = _run_step1(req, db)
     s2 = _run_step2(req)
     s3 = _run_step3(req, s2.get("extracted", []), field_hints)
     s4 = _run_step4(req, s1, s2, s3)
@@ -840,7 +818,7 @@ def _run_pipeline(
         id               = f"at-{uuid.uuid4().hex[:8]}",
         authorization_id = req.id,
         action           = "Module 3 Validation & Preprocessing Completed",
-        performed_by     = "CareAuth Validation Engine (Gemini 2.5 Flash)",
+        performed_by     = "Prioris Validation Engine (Gemini 2.5 Flash)",
         role             = "System",
         timestamp        = datetime.utcnow(),
         details          = (

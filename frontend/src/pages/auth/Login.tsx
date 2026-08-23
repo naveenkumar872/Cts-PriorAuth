@@ -80,8 +80,8 @@ export default function Login() {
           <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-600/25">
             <Briefcase className="w-4.5 h-4.5" />
           </div>
-          <span className="text-lg font-extrabold text-slate-900 tracking-tight">
-            Auth<span className="text-blue-600">AI</span>
+          <span className="text-lg font-black text-slate-900 tracking-tight">
+            Prior<span className="text-blue-600">is</span>
           </span>
         </div>
       </header>
@@ -94,13 +94,13 @@ export default function Login() {
           <div className="lg:col-span-5 bg-gradient-to-br from-blue-100/90 via-blue-50/70 to-slate-50 border-r border-blue-200/90 p-6 lg:p-8 flex flex-col justify-between text-slate-700">
             <div className="space-y-4">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-600 text-white text-[11px] font-extrabold uppercase tracking-wider shadow-xs">
-                ENTERPRISE PRIOR AUTH WORKSPACE
+                PRIORIS INTELLIGENCE WORKSPACE
               </div>
               <h2 className="text-xl lg:text-2xl font-extrabold text-slate-900 tracking-tight leading-tight">
-                Prior Authorization Platform
+                Prior Authorization Intelligence System
               </h2>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Streamlined medical necessity evaluation and clinical workflow management for providers and payers.
+                Intelligent policy evaluation and triage for healthcare providers and insurance payers.
               </p>
 
             </div>
@@ -132,7 +132,7 @@ export default function Login() {
           {/* Right Panel - Login Form (Fit Without Scroll) */}
           <div className="lg:col-span-7 p-6 lg:p-8 flex flex-col justify-center bg-white">
             <div className="mb-5">
-              <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Sign In to AuthAI</h1>
+              <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Sign In to Prioris</h1>
               <p className="text-xs text-slate-500 mt-1">
                 {defaultRole === "provider" 
                   ? "Access your Healthcare Provider prior auth submission workspace." 

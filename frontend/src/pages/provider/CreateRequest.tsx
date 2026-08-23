@@ -2,7 +2,7 @@ import { useState, useRef, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Check, ChevronRight, User, Stethoscope, ClipboardList,
-  FileText, Eye, Plus, Trash2, AlertCircle, CheckCircle,
+  FileText, Eye, Plus, Trash2, AlertCircle, CheckCircle, CheckCircle2, XCircle, AlertTriangle, Loader2, Sparkles, ShieldCheck,
   Upload, FileUp, Image as ImageIcon, FileSpreadsheet, X, ExternalLink, Info,
   ChevronDown, Search,
 } from "lucide-react";
@@ -332,6 +332,66 @@ export default function CreateAuthorization() {
   const [isDragging, setIsDragging] = useState(false);
   const [previewDoc, setPreviewDoc] = useState<FormDoc | null>(null);
 
+  // ── Validation Modal State ──
+  const [validationModalOpen, setValidationModalOpen] = useState(false);
+  const [validationPhase, setValidationPhase] = useState<"processing" | "failed" | "passed">("processing");
+  const [validationSteps, setValidationSteps] = useState<Array<{
+    id: "verify_member" | "preprocess_data" | "rule_pipeline";
+    title: string;
+    sublabel: string;
+    status: "idle" | "running" | "passed" | "failed";
+    errorDetail?: string;
+  }>>([
+    {
+      id: "verify_member",
+      title: "1. Database & Member ID Verification",
+      sublabel: "Checking patient Member ID in database...",
+      status: "idle",
+    },
+    {
+      id: "preprocess_data",
+      title: "2. Input Preprocessing & Attachment Parsing",
+      sublabel: "Formatting PA request payload & uploading clinical files...",
+      status: "idle",
+    },
+    {
+      id: "rule_pipeline",
+      title: "3. Automated Rules Engine Evaluation",
+      sublabel: "Running Module 3 clinical evaluation and policy mapping...",
+      status: "idle",
+    },
+  ]);
+  const [createdAuthId, setCreatedAuthId] = useState<string>("");
+
+  const [memberVerifyStatus, setMemberVerifyStatus] = useState<{
+    checking: boolean;
+    checked: boolean;
+    exists: boolean;
+    patient?: any;
+    message?: string;
+  }>({ checking: false, checked: false, exists: false });
+
+  const handleMemberIdBlur = async () => {
+    const mid = form.patient.memberId.trim();
+    if (!mid) {
+      setMemberVerifyStatus({ checking: false, checked: false, exists: false });
+      return;
+    }
+    setMemberVerifyStatus(p => ({ ...p, checking: true }));
+    try {
+      const res = await api.verifyMemberId(mid);
+      setMemberVerifyStatus({
+        checking: false,
+        checked: true,
+        exists: res.exists,
+        patient: res.patient,
+        message: res.message,
+      });
+    } catch {
+      setMemberVerifyStatus({ checking: false, checked: true, exists: false, message: "Member verification failed." });
+    }
+  };
+
   // ── Patient helpers ──
   const setPatient = (f: keyof FormData["patient"], v: string) =>
     setForm(p => ({ ...p, patient: { ...p.patient, [f]: v } }));
@@ -433,10 +493,89 @@ export default function CreateAuthorization() {
   const next = () => { if (validateStep()) setStep(s => Math.min(s + 1, 5)); };
   const back = () => { setErrors({}); setStep(s => Math.max(s - 1, 1)); };
 
-  // ── Submit ──
+  // ── Submit with Step-by-Step Validation & Processing Modal ──
   const handleSubmit = async () => {
     setSubmitting(true);
-    // Map new form shape → backend payload shape
+    setValidationModalOpen(true);
+    setValidationPhase("processing");
+    setErrors({});
+
+    const initialSteps: Array<{
+      id: "verify_member" | "preprocess_data" | "rule_pipeline";
+      title: string;
+      sublabel: string;
+      status: "idle" | "running" | "passed" | "failed";
+      errorDetail?: string;
+    }> = [
+      {
+        id: "verify_member",
+        title: "1. Database & Member ID Verification",
+        sublabel: "Checking patient Member ID in database...",
+        status: "running",
+      },
+      {
+        id: "preprocess_data",
+        title: "2. Input Preprocessing & Attachment Parsing",
+        sublabel: "Formatting PA request payload & uploading clinical files...",
+        status: "idle",
+      },
+      {
+        id: "rule_pipeline",
+        title: "3. Automated Rules Engine Evaluation",
+        sublabel: "Running Module 3 clinical evaluation and policy mapping...",
+        status: "idle",
+      },
+    ];
+    setValidationSteps(initialSteps);
+
+    // ── STEP 1: Verify Member ID against Database ──
+    const mid = form.patient.memberId.trim();
+    let isMemberValid = false;
+    let verifyMsg = "";
+
+    try {
+      if (!mid) {
+        verifyMsg = "Member ID is required for patient verification.";
+      } else {
+        const vRes = await api.verifyMemberId(mid);
+        if (vRes.exists) {
+          isMemberValid = true;
+          verifyMsg = vRes.message || `Member ID '${mid}' verified in database.`;
+        } else {
+          verifyMsg = vRes.message || `Member ID '${mid}' was not found in the patient database. Please verify patient records.`;
+        }
+      }
+    } catch (err: any) {
+      verifyMsg = err?.message || "Failed to connect to database for member verification.";
+    }
+
+    if (!isMemberValid) {
+      setValidationSteps(prev =>
+        prev.map(s =>
+          s.id === "verify_member"
+            ? { ...s, status: "failed", errorDetail: verifyMsg }
+            : s
+        )
+      );
+      setValidationPhase("failed");
+      setSubmitting(false);
+      return;
+    }
+
+    // Step 1 Passed -> Mark Passed & Start Step 2
+    setValidationSteps(prev =>
+      prev.map(s =>
+        s.id === "verify_member"
+          ? { ...s, status: "passed" }
+          : s.id === "preprocess_data"
+          ? { ...s, status: "running" }
+          : s
+      )
+    );
+
+    await new Promise(r => setTimeout(r, 400));
+
+    // ── STEP 2: Create Authorization & Upload Documents ──
     const payload = {
       patient: {
         name:         form.patient.name,
@@ -449,7 +588,7 @@ export default function CreateAuthorization() {
         phone:        "",
         address:      "",
         primaryCare:  "",
-        policyId:     form.patient.policyId,   // passed to backend for Module 4 context mapping
+        policyId:     form.patient.policyId,
       },
       provider: {
         id:           "prov-001",
@@ -466,8 +605,8 @@ export default function CreateAuthorization() {
       procedures: [{
         code:           form.treatment.serviceCode,
         description:    form.treatment.serviceName,
-        modifier:       "",                           // CPT modifier (not used here)
-        codingSystem:   form.treatment.codingSystem,  // CPT | HCPCS | ICD-10-PCS | etc.
+        modifier:       "",
+        codingSystem:   form.treatment.codingSystem,
         quantity:       parseInt(form.treatment.quantity || "1", 10),
         serviceDate:    "",
         placeOfService: form.treatment.serviceType,
@@ -486,12 +625,18 @@ export default function CreateAuthorization() {
         uploadedAt: d.uploadedAt, uploadedBy: user?.name || "Provider",
       })),
     };
+
+    let authId = "";
+    let caseNum = "";
+
     try {
       const res = await api.createAuthorization(payload) as { id: string; caseNumber: string };
-      const authId = res.id;
+      authId = res.id;
+      caseNum = res.caseNumber;
+
       const docsWithFiles = form.documents.filter(d => d.file instanceof File);
       if (docsWithFiles.length > 0 && authId) {
-        const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:8080/api/v1";
+        const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:8000/api/v1";
         await Promise.all(docsWithFiles.map(async doc => {
           const fd = new FormData();
           fd.append("authorization_id", authId);
@@ -501,14 +646,62 @@ export default function CreateAuthorization() {
           await fetch(`${API_BASE}/documents/upload`, { method: "POST", body: fd });
         }));
       }
-      if (authId) await api.processAuthorization(authId);
-      setCaseNumber(res.caseNumber);
-      setSubmitting(false);
-      setSubmitted(true);
     } catch (err: any) {
-      setErrors({ submit: err?.message ?? "Submission failed. Please check your connection and try again." });
+      const errMsg = err?.message || "Failed to format request or upload clinical documents.";
+      setValidationSteps(prev =>
+        prev.map(s =>
+          s.id === "preprocess_data"
+            ? { ...s, status: "failed", errorDetail: errMsg }
+            : s
+        )
+      );
+      setValidationPhase("failed");
       setSubmitting(false);
+      return;
     }
+
+    // Step 2 Passed -> Mark Passed & Start Step 3
+    setValidationSteps(prev =>
+      prev.map(s =>
+        s.id === "preprocess_data"
+          ? { ...s, status: "passed" }
+          : s.id === "rule_pipeline"
+          ? { ...s, status: "running" }
+          : s
+      )
+    );
+
+    await new Promise(r => setTimeout(r, 400));
+
+    // ── STEP 3: Automated Pipeline & Policy Evaluation ──
+    try {
+      if (authId) {
+        await api.processAuthorization(authId);
+      }
+    } catch (err: any) {
+      const errMsg = err?.message || "Rule evaluation pipeline encountered an error.";
+      setValidationSteps(prev =>
+        prev.map(s =>
+          s.id === "rule_pipeline"
+            ? { ...s, status: "failed", errorDetail: errMsg }
+            : s
+        )
+      );
+      setValidationPhase("failed");
+      setSubmitting(false);
+      return;
+    }
+
+    // Step 3 Passed -> Complete Success!
+    setValidationSteps(prev =>
+      prev.map(s => (s.id === "rule_pipeline" ? { ...s, status: "passed" } : s))
+    );
+
+    setCaseNumber(caseNum);
+    setCreatedAuthId(authId);
+    setSubmitting(false);
+    setValidationPhase("passed");
+    setSubmitted(true);
   };
 
   // ── Success screen ──
@@ -631,10 +824,60 @@ export default function CreateAuthorization() {
               <SectionHeader title="Insurance Details" />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>Member ID *</label>
-                  <input className={inputClass} placeholder="e.g. BCB-0123-456" value={form.patient.memberId}
-                    onChange={e => setPatient("memberId", e.target.value)} />
+                  <div className="flex items-center justify-between">
+                    <label className={labelClass}>Member ID *</label>
+                    {memberVerifyStatus.checking && (
+                      <span className="text-[11px] text-teal-600 font-semibold animate-pulse">Checking DB...</span>
+                    )}
+                  </div>
+                  <input
+                    className={inputClass}
+                    placeholder="e.g. MEM-1001 or BCB-4821-001"
+                    value={form.patient.memberId}
+                    onChange={e => {
+                      setPatient("memberId", e.target.value);
+                      setMemberVerifyStatus({ checking: false, checked: false, exists: false });
+                    }}
+                    onBlur={handleMemberIdBlur}
+                  />
                   {errors.memberId && <p className="text-xs text-red-500 mt-1">{errors.memberId}</p>}
+
+                  {/* Member Database Verification Banner */}
+                  {memberVerifyStatus.checked && (
+                    <div className={`mt-2 p-2.5 rounded-lg border text-xs flex items-start justify-between gap-2 transition-all ${
+                      memberVerifyStatus.exists ? "bg-emerald-50 border-emerald-200 text-emerald-900" : "bg-amber-50 border-amber-200 text-amber-900"
+                    }`}>
+                      <div className="flex items-start gap-1.5 min-w-0">
+                        {memberVerifyStatus.exists ? (
+                          <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                        ) : (
+                          <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                        )}
+                        <div className="min-w-0">
+                          <p className="font-bold text-xs">
+                            {memberVerifyStatus.exists ? "Member Verified in Database" : "Member Not Found in DB Registry"}
+                          </p>
+                          <p className="text-[11px] mt-0.5 leading-snug">
+                            {memberVerifyStatus.message}
+                          </p>
+                        </div>
+                      </div>
+                      {memberVerifyStatus.exists && memberVerifyStatus.patient && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const p = memberVerifyStatus.patient;
+                            if (p.name) setPatient("name", p.name);
+                            if (p.dob) setPatient("dob", p.dob);
+                            if (p.gender) setPatient("gender", p.gender);
+                          }}
+                          className="text-[10px] font-bold px-2 py-1 rounded bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shrink-0 shadow-2xs cursor-pointer"
+                        >
+                          Auto-fill Details
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <PolicyIdSelect
@@ -1127,6 +1370,128 @@ export default function CreateAuthorization() {
           </button>
         )}
       </div>
+
+      {/* ── Simple Minimal Validation & Processing Modal ── */}
+      {validationModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+          <div className="w-full max-w-md bg-white rounded-xl border border-slate-200 shadow-xl p-5 space-y-4">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-sm font-bold text-slate-900">
+                {validationPhase === "processing" && "Processing Request..."}
+                {validationPhase === "failed"     && "Validation Error"}
+                {validationPhase === "passed"     && "Request Submitted Successfully"}
+              </h3>
+              {validationPhase !== "processing" && (
+                <button
+                  type="button"
+                  onClick={() => setValidationModalOpen(false)}
+                  className="text-slate-400 hover:text-slate-600 transition-colors p-1"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Step list */}
+            <div className="space-y-3">
+              {validationSteps.map((stepInfo) => (
+                <div key={stepInfo.id} className="flex items-start gap-2.5 text-xs">
+                  <div className="mt-0.5 shrink-0">
+                    {stepInfo.status === "running" && <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />}
+                    {stepInfo.status === "passed"  && <Check className="h-4 w-4 text-emerald-600 font-bold" />}
+                    {stepInfo.status === "failed"  && <X className="h-4 w-4 text-rose-600 font-bold" />}
+                    {stepInfo.status === "idle"    && <div className="h-3.5 w-3.5 rounded-full border border-slate-300 flex items-center justify-center text-[8px] font-bold text-slate-300">•</div>}
+                  </div>
+
+                  <div className="flex-1">
+                    <p className={`font-medium ${
+                      stepInfo.status === "failed"  ? "text-rose-700" :
+                      stepInfo.status === "passed"  ? "text-slate-800" :
+                      stepInfo.status === "running" ? "text-blue-700 font-semibold" : "text-slate-400"
+                    }`}>
+                      {stepInfo.title}
+                    </p>
+
+                    {stepInfo.status === "failed" && stepInfo.errorDetail && (
+                      <div className="mt-2 p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs space-y-1">
+                        <p className="font-semibold">Error Details:</p>
+                        <p className="leading-normal">{stepInfo.errorDetail}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Success info card */}
+            {validationPhase === "passed" && (
+              <div className="p-3 rounded-lg bg-emerald-50/80 border border-emerald-200 text-xs text-emerald-900 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-emerald-700 font-medium">Case Number:</span>
+                  <span className="font-mono font-bold text-emerald-800 text-sm">{caseNumber}</span>
+                </div>
+                <p className="text-[11px] text-emerald-700">
+                  Patient: <span className="font-semibold text-emerald-900">{form.patient.name}</span> ({form.patient.memberId})
+                </p>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              {validationPhase === "failed" && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setValidationModalOpen(false);
+                      setStep(1); // Return to Step 1 to edit Member ID
+                    }}
+                    className="px-3.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 text-xs font-medium hover:bg-slate-50 transition-colors"
+                  >
+                    Fix Patient Info
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    className="px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium transition-colors"
+                  >
+                    Retry
+                  </button>
+                </>
+              )}
+
+              {validationPhase === "passed" && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForm(emptyForm);
+                      setStep(1);
+                      setSubmitted(false);
+                      setValidationModalOpen(false);
+                    }}
+                    className="px-3.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 text-xs font-medium hover:bg-slate-50 transition-colors"
+                  >
+                    New Request
+                  </button>
+                  {createdAuthId && (
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/provider/requests/${createdAuthId}`)}
+                      className="px-3.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium transition-colors"
+                    >
+                      View Case
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* Document Preview Modal */}
       {previewDoc && (

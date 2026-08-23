@@ -100,7 +100,7 @@ export default function Settings() {
         <div className="divide-y divide-[#D2E6FF]">
           {[
             { key: "email" as const, label: "Email Notifications", desc: "Receive immediate updates via email for urgent decisions" },
-            { key: "browser" as const, label: "Browser Push Alerts", desc: "Show desktop banner notifications while using CareAuth" },
+            { key: "browser" as const, label: "Browser Push Alerts", desc: "Show desktop banner notifications while using Prioris" },
             { key: "approvals" as const, label: "Prior Auth Approvals", desc: "Notify when a submitted authorization is approved" },
             { key: "denials" as const, label: "Prior Auth Denials", desc: "Notify when a submitted request is denied with rationale" },
             { key: "infoRequests" as const, label: "Additional Info Requests", desc: "Immediate alert when reviewer requests missing clinical records" },

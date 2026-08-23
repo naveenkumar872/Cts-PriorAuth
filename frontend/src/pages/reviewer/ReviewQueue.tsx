@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { AlertCircle, ArrowUpDown, Clock, Filter, Search } from "lucide-react";
 import { api } from "@/lib/api";
 import type { AuthorizationRequest } from "@/types";
-import { DEMO_AUTHORIZATION_REQUESTS } from "@/lib/mock-data-master";
+import { RuleEngineDecisionBadge } from "@/components/ui/RuleEngineDecisionBadge";
 
 const PRIORITY_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2 };
 const COMPLEXITY_ORDER: Record<string, number> = { high: 1, medium: 2, low: 3 };
@@ -20,25 +20,11 @@ function getMappedPriority(p: string): "high" | "medium" | "low" {
   return "medium";
 }
 
-const COMPLEXITY_BADGES: Record<string, { bg: string; text: string; border: string; label: string }> = {
-  high:   { bg: "bg-rose-100/90", text: "text-rose-900 font-extrabold", border: "border-rose-300", label: "High Complexity (Rank 1)" },
-  medium: { bg: "bg-amber-100/90", text: "text-amber-900 font-extrabold", border: "border-amber-300", label: "Medium Complexity (Rank 2)" },
-  low:    { bg: "bg-emerald-100/90", text: "text-emerald-900 font-extrabold", border: "border-emerald-300", label: "Low Complexity (Rank 3)" },
-};
-
-
 const STATUS_COLORS: Record<string, { bg: string; text: string; border: string; Icon: React.ComponentType<{ className?: string }> }> = {
   "Pending Review":            { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", Icon: Clock },
   "Under Review":              { bg: "bg-blue-50",    text: "text-blue-700", border: "border-blue-200",   Icon: AlertCircle },
   "More Information Required": { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200",  Icon: AlertCircle },
   "Nurse Review Required":     { bg: "bg-indigo-50",    text: "text-indigo-700", border: "border-indigo-200", Icon: AlertCircle },
-};
-
-const AI_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  "Approve":           { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
-  "Deny":              { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200" },
-  "Request More Info": { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200" },
-  "Escalate":          { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
 };
 
 export default function ReviewQueue() {
@@ -53,9 +39,9 @@ export default function ReviewQueue() {
     api.getAuthorizations()
       .then(d => {
         const fetched = (d as any)?.cases;
-        setAll(fetched && fetched.length > 0 ? fetched : DEMO_AUTHORIZATION_REQUESTS);
+        setAll(fetched || []);
       })
-      .catch(() => setAll(DEMO_AUTHORIZATION_REQUESTS))
+      .catch(() => setAll([]))
       .finally(() => setLoading(false));
   }, [location.key]);
 
@@ -68,7 +54,6 @@ export default function ReviewQueue() {
       (r.ruleEvaluation?.decision !== "More Information Required") &&
       (r.policyContext?.ruleEvaluation?.decision !== "More Information Required")
     );
-
 
     if (search) {
       const s = search.toLowerCase();
@@ -92,7 +77,7 @@ export default function ReviewQueue() {
         const rankA = mlA?.complexityRank ?? (COMPLEXITY_ORDER[mlA?.predictedComplexity] ?? 4);
         const rankB = mlB?.complexityRank ?? (COMPLEXITY_ORDER[mlB?.predictedComplexity] ?? 4);
 
-        if (rankA !== rankB) return rankA - rankB; // High (1) comes before Medium (2), which comes before Low (3)
+        if (rankA !== rankB) return rankA - rankB;
         return (PRIORITY_ORDER[priorityA] ?? 9) - (PRIORITY_ORDER[priorityB] ?? 9);
       }
       if (sortBy === "urgency") {
@@ -162,15 +147,9 @@ export default function ReviewQueue() {
         <div className="space-y-4">
           {queue.map(request => {
             const statusCfg = STATUS_COLORS[request.status];
-            const StatusIcon = statusCfg?.Icon ?? Clock;
-            
             const ruleEval = request.ruleEvaluation || (request.policyContext as any)?.ruleEvaluation;
-            const aiRec = request.aiRecommendation || (ruleEval ? {
-              decision: ruleEval.decision === "Approved" ? "Approve" : ruleEval.decision === "More Information Required" ? "Request More Info" : ruleEval.decision === "Denied" ? "Deny" : "Escalate",
-              confidence: ruleEval.decision === "Approved" ? 94 : ruleEval.decision === "More Information Required" ? 82 : ruleEval.decision === "Denied" ? 88 : 85
-            } : null);
-
-            const aiColor = AI_COLORS[aiRec?.decision ?? ""] ?? AI_COLORS["Escalate"];
+            const decision = ruleEval?.decision || request.aiRecommendation?.decision || request.status;
+            const confidence = request.aiRecommendation?.confidence ?? 88;
             const mappedPriority = getMappedPriority(request.priority);
 
             return (
@@ -217,23 +196,20 @@ export default function ReviewQueue() {
                     </div>
                   </div>
 
-
-                  {/* Right: AI Recommendation & Action */}
+                  {/* Right: Rule Engine Decision & Action */}
                   <div className="md:col-span-4 bg-slate-50/80 p-4 rounded-xl border border-slate-150 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">AI Recommendation</span>
-                      <span className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border ${aiColor.bg} ${aiColor.text} ${aiColor.border}`}>
-                        {aiRec?.decision ?? "Pending"}
-                      </span>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Rule Engine Decision</span>
+                      <RuleEngineDecisionBadge decision={decision} size="sm" />
                     </div>
 
                     <div>
                       <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
                         <span>Confidence Score</span>
-                        <span>{aiRec?.confidence ?? 0}%</span>
+                        <span>{confidence}%</span>
                       </div>
                       <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full transition-all duration-300" style={{ width: `${aiRec?.confidence ?? 0}%` }} />
+                        <div className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full transition-all duration-300" style={{ width: `${confidence}%` }} />
                       </div>
                     </div>
 
@@ -248,7 +224,6 @@ export default function ReviewQueue() {
               </div>
             );
           })}
-
         </div>
       )}
     </div>

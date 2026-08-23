@@ -5,7 +5,6 @@ import {
   Tag, CheckCircle2, Layers, FileCheck, X, ArrowUpRight,
 } from "lucide-react";
 import { api } from "@/lib/api";
-import { DEMO_POLICIES } from "@/lib/mock-data-master";
 
 const CATEGORIES = ["All", "Outpatient Imaging", "Surgical & Inpatient", "Diagnostic Testing", "Specialist Services"];
 
@@ -28,9 +27,9 @@ export default function PolicyManagement() {
     api.getPolicies()
       .then(d => {
         const fetched = d as any[];
-        setPolicies(fetched && fetched.length > 0 ? fetched : DEMO_POLICIES);
+        setPolicies(fetched || []);
       })
-      .catch(() => setPolicies(DEMO_POLICIES))
+      .catch(() => setPolicies([]))
       .finally(() => setLoading(false));
   }, [location.key]);
 

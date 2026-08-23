@@ -5,7 +5,6 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { DEMO_POLICIES, DEMO_AUTHORIZATION_REQUESTS } from "@/lib/mock-data-master";
 
 interface MatchedRule {
   id: string;
@@ -26,9 +25,10 @@ export default function PolicyCompanionPage() {
   const [searchParams] = useSearchParams();
   const caseIdParam = searchParams.get("caseId");
 
-  const [allCases, setAllCases] = useState<any[]>(DEMO_AUTHORIZATION_REQUESTS);
-  const [selectedCaseId, setSelectedCaseId] = useState<string>(caseIdParam || "PA-2026-00120");
-  const [selectedPolicyId, setSelectedPolicyId] = useState<string>("POL-001");
+  const [allCases, setAllCases] = useState<any[]>([]);
+  const [policies, setPolicies] = useState<any[]>([]);
+  const [selectedCaseId, setSelectedCaseId] = useState<string>(caseIdParam || "");
+  const [selectedPolicyId, setSelectedPolicyId] = useState<string>("");
   const [inputQuestion, setInputQuestion] = useState("");
   const [loadingAnswer, setLoadingAnswer] = useState(false);
   const [expandedCitations, setExpandedCitations] = useState<Record<number, boolean>>({});
@@ -37,7 +37,6 @@ export default function PolicyCompanionPage() {
     setExpandedCitations((prev) => ({ ...prev, [index]: !prev[index] }));
   };
 
-
   // Sync with search parameter when URL changes
   useEffect(() => {
     if (caseIdParam) {
@@ -45,18 +44,24 @@ export default function PolicyCompanionPage() {
     }
   }, [caseIdParam]);
 
-  // Fetch authorizations from API to populate dropdown with live cases
+  // Fetch authorizations and policies from API
   useEffect(() => {
     api.getAuthorizations()
       .then((d: any) => {
         const fetched = d?.cases || [];
-        if (fetched.length > 0) {
-          const map = new Map();
-          [...fetched, ...DEMO_AUTHORIZATION_REQUESTS].forEach((c: any) => {
-            const key = c.caseNumber || c.id;
-            if (key) map.set(key, c);
-          });
-          setAllCases(Array.from(map.values()));
+        setAllCases(fetched);
+        if (fetched.length > 0 && !selectedCaseId) {
+          setSelectedCaseId(fetched[0].caseNumber || fetched[0].id);
+        }
+      })
+      .catch(() => {});
+
+    api.getPolicies()
+      .then((d: any) => {
+        const fetched = d || [];
+        setPolicies(fetched);
+        if (fetched.length > 0 && !selectedPolicyId) {
+          setSelectedPolicyId(fetched[0].id);
         }
       })
       .catch(() => {});
@@ -117,11 +122,11 @@ export default function PolicyCompanionPage() {
     return allCases.filter((c) => c.status !== "Approved");
   }, [allCases]);
 
-  const currentCase = activeCases.find((r) => r.id === selectedCaseId || r.caseNumber === selectedCaseId) || activeCases[0] || DEMO_AUTHORIZATION_REQUESTS[1];
-  const currentPolicy = DEMO_POLICIES.find((p) => p.id === selectedPolicyId) || DEMO_POLICIES[0];
+  const currentCase = activeCases.find((r) => r.id === selectedCaseId || r.caseNumber === selectedCaseId) || activeCases[0];
+  const currentPolicy = policies.find((p) => p.id === selectedPolicyId) || policies[0];
 
-  const diagCode = currentCase.diagnoses?.[0]?.code || "M23.22";
-  const diagDesc = currentCase.diagnoses?.[0]?.description || "Meniscus Derangement";
+  const diagCode = currentCase?.diagnoses?.[0]?.code || "N/A";
+  const diagDesc = currentCase?.diagnoses?.[0]?.description || "N/A";
 
   const quickQuestions = [
     "Why is this request requiring review?",
