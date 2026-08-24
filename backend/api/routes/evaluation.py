@@ -100,27 +100,21 @@ def _contains(value: Any, expected: Any) -> bool:
     if actual == wanted:
         return True
 
-    # If wanted itself explicitly specifies a negative condition (e.g. "no evidence", "absent", "no fever"),
-    # do not run clinical negation disqualification against wanted's own terms.
-    wanted_has_negation = bool(re.search(r'\b(?:no|not|negative|without|denies|absent|none)\b', wanted))
-
-    if not wanted_has_negation:
-        # Clinical negation detection (e.g. "negative for progressive", "no fever", "without trauma")
-        w_words_clean = [w for w in wanted.split() if len(w) > 3 and w not in STOP_WORDS]
-        if w_words_clean:
-            for w in w_words_clean:
-                pattern = r'\b(?:no|not|negative for|without|denies|absent)\b[^.\n]*?\b' + re.escape(w) + r'\b'
-                if re.search(pattern, actual):
-                    return False
-
+    # Substring match with strict phrase negation check
     if wanted in actual:
+        neg_phrase = r'\b(?:no|not|negative for|denies|absent|no evidence of|ruled out)\b\s+(?:evidence\s+of\s+)?' + re.escape(wanted)
+        if re.search(neg_phrase, actual):
+            return False
         return True
 
-    # Fuzzy word overlap match for long descriptive criteria phrases (> 2 words)
+    # Fuzzy word overlap match for long descriptive criteria phrases (> 1 word)
     w_words = [w for w in wanted.split() if len(w) > 2 and w not in STOP_WORDS]
-    if len(w_words) >= 3:
+    if len(w_words) >= 2:
         matched_words = [w for w in w_words if w in actual]
         if len(matched_words) / len(w_words) >= 0.5:
+            return True
+    elif len(w_words) == 1:
+        if w_words[0] in actual:
             return True
     return False
 
@@ -277,7 +271,9 @@ def evaluate_ruleset(structured: Dict[str, Any], context: Dict[str, Any], req: O
             
             norm_cond = _normalise(cond_text)
             if norm_cond and norm_cond in corpus:
-                exclusions.append(excl_name)
+                is_negated = bool(re.search(r'\b(?:no|not|negative for|without|denies|absent|no evidence of|clear of|ruled out|disconfirmed)\b[^.\n]*?\b' + re.escape(norm_cond) + r'\b', corpus))
+                if not is_negated:
+                    exclusions.append(excl_name)
 
     pathway_results = []
     missing: List[str] = []
@@ -413,34 +409,15 @@ def _evaluate_and_store(req: AuthorizationRequest, db: Session) -> Dict[str, Any
     vr = db.query(ValidationResult).filter_by(authorization_id=req.id).first()
     if vr:
         structured = vr.step4_structured or {}
+        if vr.step2_extracted and isinstance(vr.step2_extracted, list):
+            structured["extractedDocuments"] = vr.step2_extracted
     result = evaluate_ruleset(structured, context, req=req)
     result["evaluatedAt"] = datetime.utcnow().isoformat() + "Z"
-
-    # Synthesize rich dynamic AI reasoning & factor breakdown
-    try:
-        from api.routes.ai import _generate_recommendation
-        llm_rec = _generate_recommendation(
-            clinical_notes=req.clinical_notes or "",
-            diagnoses=req.diagnoses or [],
-            procedures=req.procedures or [],
-            rule_decision=result.get("decision", "Nurse Review Required"),
-            rule_reason=result.get("reason", ""),
-            policy_id=req.policy_id or context.get("policyId", "")
-        )
-        if llm_rec and llm_rec.get("reasoning"):
-            result["aiReasoning"] = llm_rec["reasoning"]
-            result["keyFactors"] = llm_rec.get("keyFactors", [])
-            result["missingInfo"] = llm_rec.get("missingInfo", [])
-            result["policyReferences"] = llm_rec.get("policyReferences", [])
-    except Exception:
-        pass
-
-    context["ruleEvaluation"] = result
-    
-    # System provides recommendations only — final workflow status remains "Pending Review" until human reviewer submits a decision
-    if not req.status or req.status not in ("Approved", "Not Approved", "Denied", "Rejected"):
+    # System provides AI recommendations — workflow status is never automatically updated here and remains Pending Review until human reviewer submits a decision
+    if not req.status:
         req.status = "Pending Review"
 
+    context["ruleEvaluation"] = result
     req.policy_context = context   # reassign the new dict so SQLAlchemy marks column dirty
     req.updated_at = datetime.utcnow()
 

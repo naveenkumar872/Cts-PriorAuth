@@ -382,70 +382,64 @@ async def autofill_from_document(
     # 3. Map extracted text to structured PA Request Form JSON using Gemini NLP
     structured_data: Dict[str, Any] = {}
     try:
-        from core.config import settings
-        if settings.GEMINI_API_KEY:
-            try:
-                from google import genai
-                from google.genai import types as genai_types
-                client = genai.Client(api_key=settings.GEMINI_API_KEY)
-                prompt = (
-                    "You are a medical NLP data extraction system processing a Prior Authorization clinical document.\n"
-                    "Extract structured form fields from the text below and return ONLY valid JSON — no markdown, no explanation.\n\n"
-                    "JSON Schema:\n"
-                    "{\n"
-                    '  "patient": {\n'
-                    '    "patientId": "p-003",\n'
-                    '    "name": "Full Patient Name",\n'
-                    '    "dob": "YYYY-MM-DD",\n'
-                    '    "gender": "Male|Female|Other",\n'
-                    '    "memberId": "Member ID",\n'
-                    '    "policyId": "Policy ID e.g. KID-26349233",\n'
-                    '    "policyTier": "Platinum|Gold HMO Plan|Standard Plan"\n'
-                    "  },\n"
-                    '  "treatment": {\n'
-                    '    "serviceType": "Surgery / Procedure",\n'
-                    '    "serviceName": "Procedure Name / Description",\n'
-                    '    "serviceCode": "CPT code e.g. 50360",\n'
-                    '    "codingSystem": "CPT",\n'
-                    '    "quantity": "1",\n'
-                    '    "frequency": "",\n'
-                    '    "duration": ""\n'
-                    "  },\n"
-                    '  "diagnoses": [\n'
-                    '    { "code": "E11.22", "description": "Diagnosis Description", "type": "primary" }\n'
-                    "  ],\n"
-                    '  "clinicalIndication": "Clinical history summary",\n'
-                    '  "symptoms": "Symptoms summary",\n'
-                    '  "previousTreatments": [\n'
-                    '    { "id": "1", "name": "Treatment Name", "duration": "Duration", "outcome": "Outcome" }\n'
-                    "  ],\n"
-                    '  "measurements": [\n'
-                    '    { "id": "1", "name": "Measurement Name e.g. eGFR or BMI", "value": "Value", "unit": "Unit" }\n'
-                    "  ],\n"
-                    '  "testResults": [\n'
-                    '    { "id": "1", "name": "Test Name", "date": "YYYY-MM-DD", "finding": "Finding" }\n'
-                    "  ],\n"
-                    '  "clinicalJustification": "Clinical justification"\n'
-                    "}\n\n"
-                    f"TEXT TO EXTRACT FROM:\n{safe_text_for_llm}"
-                )
-                response = client.models.generate_content(
-                    model="gemini-2.5-flash",
-                    contents=prompt,
-                    config=genai_types.GenerateContentConfig(
-                        temperature=0.1,
-                        response_mime_type="application/json",
-                    ),
-                )
-                raw = (response.text or "").strip()
-                if raw.startswith("```"):
-                    raw = re.sub(r"^```(?:json)?\s*", "", raw)
-                    raw = re.sub(r"\s*```$", "", raw)
-                structured_data = json.loads(raw)
-            except Exception as e:
-                logger.warning("Gemini autofill extraction failed: %s", e)
-    except Exception:
-        pass
+        from core.gemini import generate_content_with_fallback
+        from google.genai import types as genai_types
+        prompt = (
+            "You are a medical NLP data extraction system processing a Prior Authorization clinical document.\n"
+            "Extract structured form fields from the text below and return ONLY valid JSON — no markdown, no explanation.\n\n"
+            "JSON Schema:\n"
+            "{\n"
+            '  "patient": {\n'
+            '    "patientId": "p-003",\n'
+            '    "name": "Full Patient Name",\n'
+            '    "dob": "YYYY-MM-DD",\n'
+            '    "gender": "Male|Female|Other",\n'
+            '    "memberId": "Member ID",\n'
+            '    "policyId": "Policy ID e.g. KID-26349233",\n'
+            '    "policyTier": "Platinum|Gold HMO Plan|Standard Plan"\n'
+            "  },\n"
+            '  "treatment": {\n'
+            '    "serviceType": "Surgery / Procedure",\n'
+            '    "serviceName": "Procedure Name / Description",\n'
+            '    "serviceCode": "CPT code e.g. 50360",\n'
+            '    "codingSystem": "CPT",\n'
+            '    "quantity": "1",\n'
+            '    "frequency": "",\n'
+            '    "duration": ""\n'
+            "  },\n"
+            '  "diagnoses": [\n'
+            '    { "code": "E11.22", "description": "Diagnosis Description", "type": "primary" }\n'
+            "  ],\n"
+            '  "clinicalIndication": "Clinical history summary",\n'
+            '  "symptoms": "Symptoms summary",\n'
+            '  "previousTreatments": [\n'
+            '    { "id": "1", "name": "Treatment Name", "duration": "Duration", "outcome": "Outcome" }\n'
+            "  ],\n"
+            '  "measurements": [\n'
+            '    { "id": "1", "name": "Measurement Name e.g. eGFR or BMI", "value": "Value", "unit": "Unit" }\n'
+            "  ],\n"
+            '  "testResults": [\n'
+            '    { "id": "1", "name": "Test Name", "date": "YYYY-MM-DD", "finding": "Finding" }\n'
+            "  ],\n"
+            '  "clinicalJustification": "Clinical justification"\n'
+            "}\n\n"
+            f"TEXT TO EXTRACT FROM:\n{safe_text_for_llm}"
+        )
+        response, _ = generate_content_with_fallback(
+            prompt=prompt,
+            model="gemini-3.5-flash",
+            config=genai_types.GenerateContentConfig(
+                temperature=0.1,
+                response_mime_type="application/json",
+            ) if genai_types else None,
+        )
+        raw = (response.text or "").strip()
+        if raw.startswith("```"):
+            raw = re.sub(r"^```(?:json)?\s*", "", raw)
+            raw = re.sub(r"\s*```$", "", raw)
+        structured_data = json.loads(raw)
+    except Exception as e:
+        logger.warning("Gemini autofill extraction failed: %s", e)
 
     if not isinstance(structured_data, dict):
         structured_data = {}
@@ -750,26 +744,6 @@ def create_authorization(payload: CreateAuthPayload, db: Session = Depends(get_d
         },
     ))
     db.commit()
-
-    # ── 7.5 Synchronously perform context mapping & rule evaluation ─────────
-    try:
-        from api.routes.context import map_policy, MapPolicyRequest
-        from api.routes.evaluation import _evaluate_and_store
-
-        procs = req.procedures or []
-        first_proc = procs[0] if procs else {}
-        mapping = map_policy(MapPolicyRequest(
-            policyId=req.policy_id or None,
-            serviceCode=first_proc.get("code") or None,
-            codingSystem=first_proc.get("codingSystem") or "CPT",
-            caseId=req.id,
-        ))
-        req.policy_context = mapping
-        db.flush()
-        _evaluate_and_store(req, db)
-    except Exception as exc:
-        logger = __import__("logging").getLogger(__name__)
-        logger.warning("Synchronous context mapping / evaluation failed for %s: %s", req.id, exc)
 
     # ── 8. Auto-trigger validation & preprocessing + context mapping in background ──
     def _trigger_pipeline(auth_id: str) -> None:

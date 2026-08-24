@@ -43,12 +43,9 @@ TOP_K = 5  # chunks to retrieve from Weaviate
 
 # ── Gemini client helper ──────────────────────────────────────────────────────
 def _call_gemini_llm(prompt: str) -> str:
-    if not settings.GEMINI_API_KEY:
-        raise RuntimeError("GEMINI_API_KEY is not configured in .env")
+    from core.gemini import generate_content_with_fallback
     try:
-        from google import genai
-        client = genai.Client(api_key=settings.GEMINI_API_KEY)
-        resp = client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
+        resp, _ = generate_content_with_fallback(prompt=prompt, model=GEMINI_MODEL)
         return (resp.text or "").strip()
     except Exception as exc:
         log.warning("Gemini API call failed (%s): %s", GEMINI_MODEL, exc)

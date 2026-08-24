@@ -431,7 +431,7 @@ interface ResubmitMissingDocsModalProps {
 }
 
 function ResubmitMissingDocsModal({ request, onClose, onSuccess }: ResubmitMissingDocsModalProps) {
-  const [newFiles, setNewFiles] = useState<Array<{ name: string; type: string; size: string; url: string }>>([]);
+  const [newFiles, setNewFiles] = useState<Array<{ name: string; type: string; size: string; url: string; fileObj?: File }>>([]);
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -446,6 +446,7 @@ function ResubmitMissingDocsModal({ request, onClose, onSuccess }: ResubmitMissi
       type: f.name.toLowerCase().includes("pt") ? "pt_notes" : f.name.toLowerCase().includes("ortho") || f.name.toLowerCase().includes("specialist") ? "specialist_consultation" : "clinical_notes",
       size: `${(f.size / (1024 * 1024)).toFixed(1)} MB`,
       url: URL.createObjectURL(f),
+      fileObj: f,
     }));
     setNewFiles(prev => [...prev, ...added]);
   };
@@ -463,8 +464,23 @@ function ResubmitMissingDocsModal({ request, onClose, onSuccess }: ResubmitMissi
     setErrorMsg("");
 
     try {
+      const uploadedDocs = [];
+      for (const fileItem of newFiles) {
+        if (fileItem.fileObj) {
+          try {
+            const uploaded = await api.uploadDocument(request.id, fileItem.fileObj, fileItem.type);
+            uploadedDocs.push(uploaded);
+          } catch (e) {
+            console.warn("Direct upload failed, passing document metadata:", e);
+            uploadedDocs.push({ name: fileItem.name, type: fileItem.type, size: fileItem.size, fileUrl: fileItem.url });
+          }
+        } else {
+          uploadedDocs.push({ name: fileItem.name, type: fileItem.type, size: fileItem.size, fileUrl: fileItem.url });
+        }
+      }
+
       await api.reapplyAuthorization(request.caseNumber || request.id, {
-        newDocuments: newFiles,
+        newDocuments: uploadedDocs,
         additionalNotes,
       });
       onSuccess();

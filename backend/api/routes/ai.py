@@ -114,9 +114,10 @@ Return ONLY a valid JSON object matching this exact schema:
   ]
 }}"""
 
-            response = client.models.generate_content(
+            from core.gemini import generate_content_with_fallback
+            response, used_key = generate_content_with_fallback(
+                prompt=prompt,
                 model=settings.GEMINI_MODEL,
-                contents=prompt,
             )
 
             raw_text = (response.text or "").strip()
