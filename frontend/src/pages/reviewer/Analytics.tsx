@@ -47,18 +47,18 @@ export default function Analytics() {
   );
 
   const decisionData = [
-    { name: "Approved",     value: kpis?.approvalRate  ?? 68.4, color: "#10b981" },
-    { name: "Denied",       value: kpis?.denialRate    ?? 11.8, color: "#f43f5e" },
-    { name: "Pending",      value: kpis?.pendingRate   ?? 19.8, color: "#f59e0b" },
+    { name: "Approved",     value: kpis?.approvalRate  ?? 0, color: "#10b981" },
+    { name: "Denied",       value: kpis?.denialRate    ?? 0, color: "#f43f5e" },
+    { name: "Pending",      value: kpis?.pendingRate   ?? 0, color: "#f59e0b" },
   ];
 
   const kpiCards = [
     { label: "Total Cases YTD",  value: kpis?.totalCasesYTD ?? 0,        change: `+${kpis?.casesThisMonth ?? 0}`,  up: true,  icon: Activity,    bg: "bg-blue-50/50",    color: "text-blue-600" },
-    { label: "Approval Rate",    value: `${kpis?.approvalRate ?? 0}%`,    change: "+2.1%",                          up: true,  icon: CheckCircle, bg: "bg-emerald-50/50", color: "text-emerald-600" },
-    { label: "Denial Rate",      value: `${kpis?.denialRate ?? 0}%`,      change: "-0.8%",                          up: false, icon: XCircle,     bg: "bg-rose-50/50",    color: "text-rose-600" },
-    { label: "Avg Turnaround",   value: `${kpis?.averageReviewTime ?? 4.2} hrs`, change: "-0.6 hrs",               up: false, icon: Clock,       bg: "bg-blue-50/50",    color: "text-blue-600" },
-    { label: "AI Accuracy",      value: `${aiPerf?.accuracy ?? 91.7}%`,  change: "+1.1%",                          up: true,  icon: Brain,       bg: "bg-blue-50/50",    color: "text-blue-600" },
-    { label: "Human Agreement",  value: `${aiPerf?.agreementRate ?? 87.3}%`, change: "+1.0%",                      up: true,  icon: ShieldCheck, bg: "bg-emerald-50/50", color: "text-emerald-600" },
+    { label: "Approval Rate",    value: `${kpis?.approvalRate ?? 0}%`,    change: "+0.0%",                          up: true,  icon: CheckCircle, bg: "bg-emerald-50/50", color: "text-emerald-600" },
+    { label: "Denial Rate",      value: `${kpis?.denialRate ?? 0}%`,      change: "-0.0%",                          up: false, icon: XCircle,     bg: "bg-rose-50/50",    color: "text-rose-600" },
+    { label: "Avg Turnaround",   value: `${kpis?.averageReviewTime ?? 0} hrs`, change: "0.0 hrs",                   up: false, icon: Clock,       bg: "bg-blue-50/50",    color: "text-blue-600" },
+    { label: "AI Accuracy",      value: `${aiPerf?.accuracy ?? 0}%`,     change: "+0.0%",                          up: true,  icon: Brain,       bg: "bg-blue-50/50",    color: "text-blue-600" },
+    { label: "Human Agreement",  value: `${aiPerf?.agreementRate ?? 0}%`, change: "+0.0%",                          up: true,  icon: ShieldCheck, bg: "bg-emerald-50/50", color: "text-emerald-600" },
   ];
 
   const svcChartData = byService.slice(0, 6).map(s => ({
@@ -67,11 +67,11 @@ export default function Analytics() {
     rate: s.approvalRate ?? s.rate ?? 0,
   }));
 
-  // Build AI accuracy trend from weekly data (use trends as proxy if no weekly endpoint)
+  // Build AI accuracy trend from weekly data
   const aiAccuracyData = trends.slice(-4).map((t: any, i: number) => ({
     week: `W${i + 1}`,
-    accuracy:  aiPerf?.accuracy  ?? 93 + i * 0.3,
-    agreement: aiPerf?.agreementRate ?? 86 + i * 0.3,
+    accuracy:  aiPerf?.accuracy  ?? 0,
+    agreement: aiPerf?.agreementRate ?? 0,
   }));
 
   return (
@@ -197,7 +197,7 @@ export default function Analytics() {
               <YAxis tick={{ fontSize: 12, fill: "#64748b" }} axisLine={false} tickLine={false} domain={[80, 100]} />
               <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "0.75rem", fontSize: 12 }} formatter={(v) => [`${Number(v).toFixed(1)}%`, ""]} />
               <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-              <Line type="monotone" dataKey="accuracy"  name="AI Precision"     stroke="#1e6bf3" strokeWidth={2.5} dot={{ fill: "#1e6bf3", r: 4 }} />
+              <Line type="monotone" dataKey="accuracy"  name="AI Accuracy"      stroke="#1e6bf3" strokeWidth={2.5} dot={{ fill: "#1e6bf3", r: 4 }} />
               <Line type="monotone" dataKey="agreement" name="Human Agreement"  stroke="#047857" strokeWidth={2.5} dot={{ fill: "#047857", r: 4 }} strokeDasharray="4 4" />
             </LineChart>
           </ResponsiveContainer>

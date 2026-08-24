@@ -2,16 +2,12 @@
 ## Deep Brain Stimulation (DBS) for Essential Tremor
 
 ### 1. General & Patient Information
-- **Policy ID:** DEE-09991129
-- **Policy Name:** Deep Brain Stimulation
-- **Patient ID:** p-001
+- **Patient ID:** pat-016
 - **Patient Name:** John Anderson
-- **Date of Birth:** 1968-05-14 (Age 58)
+- **Date of Birth:** 1965-03-22 (Age 61)
 - **Gender:** Male
-- **Member ID:** BCB-4821-001
-- **Member Type:** Non-Medicare (Commercial HMO Platinum)
-- **Payer:** Apex Health Plan
-- **Primary Care Provider:** Dr. Sarah Jenkins, MD
+- **Payer:** BlueCross BlueShield
+- **Primary Care Provider:** Dr. James Collins, MD
 
 ### 2. Requesting Provider Information
 - **Physician Name:** Dr. Marcus Thorne, MD (Functional Neurosurgery / Movement Disorders)
@@ -22,10 +18,11 @@
 - **Tax ID:** 94-8123456
 
 ### 3. Procedure & Service Codes
-- **Service Type:** Specialist Services / Surgical & Inpatient
+- **Service Type:** Surgery / Procedure
 - **CPT Code:** 61863 — Implantation of cranial neurostimulator array, thalamus (with intraoperative microelectrode recording)
 - **HCPCS Code:** L8679 — Neurostimulator pulse generator, dual array, rechargeable, includes extension
 - **CPT Description:** Deep Brain Stimulation Lead Implantation, Thalamus
+- **Coding System:** CPT
 - **Quantity:** 1
 - **Place of Service:** Inpatient Hospital / Surgical Center
 

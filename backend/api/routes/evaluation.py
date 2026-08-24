@@ -97,15 +97,23 @@ def _contains(value: Any, expected: Any) -> bool:
     if not wanted:
         return False
 
-    # Clinical negation detection (e.g. "negative for progressive", "no fever", "without trauma")
-    w_words_clean = [w for w in wanted.split() if len(w) > 3 and w not in STOP_WORDS]
-    if w_words_clean:
-        for w in w_words_clean:
-            pattern = r'\b(?:no|not|negative for|without|denies|absent)\b[^.\n]*?\b' + re.escape(w) + r'\b'
-            if re.search(pattern, actual):
-                return False
+    if actual == wanted:
+        return True
 
-    if actual == wanted or wanted in actual:
+    # If wanted itself explicitly specifies a negative condition (e.g. "no evidence", "absent", "no fever"),
+    # do not run clinical negation disqualification against wanted's own terms.
+    wanted_has_negation = bool(re.search(r'\b(?:no|not|negative|without|denies|absent|none)\b', wanted))
+
+    if not wanted_has_negation:
+        # Clinical negation detection (e.g. "negative for progressive", "no fever", "without trauma")
+        w_words_clean = [w for w in wanted.split() if len(w) > 3 and w not in STOP_WORDS]
+        if w_words_clean:
+            for w in w_words_clean:
+                pattern = r'\b(?:no|not|negative for|without|denies|absent)\b[^.\n]*?\b' + re.escape(w) + r'\b'
+                if re.search(pattern, actual):
+                    return False
+
+    if wanted in actual:
         return True
 
     # Fuzzy word overlap match for long descriptive criteria phrases (> 2 words)
@@ -131,6 +139,40 @@ def _condition(condition: Dict[str, Any], facts: Dict[str, Any], corpus: str) ->
     operator = _normalise(condition.get("operator")).upper()
     field = condition.get("field", "unknown")
     value = condition.get("value")
+
+    # Special handling for BETWEEN operator / age evaluation
+    if operator == "BETWEEN" or field == "age":
+        user_age = None
+        actual_val = _field_value(field, facts)
+        if actual_val is not None:
+            try:
+                user_age = float(actual_val)
+            except (TypeError, ValueError):
+                pass
+        if user_age is None and facts.get("dob"):
+            try:
+                dob_str = str(facts.get("dob"))
+                dob_date = datetime.strptime(dob_str[:10], "%Y-%m-%d")
+                user_age = float((datetime.now() - dob_date).days // 365)
+            except Exception:
+                pass
+        if user_age is None:
+            age_match = re.search(r'\b(\d{1,3})\s*(?:years?\s*old|-year-old|yo\b)', corpus) or re.search(r'\bage[:\s]+(\d{1,3})\b', corpus)
+            if age_match:
+                user_age = float(age_match.group(1))
+
+        if user_age is not None and isinstance(value, list) and len(value) == 2:
+            min_v, max_v = float(value[0]), float(value[1])
+            passed = min_v <= user_age <= max_v
+            return (passed, False, f"age: {int(user_age)} years old {'passed' if passed else 'outside range'}")
+
+    # Special handling for boolean candidate fields
+    if field == "kidney_transplant_candidate" or (isinstance(value, bool) and value is True):
+        terms = ["candidate", "transplant candidate", "transplant evaluation", "referred for", "transplantation", "kidney transplant"]
+        actual_candidate = _field_value(field, facts)
+        passed = any(t in corpus for t in terms) or bool(actual_candidate)
+        return (passed, not passed, f"{field}: {'passed' if passed else 'missing'}")
+
     if operator in {"ALL", "ANY"}:
         children = value if isinstance(value, list) and all(isinstance(v, dict) for v in value) else condition.get("sub_conditions", [])
         if not children:
@@ -176,15 +218,19 @@ def _condition(condition: Dict[str, Any], facts: Dict[str, Any], corpus: str) ->
     elif operator == "NOT_IN":
         passed = not any(_contains(actual or corpus, str(v)) for v in (value if isinstance(value, list) else [value]))
     elif operator in {">=", "<=", ">", "<"}:
+        has_explicit_val = False
         try:
             left, right = float(actual), float(value)
             passed = {">=": left >= right, "<=": left <= right, ">": left > right, "<": left < right}[operator]
+            has_explicit_val = True
         except (TypeError, ValueError):
             found_nums = [float(n) for n in re.findall(r'\b\d+(?:\.\d+)?\b', corpus)]
             if found_nums:
                 passed = any({">=": n >= float(value), "<=": n <= float(value), ">": n > float(value), "<": n < float(value)}[operator] for n in found_nums)
+                has_explicit_val = True
             else:
                 return False, True, f"{field}: numeric evidence missing"
+        return (passed, False if has_explicit_val else not passed, f"{field}: {'passed' if passed else 'out of range / non-compliant'}")
     elif operator == "MEETS_ONE_OF":
         branches = condition.get("sub_conditions", [])
         results = [_condition(branch, facts, corpus) for branch in branches]
@@ -196,7 +242,9 @@ def _condition(condition: Dict[str, Any], facts: Dict[str, Any], corpus: str) ->
         if passed:
             return True, False, f"{field}: evidence verified in clinical notes"
         return False, True, f"{field}: clinical evidence missing"
-    return passed, not passed, f"{field}: {'passed' if passed else 'clinical evidence missing'}"
+    
+    is_unknown = actual is None and not passed
+    return passed, is_unknown, f"{field}: {'passed' if passed else ('clinical evidence missing' if is_unknown else 'out of range / failed')}"
 
 
 
@@ -220,14 +268,20 @@ def evaluate_ruleset(structured: Dict[str, Any], context: Dict[str, Any], req: O
     exclusions: List[str] = []
     for rule_set in rule_sets:
         for exclusion in rule_set.get("exclusions", []):
-            description = exclusion.get("description", "") if isinstance(exclusion, dict) else str(exclusion)
-            exclusion_id = _normalise(exclusion.get("exclusion_id", "")) if isinstance(exclusion, dict) else ""
-            id_phrase = exclusion_id.replace("_", " ")
-            if (id_phrase and id_phrase in corpus) or (_normalise(description) and _normalise(description) in corpus):
-                exclusions.append(exclusion.get("exclusion_id", description) if isinstance(exclusion, dict) else description)
+            if isinstance(exclusion, dict):
+                cond_text = exclusion.get("condition") or exclusion.get("description") or exclusion.get("exclusion_id") or ""
+                excl_name = exclusion.get("condition") or exclusion.get("description") or exclusion.get("exclusion_id") or ""
+            else:
+                cond_text = str(exclusion)
+                excl_name = str(exclusion)
+            
+            norm_cond = _normalise(cond_text)
+            if norm_cond and norm_cond in corpus:
+                exclusions.append(excl_name)
 
     pathway_results = []
     missing: List[str] = []
+    target_failures: List[str] = []
     target_pathway_approved = False
     target_pathway_found = False
     any_approved = False
@@ -275,11 +329,15 @@ def evaluate_ruleset(structured: Dict[str, Any], context: Dict[str, Any], req: O
                 target_pathway_found = True
                 if passed:
                     target_pathway_approved = True
+                for c, result in zip(conditions, results):
+                    field_name = c.get("field", "policy requirement")
+                    if result[1]:  # unknown / missing evidence
+                        missing.append(field_name)
+                    elif not result[0]:  # failed / out of bounds
+                        target_failures.append(field_name)
 
             if passed:
                 any_approved = True
-            if unknown and is_target:
-                missing.extend(c.get("field", "policy requirement") for c, result in zip(conditions, results) if result[1])
 
             pathway_results.append({
                 "pathwayId": pathway_id,
@@ -291,6 +349,7 @@ def evaluate_ruleset(structured: Dict[str, Any], context: Dict[str, Any], req: O
             })
 
     missing = list(dict.fromkeys(missing))
+    target_failures = list(dict.fromkeys(target_failures))
 
     # Check missing required documents
     notes = (structured.get("clinicalNotes") or (getattr(req, "clinical_notes", None) if req else "") or "").strip()
@@ -298,30 +357,37 @@ def evaluate_ruleset(structured: Dict[str, Any], context: Dict[str, Any], req: O
     has_missing_docs = not notes and len(docs) == 0
 
     if exclusions:
-        decision, reason = "Nurse Review Required", "A policy exclusion was identified in the submitted clinical evidence. Nurse review required."
-    elif has_missing_docs:
-        decision, reason = "More Information Required", "Required clinical notes or supporting documentation missing for requested procedure."
-        missing.insert(0, "Clinical notes / supporting medical documentation")
-    elif target_pathway_approved or any_approved:
-        decision, reason = "Approved", f"Target policy pathway for requested procedure (CPT {primary_cpt or 'Code'}) was fully satisfied."
+        decision = "Nurse Review Required"
+        reason = f"A policy exclusion was identified in the submitted clinical evidence ({', '.join(exclusions)}). Clinical nurse review required."
         missing = []
-    elif structured.get("validationSummary", {}).get("readyForTriage") is False:
-        decision, reason = "More Information Required", "Required clinical evidence could not be verified from the structured PA request."
+    elif target_pathway_approved or any_approved:
+        decision = "Approved"
+        reason = f"Target policy pathway for requested procedure (CPT {primary_cpt or 'Code'}) was fully satisfied."
+        missing = []
+    elif target_failures:
+        decision = "Nurse Review Required"
+        fail_clean = [f.replace("_", " ").title() for f in target_failures[:3]]
+        reason = f"Submitted clinical data contains criteria non-compliance or out-of-bounds findings ({', '.join(fail_clean)}). Clinical nurse review required."
+    elif has_missing_docs or missing or structured.get("validationSummary", {}).get("readyForTriage") is False:
+        decision = "More Information Required"
+        if has_missing_docs and "Clinical notes / supporting medical documentation" not in missing:
+            missing.insert(0, "Clinical notes / supporting medical documentation")
+        missing_clean = [m.replace("_", " ").title() for m in missing[:3]]
+        reason = f"Coverage criteria unverified for requested CPT {primary_cpt or 'procedure'}. Required policy information missing: {', '.join(missing_clean)}."
     else:
         decision = "Nurse Review Required"
-        if missing:
-            missing_clean = [m.replace("_", " ").title() for m in missing[:3]]
-            reason = f"Coverage criteria unverified for requested CPT {primary_cpt or 'procedure'}. Missing key clinical evidence: {', '.join(missing_clean)}."
-        else:
-            reason = f"Coverage criteria unverified for requested CPT {primary_cpt or 'procedure'}. Nurse review required."
+        reason = f"Coverage criteria unverified for requested CPT {primary_cpt or 'procedure'}. Clinical nurse review required."
 
     result = {"decision": decision, "reason": reason, "missingInformation": missing, "exclusions": exclusions, "pathways": pathway_results, "evaluatedAt": None}
 
     # Integrate ML Model: When decision is 'Nurse Review Required', run ML model inference to predict complexity
     if decision == "Nurse Review Required":
-        from core.ml_predictor import predict_nurse_review_complexity
-        ml_prediction = predict_nurse_review_complexity(structured, result)
-        result["mlComplexity"] = ml_prediction
+        try:
+            from core.ml_predictor import predict_nurse_review_complexity
+            ml_prediction = predict_nurse_review_complexity(structured, result)
+            result["mlComplexity"] = ml_prediction
+        except Exception:
+            pass
 
     return result
 
@@ -371,43 +437,78 @@ def _evaluate_and_store(req: AuthorizationRequest, db: Session) -> Dict[str, Any
 
     context["ruleEvaluation"] = result
     
-    # System provides suggestions only — final decision is made by human reviewer
-    if req.status not in ("Approved", "Denied"):
-        if result.get("decision") == "Nurse Review Required":
-            req.status = "Nurse Review Required"
-        elif result.get("decision") == "More Information Required":
-            req.status = "More Information Required"
-        elif result.get("decision") == "Approved":
-            req.status = "Pending Review"  # Rule Engine suggests Approved, but status awaits reviewer final decision
+    # System provides recommendations only — final workflow status remains "Pending Review" until human reviewer submits a decision
+    if not req.status or req.status not in ("Approved", "Not Approved", "Denied", "Rejected"):
+        req.status = "Pending Review"
 
     req.policy_context = context   # reassign the new dict so SQLAlchemy marks column dirty
     req.updated_at = datetime.utcnow()
 
-    # Store into dedicated rule_evaluations database table
+    # Store into dedicated rule_evaluations database table safely with JSON serialization
     try:
         from core.database import RuleEvaluationRecord
+        import json
+        
+        missing_json = json.dumps(result.get("missingInformation", []))
+        exclusions_json = json.dumps(result.get("exclusions", []))
+        pathways_json = json.dumps(result.get("pathways", []))
+        key_factors_json = json.dumps(result.get("keyFactors", []))
+        policy_refs_json = json.dumps(result.get("policyReferences", []))
+        ml_comp_json = json.dumps(result.get("mlComplexity", {})) if result.get("mlComplexity") else "{}"
+
         rec = db.query(RuleEvaluationRecord).filter_by(authorization_id=req.id).first()
-        if not rec:
+        if rec:
+            rec.policy_id = req.policy_id or context.get("policyId")
+            rec.decision = result.get("decision", "Nurse Review Required")
+            rec.reason = result.get("reason", "")
+            rec.ai_reasoning = result.get("aiReasoning", "")
+            rec.missing_information = missing_json
+            rec.exclusions = exclusions_json
+            rec.pathways = pathways_json
+            rec.key_factors = key_factors_json
+            rec.policy_references = policy_refs_json
+            rec.ml_complexity = ml_comp_json
+            rec.evaluated_at = datetime.utcnow()
+        else:
             rec = RuleEvaluationRecord(
                 id=f"eval-{uuid.uuid4().hex[:12]}",
                 authorization_id=req.id,
                 case_number=req.case_number,
+                policy_id=req.policy_id or context.get("policyId"),
+                decision=result.get("decision", "Nurse Review Required"),
+                reason=result.get("reason", ""),
+                ai_reasoning=result.get("aiReasoning", ""),
+                missing_information=missing_json,
+                exclusions=exclusions_json,
+                pathways=pathways_json,
+                key_factors=key_factors_json,
+                policy_references=policy_refs_json,
+                ml_complexity=ml_comp_json,
+                evaluated_at=datetime.utcnow(),
             )
             db.add(rec)
-
-        rec.policy_id = req.policy_id or context.get("policyId")
-        rec.decision = result.get("decision", "Nurse Review Required")
-        rec.reason = result.get("reason", "")
-        rec.ai_reasoning = result.get("aiReasoning", "")
-        rec.missing_information = result.get("missingInformation", [])
-        rec.exclusions = result.get("exclusions", [])
-        rec.pathways = result.get("pathways", [])
-        rec.key_factors = result.get("keyFactors", [])
-        rec.policy_references = result.get("policyReferences", [])
-        rec.ml_complexity = result.get("mlComplexity", {})
-        rec.evaluated_at = datetime.utcnow()
+        db.commit()
     except Exception as exc:
-        pass
+        db.rollback()
+        try:
+            from core.database import RuleEvaluationRecord
+            import json
+            rec = db.query(RuleEvaluationRecord).filter_by(authorization_id=req.id).first()
+            if rec:
+                rec.policy_id = req.policy_id or context.get("policyId")
+                rec.decision = result.get("decision", "Nurse Review Required")
+                rec.reason = result.get("reason", "")
+                rec.ai_reasoning = result.get("aiReasoning", "")
+                rec.missing_information = json.dumps(result.get("missingInformation", []))
+                rec.exclusions = json.dumps(result.get("exclusions", []))
+                rec.pathways = json.dumps(result.get("pathways", []))
+                rec.key_factors = json.dumps(result.get("keyFactors", []))
+                rec.policy_references = json.dumps(result.get("policyReferences", []))
+                rec.ml_complexity = json.dumps(result.get("mlComplexity", {})) if result.get("mlComplexity") else "{}"
+                rec.evaluated_at = datetime.utcnow()
+                db.commit()
+        except Exception:
+            pass
 
     # Log detailed audit entry including ML prediction details if triggered
     ml_info = ""

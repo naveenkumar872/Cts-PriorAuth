@@ -1,16 +1,12 @@
-# Prior Authorization Request Specification (Missing Info / Escalation Scenario)
+# Prior Authorization Request Specification (More Information Required Scenario)
 ## Lumbar Spine MRI Clinical Review Criteria
 
 ### 1. General & Patient Information
-- **Policy ID:** MRI-69575638
-- **Policy Name:** Lumbar Spine MRI Clinical Review Criteria
-- **Patient ID:** p-008
-- **Patient Name:** Patricia Lee
-- **Date of Birth:** 1974-11-20 (Age 51)
+- **Patient ID:** pat-017
+- **Patient Name:** Sarah Martinez
+- **Date of Birth:** 1978-07-15 (Age 48)
 - **Gender:** Female
-- **Member ID:** UHC-1111-008
-- **Member Type:** Non-Medicare (Commercial PPO)
-- **Payer:** UnitedHealthcare / Apex Health Plan
+- **Payer:** Aetna
 - **Primary Care Provider:** Dr. Robert Vance, MD
 
 ### 2. Requesting Provider Information
@@ -22,7 +18,7 @@
 - **Tax ID:** 36-1234567
 
 ### 3. Procedure & Service Codes
-- **Service Type:** Specialist Services / Outpatient Imaging
+- **Service Type:** Diagnostic Imaging
 - **CPT Code:** 72148 — Magnetic Resonance Imaging (MRI), lumbar spine; without contrast material
 - **Coding System:** CPT
 - **Quantity:** 1
@@ -33,7 +29,7 @@
 - **Secondary ICD-10 Code:** M54.16 — Radiculopathy, lumbar region
 
 ### 5. Rule Engine Criteria & Clinical Pathway Evaluation (Missing Info Scenario)
-Mapped to **Lumbar Spine MRI Policy: MRI-69575638**
+Mapped to **Lumbar Spine MRI Policy**
 
 | Field Name | Required Criteria / Value | Submitted Clinical Findings | Status / Rule Engine Result |
 | :--- | :--- | :--- | :--- |
@@ -49,5 +45,5 @@ Mapped to **Lumbar Spine MRI Policy: MRI-69575638**
 - **Rule Policy Trigger:** Excluded under `uncomplicated_acute_low_back_pain`.
 
 ### 7. Expected Rule Engine Decision
-- **Rule Engine Output:** `Nurse Review Required` (or `More Information Required`)
-- **Rationale:** Coverage criteria unverified for requested CPT 72148. Missing key clinical evidence: Conservative Treatment Duration (>= 6 weeks) and Physical Therapy Evaluation. Uncomplicated acute back pain (<6 weeks) requires clinical nurse review.
+- **Rule Engine Output:** `More Information Required` (or `Nurse Review Required`)
+- **Rationale:** Coverage criteria unverified for requested CPT 72148. Missing key clinical evidence: Conservative Treatment Duration (>= 6 weeks) and Physical Therapy Evaluation. Uncomplicated acute back pain (<6 weeks) requires additional clinical information or nurse review.

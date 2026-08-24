@@ -36,7 +36,7 @@ from core.privacy import anonymize_text, anonymize_patient_payload
 router = APIRouter()
 log    = logging.getLogger(__name__)
 
-GEMINI_MODEL = getattr(settings, "GEMINI_MODEL", "gemini-3.6-flash") or "gemini-3.6-flash"
+GEMINI_MODEL = getattr(settings, "GEMINI_MODEL", "gemini-3.5-flash") or "gemini-3.5-flash"
 TOP_K = 5  # chunks to retrieve from Weaviate
 
 

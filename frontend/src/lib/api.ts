@@ -27,6 +27,20 @@ export const api = {
     request<{ exists: boolean; memberId: string; patient?: any; message: string }>(
       `/authorizations/patients/verify-member/${encodeURIComponent(memberId)}`
     ),
+  autofillFromDocument: async (file: File) => {
+    const fd = new FormData();
+    fd.append("file", file, file.name);
+    const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:8000/api/v1";
+    const res = await fetch(`${API_BASE}/authorizations/autofill`, {
+      method: "POST",
+      body: fd,
+    });
+    if (!res.ok) {
+      const errText = await res.text().catch(() => res.statusText);
+      throw new Error(errText || `HTTP ${res.status}`);
+    }
+    return res.json() as Promise<{ fileName: string; extractedText: string; formData: any }>;
+  },
   createAuthorization: (data: unknown) =>
     request<unknown>("/authorizations", { method: "POST", body: JSON.stringify(data) }),
   processAuthorization: (id: string) =>
