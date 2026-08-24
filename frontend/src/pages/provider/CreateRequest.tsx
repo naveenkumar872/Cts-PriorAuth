@@ -408,25 +408,49 @@ export default function CreateAuthorization() {
     setMemberVerifyStatus(p => ({ ...p, checking: true }));
     try {
       const res = await api.verifyMemberId(mid);
+      
+      // Case 1: Member ID does not exist in DB at all
+      if (!res.exists) {
+        setMemberVerifyStatus({
+          checking: false,
+          checked: true,
+          exists: false,
+          message: "Member ID not found in database",
+        });
+        setErrors(e => ({ ...e, memberId: "Member ID not found in database" }));
+        return;
+      }
+
+      // Case 2: Member ID exists in DB, check if it mismatches loaded Patient ID
+      const loadedPatient = patientVerifyStatus.patient;
+      const expectedMemberId = loadedPatient?.memberId || loadedPatient?.member_id;
+
+      if (loadedPatient && expectedMemberId) {
+        if (mid.toUpperCase() !== expectedMemberId.toUpperCase()) {
+          setMemberVerifyStatus({
+            checking: false,
+            checked: true,
+            exists: false,
+            message: "Member ID mismatch"
+          });
+          setErrors(e => ({ ...e, memberId: "Member ID mismatch" }));
+          return;
+        }
+      }
+
+      // Verified match
       setMemberVerifyStatus({
         checking: false,
         checked: true,
-        exists: res.exists,
+        exists: true,
         patient: res.patient,
         message: res.message,
       });
-      if (!res.exists) {
-        setErrors(e => ({
-          ...e,
-          memberId: `Member ID "${mid}" is not registered in the payer database.`
-        }));
-      } else {
-        setErrors(e => {
-          const newE = { ...e };
-          delete newE.memberId;
-          return newE;
-        });
-      }
+      setErrors(e => {
+        const newE = { ...e };
+        delete newE.memberId;
+        return newE;
+      });
     } catch {
       setMemberVerifyStatus({ checking: false, checked: true, exists: false, message: "Member ID verification failed." });
     }
@@ -511,16 +535,17 @@ export default function CreateAuthorization() {
       if (!form.patient.patientId.trim()) e.patientId = "Patient ID is required for verification";
       if (!form.patient.name.trim())     e.name      = "Patient name is required";
       if (!form.patient.dob)             e.dob       = "Date of birth is required";
+      const loadedMemberId = patientVerifyStatus.patient?.memberId || patientVerifyStatus.patient?.member_id;
       if (!form.patient.memberId.trim()) {
         e.memberId = "Member ID is required (must be manually entered)";
       } else if (memberVerifyStatus.checked && !memberVerifyStatus.exists) {
-        e.memberId = `Member ID "${form.patient.memberId}" is not registered in the payer database.`;
+        e.memberId = memberVerifyStatus.message || "Member ID not found in database";
       } else if (
         patientVerifyStatus.exists &&
-        patientVerifyStatus.patient?.memberId &&
-        form.patient.memberId.trim().toUpperCase() !== patientVerifyStatus.patient.memberId.trim().toUpperCase()
+        loadedMemberId &&
+        form.patient.memberId.trim().toUpperCase() !== loadedMemberId.trim().toUpperCase()
       ) {
-        e.memberId = `Entered Member ID "${form.patient.memberId}" does not match registered Insurance Member ID on record (${patientVerifyStatus.patient.memberId}).`;
+        e.memberId = "Member ID mismatch";
       }
       if (!form.patient.policyId.trim()) {
         e.policyId = "Policy ID is required";
@@ -875,10 +900,10 @@ export default function CreateAuthorization() {
                         )}
                         <div className="min-w-0">
                           <p className="font-bold text-xs">
-                            {patientVerifyStatus.exists ? "Patient Verified in Database" : "Patient Not Found in DB Registry"}
+                            {patientVerifyStatus.exists ? "Patient Verified" : "Patient Not Found"}
                           </p>
                           <p className="text-[11px] mt-0.5 leading-snug">
-                            {patientVerifyStatus.message}
+                            {patientVerifyStatus.exists ? "Patient ID verified" : "Patient ID not found in database"}
                           </p>
                         </div>
                       </div>
@@ -942,19 +967,21 @@ export default function CreateAuthorization() {
                     onBlur={handleMemberIdBlur}
                   />
                   {memberVerifyStatus.checking && (
-                    <p className="text-[11px] text-teal-600 font-semibold animate-pulse mt-1">Verifying Member ID in DB...</p>
+                    <p className="text-[11px] text-teal-600 font-semibold animate-pulse mt-1">Verifying Member ID...</p>
                   )}
                   {memberVerifyStatus.checked && memberVerifyStatus.exists && (
                     <p className="text-[11px] text-emerald-600 font-bold mt-1 flex items-center gap-1">
-                      <CheckCircle className="h-3 w-3 inline shrink-0" /> Member ID Verified in Database ({memberVerifyStatus.patient?.name})
+                      <CheckCircle className="h-3 w-3 inline shrink-0" /> Member ID Verified
                     </p>
                   )}
                   {memberVerifyStatus.checked && !memberVerifyStatus.exists && (
                     <p className="text-xs text-rose-500 font-bold mt-1 flex items-center gap-1">
-                      <AlertCircle className="h-3.5 w-3.5 inline shrink-0" /> Member ID "{form.patient.memberId}" was not found in database registry.
+                      <AlertCircle className="h-3.5 w-3.5 inline shrink-0" /> {memberVerifyStatus.message || errors.memberId || "Member ID mismatch"}
                     </p>
                   )}
-                  {errors.memberId && <p className="text-xs text-red-500 font-bold mt-1">{errors.memberId}</p>}
+                  {errors.memberId && !memberVerifyStatus.checked && (
+                    <p className="text-xs text-red-500 font-bold mt-1">{errors.memberId}</p>
+                  )}
                 </div>
                 <div>
                   <PolicyIdSelect

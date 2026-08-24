@@ -46,14 +46,14 @@ export default function ReviewQueue() {
   }, [location.key]);
 
   const queue = useMemo(() => {
-    // Nurse Review Queue only contains cases requiring clinical nurse review (excluding More Information Required)
-    const NURSE_QUEUE_STATUSES = ["Nurse Review Required", "Pending Review", "Under Review"];
-    let filtered = all.filter(r => 
-      NURSE_QUEUE_STATUSES.includes(r.status) &&
-      r.status !== "More Information Required" &&
-      (r.ruleEvaluation?.decision !== "More Information Required") &&
-      (r.policyContext?.ruleEvaluation?.decision !== "More Information Required")
-    );
+    // Nurse Review Queue ONLY contains cases that the Rule Engine marks as Nurse Review Required
+    let filtered = all.filter(r => {
+      const decision = r.ruleEvaluation?.decision || (r.policyContext as any)?.ruleEvaluation?.decision || r.status;
+      const isNurseReview = decision === "Nurse Review Required" || decision === "Nurse Review Needed" || r.status === "Nurse Review Required";
+      const isApprovedOrDeniedOrMoreInfo = r.status === "Approved" || r.status === "Denied" || r.status === "Rejected" || r.status === "Not Approved" || decision === "Approved" || decision === "More Information Required" || r.status === "More Information Required";
+
+      return isNurseReview && !isApprovedOrDeniedOrMoreInfo;
+    });
 
     if (search) {
       const s = search.toLowerCase();

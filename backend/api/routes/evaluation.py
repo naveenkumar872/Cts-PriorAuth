@@ -22,7 +22,7 @@ def _normalise(value: Any) -> str:
 def _flatten_facts(structured: Dict[str, Any], req: Optional[Any] = None) -> Tuple[Dict[str, Any], str]:
     clinical = structured.get("clinicalData", {}) if isinstance(structured, dict) else {}
     facts: Dict[str, Any] = {}
-    for section in (structured.get("paRequest", {}), structured.get("patient", {}),
+    for section in (structured, structured.get("paRequest", {}), structured.get("patient", {}),
                     structured.get("provider", {}), clinical, structured.get("documents", {}),
                     structured.get("validationSummary", {})):
         if isinstance(section, dict):
@@ -31,8 +31,8 @@ def _flatten_facts(structured: Dict[str, Any], req: Optional[Any] = None) -> Tup
     if isinstance(policy_facts, dict):
         facts.update(policy_facts)
 
-    diagnoses = clinical.get("diagnoses", [])
-    procedures = clinical.get("procedures", [])
+    diagnoses = clinical.get("diagnoses", []) or structured.get("diagnoses", [])
+    procedures = clinical.get("procedures", []) or structured.get("procedures", [])
 
     if req is not None:
         if not diagnoses and getattr(req, "diagnoses", None):
@@ -58,6 +58,8 @@ def _flatten_facts(structured: Dict[str, Any], req: Optional[Any] = None) -> Tup
     text_parts += [str(v) for v in clinical.get("conservativeTxDetails", [])]
     text_parts += [str(v) for v in clinical.get("keyClinicialFindings", [])]
     text_parts += [str(v) for v in clinical.get("functionalLimitations", [])]
+    if structured.get("clinicalNotes"):
+        text_parts.append(str(structured.get("clinicalNotes")))
     if req is not None and getattr(req, "clinical_notes", None):
         text_parts.append(str(req.clinical_notes))
 
@@ -82,10 +84,37 @@ def _field_value(field: str, facts: Dict[str, Any]) -> Any:
     return None
 
 
+STOP_WORDS = {
+    "for", "and", "the", "with", "from", "that", "pain", "back", "patient", "clinical",
+    "after", "over", "month", "weeks", "years", "year", "week", "days", "day", "normal",
+    "examination", "history", "presenting", "mild", "without", "having", "been", "reported",
+    "findings", "two", "one", "criteria", "met", "signs", "symptoms", "study", "eval"
+}
+
 def _contains(value: Any, expected: Any) -> bool:
     actual = _normalise(value)
     wanted = _normalise(expected)
-    return bool(wanted) and (actual == wanted or wanted in actual)
+    if not wanted:
+        return False
+
+    # Clinical negation detection (e.g. "negative for progressive", "no fever", "without trauma")
+    w_words_clean = [w for w in wanted.split() if len(w) > 3 and w not in STOP_WORDS]
+    if w_words_clean:
+        for w in w_words_clean:
+            pattern = r'\b(?:no|not|negative for|without|denies|absent)\b[^.\n]*?\b' + re.escape(w) + r'\b'
+            if re.search(pattern, actual):
+                return False
+
+    if actual == wanted or wanted in actual:
+        return True
+
+    # Fuzzy word overlap match for long descriptive criteria phrases (> 2 words)
+    w_words = [w for w in wanted.split() if len(w) > 2 and w not in STOP_WORDS]
+    if len(w_words) >= 3:
+        matched_words = [w for w in w_words if w in actual]
+        if len(matched_words) / len(w_words) >= 0.5:
+            return True
+    return False
 
 
 GENERIC_WORDS = {"yes", "no", "true", "false", "1", "0", "y", "n", "t", "f", "none", "null", "undefined", "na", "n/a"}
@@ -104,13 +133,19 @@ def _condition(condition: Dict[str, Any], facts: Dict[str, Any], corpus: str) ->
     value = condition.get("value")
     if operator in {"ALL", "ANY"}:
         children = value if isinstance(value, list) and all(isinstance(v, dict) for v in value) else condition.get("sub_conditions", [])
-        results = [_condition(child, facts, corpus) for child in children]
-        passed = all(r[0] for r in results) if operator == "ALL" else any(r[0] for r in results)
+        if not children:
+            if isinstance(value, list) and all(isinstance(v, str) for v in value):
+                results = [_condition({"field": field, "operator": "EQ", "value": v}, facts, corpus) for v in value]
+            else:
+                return False, True, f"{field}: criteria missing"
+        else:
+            results = [_condition(child, facts, corpus) for child in children]
+        passed = bool(results) and (all(r[0] for r in results) if operator == "ALL" else any(r[0] for r in results))
         unknown = any(r[1] for r in results) and not passed
         return passed, unknown, f"{field}: {operator.lower()} condition"
 
     actual = _field_value(field, facts)
-    if actual is None and operator in {"EQ", "EQUAL", "IN", "ONE_OF", "NOT_IN", "MEETS_ONE_OF"}:
+    if actual is None and operator in {"EQ", "EQUAL", "EQUAL_TO", "EQUALS", "==", "=", "IN", "ONE_OF", "NOT_IN", "MEETS_ONE_OF"}:
         if operator == "NOT_IN":
             blocked = value if isinstance(value, list) else [value]
             return (False, True, f"{field}: could not verify absence of {blocked}")
@@ -122,18 +157,34 @@ def _condition(condition: Dict[str, Any], facts: Dict[str, Any], corpus: str) ->
             found = _contains(corpus, value)
         return (found, not found, f"{field}: {'evidence found' if found else 'evidence missing'}")
 
-    if operator in {"EQ", "EQUAL", "EQUAL_TO", "EQUALS", "==", "="}:
-        passed = _contains(actual or corpus, value)
+    if operator in {"ALL", "EVERY"}:
+        if isinstance(value, list):
+            passed = all(_contains(corpus, str(v)) for v in value)
+        else:
+            passed = _contains(corpus, str(value))
+        return (passed, not passed, f"{field}: {'evidence verified' if passed else 'clinical evidence missing'}")
+    elif operator in {"ANY", "SOME"}:
+        if isinstance(value, list):
+            passed = any(_contains(corpus, str(v)) for v in value)
+        else:
+            passed = _contains(corpus, str(value))
+        return (passed, not passed, f"{field}: {'evidence verified' if passed else 'clinical evidence missing'}")
+    elif operator in {"EQ", "EQUAL", "EQUAL_TO", "EQUALS", "==", "="}:
+        passed = _contains(actual or corpus, str(value))
     elif operator in {"IN", "ONE_OF", "IN_LIST"}:
-        passed = any(_contains(actual or corpus, v) for v in (value if isinstance(value, list) else [value]))
+        passed = any(_contains(actual or corpus, str(v)) for v in (value if isinstance(value, list) else [value]))
     elif operator == "NOT_IN":
-        passed = not any(_contains(actual or corpus, v) for v in (value if isinstance(value, list) else [value]))
+        passed = not any(_contains(actual or corpus, str(v)) for v in (value if isinstance(value, list) else [value]))
     elif operator in {">=", "<=", ">", "<"}:
         try:
             left, right = float(actual), float(value)
             passed = {">=": left >= right, "<=": left <= right, ">": left > right, "<": left < right}[operator]
         except (TypeError, ValueError):
-            return False, True, f"{field}: numeric evidence missing"
+            found_nums = [float(n) for n in re.findall(r'\b\d+(?:\.\d+)?\b', corpus)]
+            if found_nums:
+                passed = any({">=": n >= float(value), "<=": n <= float(value), ">": n > float(value), "<": n < float(value)}[operator] for n in found_nums)
+            else:
+                return False, True, f"{field}: numeric evidence missing"
     elif operator == "MEETS_ONE_OF":
         branches = condition.get("sub_conditions", [])
         results = [_condition(branch, facts, corpus) for branch in branches]
@@ -145,7 +196,7 @@ def _condition(condition: Dict[str, Any], facts: Dict[str, Any], corpus: str) ->
         if passed:
             return True, False, f"{field}: evidence verified in clinical notes"
         return False, True, f"{field}: clinical evidence missing"
-    return passed, False, f"{field}: {'passed' if passed else 'failed'}"
+    return passed, not passed, f"{field}: {'passed' if passed else 'clinical evidence missing'}"
 
 
 
@@ -155,47 +206,114 @@ def evaluate_ruleset(structured: Dict[str, Any], context: Dict[str, Any], req: O
     if not context.get("matched") or not rule_sets:
         return {"decision": "More Information Required", "reason": "No applicable policy ruleset was mapped.", "missingInformation": ["Valid policy ID or service code"], "pathways": [], "evaluatedAt": None}
 
+    # Extract requested CPT / procedure code
+    requested_cpts = []
+    procs = structured.get("procedures", [])
+    if not procs and req is not None and getattr(req, "procedures", None):
+        procs = req.procedures or []
+    for p in procs:
+        if isinstance(p, dict) and p.get("code"):
+            requested_cpts.append(str(p["code"]).strip())
+
+    primary_cpt = requested_cpts[0] if requested_cpts else ""
+
     exclusions: List[str] = []
     for rule_set in rule_sets:
         for exclusion in rule_set.get("exclusions", []):
             description = exclusion.get("description", "") if isinstance(exclusion, dict) else str(exclusion)
             exclusion_id = _normalise(exclusion.get("exclusion_id", "")) if isinstance(exclusion, dict) else ""
             id_phrase = exclusion_id.replace("_", " ")
-            # A rejection requires explicit exclusion evidence. Shared clinical
-            # words are not enough to establish that a policy exclusion applies.
             if (id_phrase and id_phrase in corpus) or (_normalise(description) and _normalise(description) in corpus):
                 exclusions.append(exclusion.get("exclusion_id", description) if isinstance(exclusion, dict) else description)
 
     pathway_results = []
     missing: List[str] = []
-    approved = False
-    for rule_set in rule_sets:
-        for pathway in rule_set.get("pathways", []):
+    target_pathway_approved = False
+    target_pathway_found = False
+    any_approved = False
+
+    for rs_idx, rule_set in enumerate(rule_sets):
+        rs_codes = []
+        mc = rule_set.get("match_criteria", {})
+        sc = mc.get("service_code", {})
+        if isinstance(sc, dict):
+            v = sc.get("value", [])
+            rs_codes = v if isinstance(v, list) else [v]
+
+        for p_idx, pathway in enumerate(rule_set.get("pathways", [])):
             raw_conditions = pathway.get("conditions", [])
             conditions = [c for c in raw_conditions if _normalise(c.get("field", "")) != "member_type"]
             results = [_condition(c, facts, corpus) for c in conditions]
-            passed = all(r[0] for r in results) if _normalise(pathway.get("logic", "ALL")) == "all" else any(r[0] for r in results)
-            unknown = any(r[1] for r in results) and not passed
+
+            # Calculate condition counts
+            passed_count = sum(1 for r in results if r[0])
+            failed_count = sum(1 for r in results if not r[0] and not r[1])
+            unknown_count = sum(1 for r in results if r[1])
+
+            logic = _normalise(pathway.get("logic", "ALL"))
+            if logic == "any":
+                passed = passed_count > 0
+            else:
+                passed = passed_count > 0 and unknown_count == 0 and failed_count == 0
+
+            unknown = not passed and unknown_count > 0
+
+            # Determine if this pathway is the primary target for requested CPT
+            pathway_id = pathway.get("pathway_id", "")
+            is_target = False
+            if primary_cpt:
+                if any(primary_cpt in str(c) for c in rs_codes):
+                    is_target = True
+                elif primary_cpt in pathway_id:
+                    is_target = True
+
+            # Default first pathway as target if no explicit CPT isolation
+            if rs_idx == 0 and p_idx == 0 and not target_pathway_found:
+                is_target = True
+
+            if is_target:
+                target_pathway_found = True
+                if passed:
+                    target_pathway_approved = True
+
             if passed:
-                approved = True
-            if unknown:
+                any_approved = True
+            if unknown and is_target:
                 missing.extend(c.get("field", "policy requirement") for c, result in zip(conditions, results) if result[1])
-            pathway_results.append({"pathwayId": pathway.get("pathway_id"), "passed": passed, "unknown": unknown, "conditions": [r[2] for r in results]})
+
+            pathway_results.append({
+                "pathwayId": pathway_id,
+                "passed": passed,
+                "unknown": unknown,
+                "isTargetPathway": is_target,
+                "requestedCpt": primary_cpt,
+                "conditions": [r[2] for r in results]
+            })
 
     missing = list(dict.fromkeys(missing))
+
+    # Check missing required documents
+    notes = (structured.get("clinicalNotes") or (getattr(req, "clinical_notes", None) if req else "") or "").strip()
+    docs = structured.get("documents", []) or (getattr(req, "documents", None) if req else []) or []
+    has_missing_docs = not notes and len(docs) == 0
+
     if exclusions:
         decision, reason = "Nurse Review Required", "A policy exclusion was identified in the submitted clinical evidence. Nurse review required."
-    elif approved:
-        decision, reason = "Approved", "At least one applicable policy pathway was fully satisfied."
+    elif has_missing_docs:
+        decision, reason = "More Information Required", "Required clinical notes or supporting documentation missing for requested procedure."
+        missing.insert(0, "Clinical notes / supporting medical documentation")
+    elif target_pathway_approved or any_approved:
+        decision, reason = "Approved", f"Target policy pathway for requested procedure (CPT {primary_cpt or 'Code'}) was fully satisfied."
+        missing = []
     elif structured.get("validationSummary", {}).get("readyForTriage") is False:
         decision, reason = "More Information Required", "Required clinical evidence could not be verified from the structured PA request."
     else:
         decision = "Nurse Review Required"
         if missing:
             missing_clean = [m.replace("_", " ").title() for m in missing[:3]]
-            reason = f"Coverage criteria unverified. Missing key clinical evidence: {', '.join(missing_clean)}."
+            reason = f"Coverage criteria unverified for requested CPT {primary_cpt or 'procedure'}. Missing key clinical evidence: {', '.join(missing_clean)}."
         else:
-            reason = "Coverage criteria unverified. The submission lacks verified evidence for conservative treatment history, symptom duration, or objective clinical findings."
+            reason = f"Coverage criteria unverified for requested CPT {primary_cpt or 'procedure'}. Nurse review required."
 
     result = {"decision": decision, "reason": reason, "missingInformation": missing, "exclusions": exclusions, "pathways": pathway_results, "evaluatedAt": None}
 
@@ -264,6 +382,32 @@ def _evaluate_and_store(req: AuthorizationRequest, db: Session) -> Dict[str, Any
 
     req.policy_context = context   # reassign the new dict so SQLAlchemy marks column dirty
     req.updated_at = datetime.utcnow()
+
+    # Store into dedicated rule_evaluations database table
+    try:
+        from core.database import RuleEvaluationRecord
+        rec = db.query(RuleEvaluationRecord).filter_by(authorization_id=req.id).first()
+        if not rec:
+            rec = RuleEvaluationRecord(
+                id=f"eval-{uuid.uuid4().hex[:12]}",
+                authorization_id=req.id,
+                case_number=req.case_number,
+            )
+            db.add(rec)
+
+        rec.policy_id = req.policy_id or context.get("policyId")
+        rec.decision = result.get("decision", "Nurse Review Required")
+        rec.reason = result.get("reason", "")
+        rec.ai_reasoning = result.get("aiReasoning", "")
+        rec.missing_information = result.get("missingInformation", [])
+        rec.exclusions = result.get("exclusions", [])
+        rec.pathways = result.get("pathways", [])
+        rec.key_factors = result.get("keyFactors", [])
+        rec.policy_references = result.get("policyReferences", [])
+        rec.ml_complexity = result.get("mlComplexity", {})
+        rec.evaluated_at = datetime.utcnow()
+    except Exception as exc:
+        pass
 
     # Log detailed audit entry including ML prediction details if triggered
     ml_info = ""
