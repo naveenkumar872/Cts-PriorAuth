@@ -47,8 +47,8 @@ export default function GoogleCallback() {
 
       if (code) {
         try {
-          const apiHost = `http://${window.location.hostname}:8000`;
-          const resp = await fetch(`${apiHost}/google/callback`, {
+          
+          const resp = await fetch(`https://${window.location.hostname}/google/callback-exchange`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ code, role: state || "reviewer" }),
