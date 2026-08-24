@@ -19,8 +19,8 @@ def _normalise(value: Any) -> str:
     return re.sub(r"\s+", " ", str(value or "").strip().lower())
 
 
-def _flatten_facts(structured: Dict[str, Any]) -> Tuple[Dict[str, Any], str]:
-    clinical = structured.get("clinicalData", {})
+def _flatten_facts(structured: Dict[str, Any], req: Optional[Any] = None) -> Tuple[Dict[str, Any], str]:
+    clinical = structured.get("clinicalData", {}) if isinstance(structured, dict) else {}
     facts: Dict[str, Any] = {}
     for section in (structured.get("paRequest", {}), structured.get("patient", {}),
                     structured.get("provider", {}), clinical, structured.get("documents", {}),
@@ -33,6 +33,21 @@ def _flatten_facts(structured: Dict[str, Any]) -> Tuple[Dict[str, Any], str]:
 
     diagnoses = clinical.get("diagnoses", [])
     procedures = clinical.get("procedures", [])
+
+    if req is not None:
+        if not diagnoses and getattr(req, "diagnoses", None):
+            diagnoses = req.diagnoses or []
+        if not procedures and getattr(req, "procedures", None):
+            procedures = req.procedures or []
+        if getattr(req, "clinical_notes", None):
+            facts["clinicalNotes"] = req.clinical_notes
+        if getattr(req, "patient", None):
+            p = req.patient
+            facts["patientName"] = getattr(p, "name", "")
+            facts["dob"] = str(getattr(p, "dob", ""))
+            facts["memberType"] = getattr(p, "plan", "") or getattr(p, "payer", "")
+            facts["payer"] = getattr(p, "payer", "")
+
     facts["diagnosis"] = " ".join(
         f"{d.get('code', '')} {d.get('description', '')}" for d in diagnoses if isinstance(d, dict)
     )
@@ -43,6 +58,9 @@ def _flatten_facts(structured: Dict[str, Any]) -> Tuple[Dict[str, Any], str]:
     text_parts += [str(v) for v in clinical.get("conservativeTxDetails", [])]
     text_parts += [str(v) for v in clinical.get("keyClinicialFindings", [])]
     text_parts += [str(v) for v in clinical.get("functionalLimitations", [])]
+    if req is not None and getattr(req, "clinical_notes", None):
+        text_parts.append(str(req.clinical_notes))
+
     for document in structured.get("extractedDocuments", []):
         if isinstance(document, dict):
             text_parts.append(str(document.get("extractedText", "")))
@@ -70,6 +88,15 @@ def _contains(value: Any, expected: Any) -> bool:
     return bool(wanted) and (actual == wanted or wanted in actual)
 
 
+GENERIC_WORDS = {"yes", "no", "true", "false", "1", "0", "y", "n", "t", "f", "none", "null", "undefined", "na", "n/a"}
+
+def _is_generic_value(v: Any) -> bool:
+    if isinstance(v, bool):
+        return True
+    s = _normalise(v)
+    return s in GENERIC_WORDS or len(s) <= 3
+
+
 def _condition(condition: Dict[str, Any], facts: Dict[str, Any], corpus: str) -> Tuple[bool, bool, str]:
     """Return (passed, unknown, explanation). Unknown is intentionally conservative."""
     operator = _normalise(condition.get("operator")).upper()
@@ -87,8 +114,10 @@ def _condition(condition: Dict[str, Any], facts: Dict[str, Any], corpus: str) ->
         if operator == "NOT_IN":
             blocked = value if isinstance(value, list) else [value]
             return (False, True, f"{field}: could not verify absence of {blocked}")
-        if isinstance(value, list):
-            found = any(_contains(corpus, v) for v in value)
+        if _is_generic_value(value):
+            found = False
+        elif isinstance(value, list):
+            found = any(_contains(corpus, v) for v in value if not _is_generic_value(v))
         else:
             found = _contains(corpus, value)
         return (found, not found, f"{field}: {'evidence found' if found else 'evidence missing'}")
@@ -120,8 +149,8 @@ def _condition(condition: Dict[str, Any], facts: Dict[str, Any], corpus: str) ->
 
 
 
-def evaluate_ruleset(structured: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
-    facts, corpus = _flatten_facts(structured)
+def evaluate_ruleset(structured: Dict[str, Any], context: Dict[str, Any], req: Optional[Any] = None) -> Dict[str, Any]:
+    facts, corpus = _flatten_facts(structured, req=req)
     rule_sets = context.get("applicableRuleSets", [])
     if not context.get("matched") or not rule_sets:
         return {"decision": "More Information Required", "reason": "No applicable policy ruleset was mapped.", "missingInformation": ["Valid policy ID or service code"], "pathways": [], "evaluatedAt": None}
@@ -142,7 +171,8 @@ def evaluate_ruleset(structured: Dict[str, Any], context: Dict[str, Any]) -> Dic
     approved = False
     for rule_set in rule_sets:
         for pathway in rule_set.get("pathways", []):
-            conditions = pathway.get("conditions", [])
+            raw_conditions = pathway.get("conditions", [])
+            conditions = [c for c in raw_conditions if _normalise(c.get("field", "")) != "member_type"]
             results = [_condition(c, facts, corpus) for c in conditions]
             passed = all(r[0] for r in results) if _normalise(pathway.get("logic", "ALL")) == "all" else any(r[0] for r in results)
             unknown = any(r[1] for r in results) and not passed
@@ -156,11 +186,16 @@ def evaluate_ruleset(structured: Dict[str, Any], context: Dict[str, Any]) -> Dic
     if exclusions:
         decision, reason = "Nurse Review Required", "A policy exclusion was identified in the submitted clinical evidence. Nurse review required."
     elif approved:
-        decision, reason = "Approved", "At least one applicable policy pathway was satisfied."
+        decision, reason = "Approved", "At least one applicable policy pathway was fully satisfied."
     elif structured.get("validationSummary", {}).get("readyForTriage") is False:
-        decision, reason = "More Information Required", "Required policy evidence could not be verified from the structured PA request."
+        decision, reason = "More Information Required", "Required clinical evidence could not be verified from the structured PA request."
     else:
-        decision, reason = "Nurse Review Required", "The request is complete but no automated coverage pathway was satisfied."
+        decision = "Nurse Review Required"
+        if missing:
+            missing_clean = [m.replace("_", " ").title() for m in missing[:3]]
+            reason = f"Coverage criteria unverified. Missing key clinical evidence: {', '.join(missing_clean)}."
+        else:
+            reason = "Coverage criteria unverified. The submission lacks verified evidence for conservative treatment history, symptom duration, or objective clinical findings."
 
     result = {"decision": decision, "reason": reason, "missingInformation": missing, "exclusions": exclusions, "pathways": pathway_results, "evaluatedAt": None}
 
@@ -176,21 +211,56 @@ def evaluate_ruleset(structured: Dict[str, Any], context: Dict[str, Any]) -> Dic
 def _evaluate_and_store(req: AuthorizationRequest, db: Session) -> Dict[str, Any]:
     from api.routes.validation import _load_req
     context = dict(req.policy_context or {})  # copy — forces SQLAlchemy to detect mutation
+    
+    # If context is not mapped yet, map it via policy_id (or service code)
+    if not context or not context.get("matched"):
+        from api.routes.context import map_policy, MapPolicyRequest
+        procs = req.procedures or []
+        sc = procs[0].get("code", "") if procs else ""
+        cs = procs[0].get("codingSystem", "CPT") if procs else "CPT"
+        context = map_policy(MapPolicyRequest(
+            policyId=req.policy_id or None,
+            serviceCode=sc or None,
+            codingSystem=cs or None,
+            caseId=req.id
+        ))
+
     structured = {}
     vr = db.query(ValidationResult).filter_by(authorization_id=req.id).first()
     if vr:
         structured = vr.step4_structured or {}
-    result = evaluate_ruleset(structured, context)
+    result = evaluate_ruleset(structured, context, req=req)
     result["evaluatedAt"] = datetime.utcnow().isoformat() + "Z"
+
+    # Synthesize rich dynamic AI reasoning & factor breakdown
+    try:
+        from api.routes.ai import _generate_recommendation
+        llm_rec = _generate_recommendation(
+            clinical_notes=req.clinical_notes or "",
+            diagnoses=req.diagnoses or [],
+            procedures=req.procedures or [],
+            rule_decision=result.get("decision", "Nurse Review Required"),
+            rule_reason=result.get("reason", ""),
+            policy_id=req.policy_id or context.get("policyId", "")
+        )
+        if llm_rec and llm_rec.get("reasoning"):
+            result["aiReasoning"] = llm_rec["reasoning"]
+            result["keyFactors"] = llm_rec.get("keyFactors", [])
+            result["missingInfo"] = llm_rec.get("missingInfo", [])
+            result["policyReferences"] = llm_rec.get("policyReferences", [])
+    except Exception:
+        pass
+
     context["ruleEvaluation"] = result
     
-    # Also mirror decision & status onto AuthorizationRequest
-    if result.get("decision") == "Nurse Review Required":
-        req.status = "Nurse Review Required"
-    elif result.get("decision") == "Approved":
-        req.status = "Approved"
-    elif result.get("decision") == "More Information Required":
-        req.status = "More Information Required"
+    # System provides suggestions only — final decision is made by human reviewer
+    if req.status not in ("Approved", "Denied"):
+        if result.get("decision") == "Nurse Review Required":
+            req.status = "Nurse Review Required"
+        elif result.get("decision") == "More Information Required":
+            req.status = "More Information Required"
+        elif result.get("decision") == "Approved":
+            req.status = "Pending Review"  # Rule Engine suggests Approved, but status awaits reviewer final decision
 
     req.policy_context = context   # reassign the new dict so SQLAlchemy marks column dirty
     req.updated_at = datetime.utcnow()

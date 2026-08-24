@@ -18,7 +18,7 @@ import {
   User, Building, Brain, ChevronDown, ChevronUp,
   BookOpen, TrendingUp, TrendingDown, Minus, Eye, Download,
   Activity, FlaskConical, Code2, FileText, Loader2,
-  Sparkles, Search, RefreshCw, ChevronRight, GitBranch,
+  Sparkles, Search, RefreshCw, ChevronRight, GitBranch, ArrowRight,
 } from "lucide-react";
 
 
@@ -167,13 +167,8 @@ function StructuredPAPanel({ caseId }: { caseId: string }) {
           </div>
         )}
 
-        {/* Score + summary */}
+        {/* Summary */}
         <div className="flex items-start gap-5">
-
-          <div className="flex flex-col items-center gap-1 shrink-0">
-            <ScoreRing score={score} size={72} />
-            <span className="text-[10px] text-slate-500 font-bold uppercase">Completeness</span>
-          </div>
           <div className="flex-1 min-w-0 space-y-2">
             {cd.clinicalSummary && <p className="text-xs text-slate-700 leading-relaxed font-medium">{cd.clinicalSummary}</p>}
             <div className="flex flex-wrap gap-2">
@@ -464,50 +459,14 @@ const customNodeTypes = {
   conditionNode: CustomConditionNode,
 };
 
-// ── Auto-Fitting Graph Flow Visualization Component ─────────────────────────────
+// ── Clean & Structured Policy Rule Evaluation Component ─────────────────────────
 function RuleEvaluationConditionTree({ ruleEvaluation, policyName }: { ruleEvaluation: any; policyName?: string }) {
+  const [filter, setFilter] = useState<"all" | "passed" | "unknown" | "failed">("all");
   const pathways = ruleEvaluation.pathways ?? [];
 
-  const { nodes, edges } = useMemo(() => {
-    const n: Node[] = [];
-    const e: Edge[] = [];
-
-    // Root Node
-    const rootX = (pathways.length * 340) / 2 - 140;
-    n.push({
-      id: "root",
-      type: "rootNode",
-      position: { x: Math.max(100, rootX), y: 20 },
-      data: { decision: ruleEvaluation.decision, reason: ruleEvaluation.reason },
-    });
-
-    pathways.forEach((pathway: any, pIdx: number) => {
-      const pathwayId = `pathway-${pIdx}`;
-      const px = pIdx * 340;
-      const py = 200;
-
-      n.push({
-        id: pathwayId,
-        type: "pathwayNode",
-        position: { x: px, y: py },
-        data: {
-          label: pathway.pathwayId ? pathway.pathwayId.replace(/_/g, " ") : `Criteria Pathway ${pIdx + 1}`,
-          passed: pathway.passed,
-          unknown: pathway.unknown,
-        },
-      });
-
-      // Edge from Root to Pathway
-      e.push({
-        id: `e-root-${pathwayId}`,
-        source: "root",
-        target: pathwayId,
-        type: "smoothstep",
-        animated: true,
-        style: { stroke: pathway.passed ? "#10b981" : pathway.unknown ? "#f59e0b" : "#ef4444", strokeWidth: 2.5 },
-      });
-
-      // Deduplicate conditions per pathway to eliminate identical duplicate node boxes
+  // Parse all conditions and compute summary counts
+  const parsedPathways = useMemo(() => {
+    return pathways.map((pathway: any, pIdx: number) => {
       const rawConditions = pathway.conditions || [];
       const seenFields = new Set<string>();
       const uniqueConditions: any[] = [];
@@ -521,11 +480,7 @@ function RuleEvaluationConditionTree({ ruleEvaluation, policyName }: { ruleEvalu
         }
       });
 
-      uniqueConditions.forEach((cond: any, cIdx: number) => {
-        const condId = `cond-${pIdx}-${cIdx}`;
-        const cx = px;
-        const cy = 360 + cIdx * 110;
-
+      const parsedConditions = uniqueConditions.map((cond: any) => {
         const rawText = typeof cond === "string" ? cond : JSON.stringify(cond);
         const parts = rawText.split(":");
         const fieldName = parts[0]?.replace(/_/g, " ") ?? "condition";
@@ -534,82 +489,196 @@ function RuleEvaluationConditionTree({ ruleEvaluation, policyName }: { ruleEvalu
 
         const isCondPassed = rawText.includes(": passed") || rawText.includes("evidence found") || rawText.includes("verified");
         const isCondUnknown = rawText.includes("missing") || rawText.includes("unknown");
+        const status = isCondPassed ? "passed" : isCondUnknown ? "unknown" : "failed";
 
-        n.push({
-          id: condId,
-          type: "conditionNode",
-          position: { x: cx, y: cy },
-          data: {
-            title: fieldName,
-            detail: detailText,
-            isCondPassed,
-            isCondUnknown,
-          },
-        });
-
-        // Edge from Pathway to Condition
-        e.push({
-          id: `e-${pathwayId}-${condId}`,
-          source: pathwayId,
-          target: condId,
-          type: "smoothstep",
-          style: { stroke: isCondPassed ? "#10b981" : isCondUnknown ? "#f59e0b" : "#94a3b8", strokeWidth: 1.5 },
-        });
+        return {
+          rawText,
+          fieldName,
+          detailText,
+          status,
+        };
       });
 
+      return {
+        pathwayId: pathway.pathwayId ? pathway.pathwayId.replace(/_/g, " ") : `Criteria Pathway ${pIdx + 1}`,
+        passed: pathway.passed,
+        unknown: pathway.unknown,
+        conditions: parsedConditions,
+      };
+    });
+  }, [pathways]);
+
+  const stats = useMemo(() => {
+    let total = 0;
+    let passed = 0;
+    let unknown = 0;
+    let failed = 0;
+
+    parsedPathways.forEach((p: any) => {
+      p.conditions.forEach((c: any) => {
+        total++;
+        if (c.status === "passed") passed++;
+        else if (c.status === "unknown") unknown++;
+        else failed++;
+      });
     });
 
-    return { nodes: n, edges: e };
-  }, [ruleEvaluation, pathways]);
+    return { total, passed, unknown, failed };
+  }, [parsedPathways]);
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
-      {/* Top Header Bar */}
-      <div className="flex items-center justify-between gap-3 flex-wrap border-b border-slate-100 pb-4">
-        <div className="flex items-center gap-2.5">
-          <div className="p-2.5 rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-500/20">
-            <GitBranch className="h-5 w-5" />
+    <div className="space-y-6">
+      {/* Top Banner & Decision Header */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between gap-4 flex-wrap border-b border-slate-100 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-3 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
+              <CheckCircle className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="text-lg font-extrabold text-slate-900">Policy Criteria Rule Evaluation</h3>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                Evaluation of clinical criteria evidence against policy rules
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-base font-extrabold text-slate-900 tracking-tight">Clinical Decision Graph Node Diagram</h3>
-            <p className="text-xs text-slate-500 font-semibold">Interactive graph node visualization (auto-fits to screen, wheel zoom disabled for clean scrolling)</p>
+          {policyName && (
+            <span className="text-xs font-extrabold text-blue-700 bg-blue-50 px-4 py-1.5 rounded-full border border-blue-200 shadow-2xs">
+              📋 Policy: {policyName}
+            </span>
+          )}
+        </div>
+
+        {/* Decision Rationale */}
+        <div className="flex items-start justify-between gap-4 flex-wrap bg-slate-50 p-4 rounded-xl border border-slate-150">
+          <div className="space-y-1 max-w-xl">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Overall Rule Engine Decision</span>
+            <div className="flex items-center gap-2 pt-0.5">
+              <RuleEngineDecisionBadge decision={ruleEvaluation.decision} size="md" />
+            </div>
+            {ruleEvaluation.reason && (
+              <p className="text-xs text-slate-700 font-medium mt-1 leading-relaxed">{ruleEvaluation.reason}</p>
+            )}
+          </div>
+
+          {/* Quick Summary Pills */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-extrabold">
+              <CheckCircle className="h-4 w-4 text-emerald-600" />
+              <span>{stats.passed} Accepted / Satisfied</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs font-extrabold">
+              <AlertCircle className="h-4 w-4 text-amber-600" />
+              <span>{stats.unknown} Missing Evidence</span>
+            </div>
+            {stats.failed > 0 && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-extrabold">
+                <XCircle className="h-4 w-4 text-rose-600" />
+                <span>{stats.failed} Excluded</span>
+              </div>
+            )}
           </div>
         </div>
-        {policyName && (
-          <span className="text-xs font-black text-blue-700 bg-blue-50 px-3.5 py-1.5 rounded-full border border-blue-200 shadow-2xs">
-            📋 {policyName}
-          </span>
-        )}
+
+        {/* Filter Controls */}
+        <div className="flex items-center gap-2 pt-2 border-t border-slate-100 flex-wrap">
+          <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider mr-2">Filter Criteria:</span>
+          {[
+            { id: "all", label: `All Criteria (${stats.total})` },
+            { id: "passed", label: `✅ Accepted / Satisfied (${stats.passed})` },
+            { id: "unknown", label: `⚠️ Missing Evidence (${stats.unknown})` },
+            { id: "failed", label: `❌ Excluded / Failed (${stats.failed})` },
+          ].map(f => (
+            <button
+              key={f.id}
+              onClick={() => setFilter(f.id as any)}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold border transition-all cursor-pointer ${
+                filter === f.id
+                  ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* ── REACT FLOW GRAPH CANVAS ── */}
-      <div className="h-[620px] w-full rounded-2xl border border-slate-200 bg-slate-50/50 overflow-hidden shadow-inner relative">
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={customNodeTypes}
-          fitView
-          fitViewOptions={{ padding: 0.15 }}
-          zoomOnScroll={false}
-          zoomOnPinch={false}
-          panOnScroll={false}
-          preventScrolling={false}
-          minZoom={0.1}
-          maxZoom={1.5}
-          className="bg-slate-50/50"
-        >
-          <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} color="#cbd5e1" />
-          <Controls className="!bg-white !border-slate-200 !shadow-md !rounded-xl" />
-          <MiniMap className="!bg-white !border-slate-200 !rounded-xl !shadow-md" nodeColor={(n) => n.type === "rootNode" ? "#2563eb" : n.type === "pathwayNode" ? "#3b82f6" : "#94a3b8"} />
-        </ReactFlow>
-      </div>
+      {/* Pathways Breakdown Cards */}
+      {parsedPathways.map((pathway: any, pIdx: number) => {
+        const filteredConds = pathway.conditions.filter((c: any) => filter === "all" || c.status === filter);
+        if (filter !== "all" && filteredConds.length === 0) return null;
+
+        return (
+          <div key={pIdx} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Pathway {pIdx + 1}:</span>
+                <h4 className="text-sm font-extrabold text-slate-900 capitalize">{pathway.pathwayId}</h4>
+              </div>
+              <span className={`text-xs font-extrabold px-3 py-1 rounded-full border ${
+                pathway.passed ? "bg-emerald-50 text-emerald-700 border-emerald-200" : pathway.unknown ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-rose-50 text-rose-700 border-rose-200"
+              }`}>
+                {pathway.passed ? "✅ Pathway Satisfied" : pathway.unknown ? "⚠️ Attention Needed" : "❌ Pathway Not Met"}
+              </span>
+            </div>
+
+            {/* Conditions List */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {filteredConds.map((cond: any, cIdx: number) => {
+                const isPassed = cond.status === "passed";
+                const isUnknown = cond.status === "unknown";
+
+                return (
+                  <div
+                    key={cIdx}
+                    className={`p-4 rounded-xl border transition-all space-y-2 ${
+                      isPassed
+                        ? "bg-emerald-50/40 border-emerald-200 hover:border-emerald-300"
+                        : isUnknown
+                        ? "bg-amber-50/40 border-amber-200 hover:border-amber-300"
+                        : "bg-rose-50/40 border-rose-200 hover:border-rose-300"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-extrabold text-slate-900 capitalize flex items-center gap-1.5">
+                        {isPassed ? (
+                          <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0" />
+                        ) : isUnknown ? (
+                          <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-rose-600 shrink-0" />
+                        )}
+                        {cond.fieldName}
+                      </span>
+                      <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border shrink-0 ${
+                        isPassed
+                          ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                          : isUnknown
+                          ? "bg-amber-100 text-amber-800 border-amber-300"
+                          : "bg-rose-100 text-rose-800 border-rose-300"
+                      }`}>
+                        {isPassed ? "✅ ACCEPTED / MET" : isUnknown ? "⚠️ MISSING EVIDENCE" : "❌ EXCLUDED"}
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-slate-600 leading-relaxed font-medium pl-5">
+                      {cond.detailText}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
 
       {/* Missing Information Summary */}
       {(ruleEvaluation.missingInformation ?? []).length > 0 && (
         <div className="p-4 rounded-2xl bg-amber-50/90 border border-amber-200 text-amber-900 space-y-2 shadow-2xs">
           <div className="flex items-center gap-2 text-xs font-extrabold text-amber-950">
             <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
-            <span>Graph Nodes Requiring Missing Clinical Evidence ({ruleEvaluation.missingInformation.length}):</span>
+            <span>Required Policy Information Missing ({ruleEvaluation.missingInformation.length}):</span>
           </div>
           <div className="flex flex-wrap gap-2 pt-1">
             {ruleEvaluation.missingInformation.map((item: string, i: number) => (
@@ -760,7 +829,7 @@ export default function ReviewerRequestDetails() {
         {[
           { id: "decision", label: "Overview & Decision", icon: CheckCircle, badge: isPending ? "Action Required" : null },
           { id: "preprocessing", label: "Rule Engine Evaluation", icon: Activity },
-          { id: "tree", label: "Rule Condition Tree", icon: GitBranch },
+          { id: "tree", label: "Rule Conditions", icon: GitBranch },
 
           { id: "evidence", label: "Policy Evidence & RAG", icon: Sparkles },
           { id: "documents", label: "Documents & Audit Trail", icon: FileText, count: request.documents?.length || 0 },
@@ -970,10 +1039,63 @@ export default function ReviewerRequestDetails() {
         </div>
       )}
 
-      {/* ── TAB 2: STRUCTURED PREPROCESSING ── */}
+      {/* ── TAB 2: RULE ENGINE EVALUATION ── */}
       {activeTab === "preprocessing" && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          <StructuredPAPanel caseId={request.id} />
+          {/* Highlighted Rule Engine Decision & LLM Reasoning Banner */}
+          <div className="rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-50/80 via-indigo-50/50 to-white p-6 shadow-sm space-y-4">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
+                  <Brain className="h-6 w-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="text-base font-extrabold text-slate-900">Rule Engine Evaluated Decision:</h2>
+                    <RuleEngineDecisionBadge
+                      decision={request.ruleEvaluation?.decision || request.aiRecommendation?.decision || request.status}
+                      size="md"
+                    />
+                  </div>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">
+                    Evaluated against policy ruleset <span className="font-mono font-bold text-slate-700">{request.policyId || request.policyContext?.policyId || "Default Criteria"}</span> ({request.policyContext?.policyName || "Medical Necessity Policy"})
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Button: Route to Rule Conditions */}
+              <button
+                onClick={() => setActiveTab("tree")}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-xs hover:border-blue-300 transition-all font-bold text-xs cursor-pointer group"
+              >
+                <GitBranch className="h-4 w-4 text-blue-600 group-hover:scale-110 transition-transform" />
+                <span>View Detailed Rule Conditions</span>
+                <ArrowRight className="h-3.5 w-3.5 text-blue-500 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+
+            {/* AI / Rule Engine Reasoning Card */}
+            <div className="bg-white/90 p-4 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-indigo-600" />
+                <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wide">AI &amp; Rule Engine Reasoning</span>
+              </div>
+              <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                {request.ruleEvaluation?.aiReasoning || request.aiRecommendation?.reasoning || request.ruleEvaluation?.reason || "Coverage criteria unverified. Required clinical evidence could not be verified from the submitted documentation."}
+              </p>
+              {request.ruleEvaluation?.missingInformation && request.ruleEvaluation.missingInformation.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-slate-100 flex items-center gap-2 flex-wrap text-xs">
+                  <span className="font-bold text-amber-800">Missing Required Evidence:</span>
+                  {request.ruleEvaluation.missingInformation.map((item: string, idx: number) => (
+                    <span key={idx} className="bg-amber-50 text-amber-700 px-2.5 py-0.5 rounded-full border border-amber-200 font-medium text-[11px]">
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
           {request.clinicalNotes && (
             <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
               <h3 className="text-sm font-bold text-slate-900 mb-2">Submitted Clinical Notes</h3>
@@ -988,9 +1110,9 @@ export default function ReviewerRequestDetails() {
       {/* ── TAB 3: DEDICATED RULE CONDITION TREE ── */}
       {activeTab === "tree" && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          {request.ruleEvaluation ? (
+          {(request.ruleEvaluation || (request.policyContext as any)?.ruleEvaluation) ? (
             <RuleEvaluationConditionTree
-              ruleEvaluation={request.ruleEvaluation}
+              ruleEvaluation={request.ruleEvaluation || (request.policyContext as any)?.ruleEvaluation}
               policyName={request.policyContext?.policyName}
             />
           ) : (

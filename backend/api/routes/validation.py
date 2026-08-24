@@ -658,14 +658,14 @@ def _run_step4(req: AuthorizationRequest, step1: Dict, step2: Dict, step3: Dict)
     )
 
     field_scores = {
-        "patientDemographics":     10 if (patient and patient.name and patient.dob) else 5,
+        "patientDemographics":     10 if (patient and patient.name and patient.dob) else 0,
         "insuranceInfo":           10 if has_insurance else 0,
         "providerCredentials":     10 if has_provider else 0,
         "primaryDiagnosis":        15 if has_diag else 0,
         "procedureCodes":          15 if has_proc else 0,
-        "clinicalNotes":           15 if notes_words >= 15 else (10 if has_notes else 5),
-        "supportingDocuments":     15 if docs_with_text else (10 if (docs or has_docs) else 5),
-        "conservativeTxEvidence":  15 if has_tx else 5,
+        "clinicalNotes":           15 if notes_words >= 15 else (5 if has_notes else 0),
+        "supportingDocuments":     15 if docs_with_text else (10 if docs else 0),
+        "conservativeTxEvidence":  15 if has_tx else 0,
     }
     completeness = min(100, sum(field_scores.values()))
 
@@ -762,7 +762,7 @@ def _run_step4(req: AuthorizationRequest, step1: Dict, step2: Dict, step3: Dict)
         summary = f"Incomplete PA data — {len(critical_issues)} critical issue(s). Completeness: {completeness}/100."
     else:
         status  = "warning"
-        summary = f"Partial PA data. Completeness: {completeness}/100. {len(warning_issues)} warning(s)."
+        summary = "Procedure CPT & Diagnosis code(s) submitted without supporting clinical documentation or notes."
 
     return {"status": status, "structured": structured, "summary": summary}
 

@@ -67,9 +67,6 @@ export default function PolicyDetails() {
           <span>/</span>
           <span className="text-slate-900 font-semibold">{policy.title}</span>
         </div>
-        <button onClick={() => window.print()} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 shadow-sm">
-          <Printer className="h-3.5 w-3.5" /> Print
-        </button>
       </div>
 
       {/* Header Banner */}

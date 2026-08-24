@@ -24,6 +24,7 @@ export interface MLComplexityPrediction {
 export interface RuleEvaluation {
   decision: RuleDecision;
   reason: string;
+  aiReasoning?: string;
   missingInformation: string[];
   exclusions?: string[];
   pathways: Array<{ pathwayId: string; passed: boolean; unknown: boolean; conditions: string[] }>;

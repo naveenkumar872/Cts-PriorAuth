@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Search, Filter, CheckCircle, XCircle, Clock, AlertCircle, ChevronRight } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Search, Filter, CheckCircle, XCircle, Clock, AlertCircle, ChevronRight, ExternalLink } from "lucide-react";
 import { api } from "@/lib/api";
 import type { AuthorizationRequest, AuthorizationStatus } from "@/types";
 import { RuleEngineDecisionBadge, RuleEngineDecisionLegend, getRuleEngineDecision } from "@/components/ui/RuleEngineDecisionBadge";
@@ -28,6 +28,7 @@ function getMappedPriority(p: string): "high" | "medium" | "low" {
 
 export default function ReviewerRequests() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [all, setAll]                     = useState<AuthorizationRequest[]>([]);
   const [loading, setLoading]             = useState(true);
   const [search, setSearch]               = useState("");
@@ -76,7 +77,7 @@ export default function ReviewerRequests() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">All Requests</h1>
-        <p className="text-sm text-slate-500 mt-0.5">Browse and manage all authorization requests</p>
+        <p className="text-sm text-slate-500 mt-0.5">Browse and click any request row to review</p>
       </div>
 
       {/* Summary cards */}
@@ -141,9 +142,13 @@ export default function ReviewerRequests() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50">
-                {["Case #", "Patient", "Provider", "Service", "Status", "Rule Engine Decision", "Due", ""].map(h => (
-                  <th key={h} className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase">{h}</th>
-                ))}
+                <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase whitespace-nowrap w-[130px]">Case #</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase whitespace-nowrap">Patient / Provider</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase hidden md:table-cell max-w-[200px]">Service</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase whitespace-nowrap w-[110px]">Status</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase whitespace-nowrap hidden sm:table-cell">Rule Engine Decision</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase whitespace-nowrap hidden 2xl:table-cell w-[90px]">Due</th>
+                <th className="px-3 py-3 text-right text-xs font-semibold text-slate-500 uppercase whitespace-nowrap w-[90px]">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -155,42 +160,49 @@ export default function ReviewerRequests() {
                 const isNurseReview = getRuleEngineDecision(decision) === "Nurse Review Required";
 
                 return (
-                  <tr key={req.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-5 py-4">
-                      <span className="font-mono text-xs font-bold text-blue-600">{req.caseNumber}</span>
-                      {isNurseReview && (
-                        <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] font-bold ${PRIORITY_COLORS[getMappedPriority(req.priority)] ?? ""}`}>
-                          {getMappedPriority(req.priority).toUpperCase()}
+                  <tr
+                    key={req.id}
+                    onClick={() => navigate(`/reviewer/requests/${req.id}`)}
+                    className="hover:bg-blue-50/40 transition-colors cursor-pointer group"
+                  >
+                    <td className="px-3 py-3 whitespace-nowrap">
+                      <div className="flex flex-col items-start gap-0.5">
+                        <span className="font-mono text-xs font-bold text-blue-600 group-hover:underline flex items-center gap-1 whitespace-nowrap">
+                          {req.caseNumber}
+                          <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </span>
-                      )}
+                        {isNurseReview && (
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold whitespace-nowrap ${PRIORITY_COLORS[getMappedPriority(req.priority)] ?? ""}`}>
+                            {getMappedPriority(req.priority).toUpperCase()}
+                          </span>
+                        )}
+                      </div>
                     </td>
-                    <td className="px-5 py-4">
-                      <p className="font-medium text-slate-900">{req.patient?.name}</p>
-                      <p className="text-xs text-slate-500">{req.patient?.payer}</p>
+                    <td className="px-3 py-3">
+                      <p className="font-medium text-slate-900 whitespace-nowrap truncate max-w-[180px]">{req.patient?.name}</p>
+                      <p className="text-xs text-slate-500 whitespace-nowrap truncate max-w-[180px]">
+                        {req.provider?.name ? req.provider.name : req.patient?.payer}
+                      </p>
                     </td>
-                    <td className="px-5 py-4 hidden lg:table-cell">
-                      <p className="text-slate-700">{req.provider?.name}</p>
-                      <p className="text-xs text-slate-500">{req.provider?.specialty}</p>
-                    </td>
-                    <td className="px-5 py-4 hidden md:table-cell">
-                      <p className="text-slate-700 max-w-xs truncate">{req.procedures?.[0]?.description}</p>
+                    <td className="px-3 py-3 hidden md:table-cell max-w-[200px]">
+                      <p className="text-slate-700 truncate font-medium">{req.procedures?.[0]?.description}</p>
                       <p className="text-xs text-slate-500 font-mono">CPT {req.procedures?.[0]?.code}</p>
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-3 py-3 whitespace-nowrap">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded border text-xs font-semibold ${cfg.bg} ${cfg.text} ${cfg.border}`}>
                         <StatusIcon className="h-3 w-3" />{cfg.label}
                       </span>
                     </td>
-                    <td className="px-5 py-4 hidden sm:table-cell">
+                    <td className="px-3 py-3 hidden sm:table-cell whitespace-nowrap">
                       <RuleEngineDecisionBadge decision={decision} size="sm" />
                     </td>
-                    <td className="px-5 py-4 hidden xl:table-cell text-xs text-slate-500">
+                    <td className="px-3 py-3 hidden 2xl:table-cell text-xs text-slate-500 whitespace-nowrap">
                       {req.dueDate ? new Date(req.dueDate).toLocaleDateString() : "—"}
                     </td>
-                    <td className="px-5 py-4 text-right">
-                      <Link to={`/reviewer/requests/${req.id}`} className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-bold whitespace-nowrap">
+                    <td className="px-3 py-3 text-right whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold whitespace-nowrap shadow-xs">
                         Review <ChevronRight className="h-3 w-3" />
-                      </Link>
+                      </span>
                     </td>
                   </tr>
                 );
@@ -202,3 +214,4 @@ export default function ReviewerRequests() {
     </div>
   );
 }
+
