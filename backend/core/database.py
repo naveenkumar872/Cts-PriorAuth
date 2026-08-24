@@ -37,6 +37,10 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
+def create_tables():
+    Base.metadata.create_all(bind=engine)
+
+
 def get_db():
     db = SessionLocal()
     try:
@@ -139,6 +143,27 @@ class AuthorizationRequest(Base):
     provider  = relationship("Provider", back_populates="requests")
     documents = relationship("Document", back_populates="request", cascade="all, delete-orphan")
     audit_log = relationship("AuditLog", back_populates="request", cascade="all, delete-orphan")
+    evaluation_record = relationship("RuleEvaluationRecord", back_populates="request", uselist=False, cascade="all, delete-orphan")
+
+
+class RuleEvaluationRecord(Base):
+    __tablename__ = "rule_evaluations"
+    id                  = Column(String(36), primary_key=True)
+    authorization_id    = Column(String(36), ForeignKey("authorization_requests.id", ondelete="CASCADE"), nullable=False, unique=True)
+    case_number         = Column(String(50), nullable=False)
+    policy_id           = Column(String(50))
+    decision            = Column(String(100), nullable=False)
+    reason              = Column(Text)
+    ai_reasoning        = Column(Text)
+    missing_information = Column(JSON)
+    exclusions          = Column(JSON)
+    pathways            = Column(JSON, nullable=False)
+    key_factors         = Column(JSON)
+    policy_references   = Column(JSON)
+    ml_complexity       = Column(JSON)
+    evaluated_at        = Column(DateTime, default=datetime.utcnow)
+
+    request = relationship("AuthorizationRequest", back_populates="evaluation_record")
 
 
 class Document(Base):

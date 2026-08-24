@@ -256,96 +256,94 @@ function StructuredPAPanel({ caseId }: { caseId: string }) {
 // ── Policy Evidence Panel ─────────────────────────────────────────────────────
 type EvidenceData = Record<string, any>;
 
-function PolicyEvidencePanel({ caseId, caseNumber }: { caseId: string; caseNumber: string }) {
+function PolicyEvidencePanel({ caseId, caseNumber, request }: { caseId: string; caseNumber: string; request?: any }) {
   const navigate = useNavigate();
-  const [data, setData]         = useState<EvidenceData | null>(null);
-  const [pending, setPending]   = useState(false);
-  const [retries, setRetries]   = useState(0);
-  const [expanded, setExpanded] = useState<Record<number, boolean>>({});
+  const [data, setData]       = useState<EvidenceData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
+    setLoading(true);
     try {
       const res = await api.getExplanation(caseId) as any;
-      if (res?.status === "pending") {
-        setPending(true);
-        if (retries < 12) setTimeout(() => setRetries(r => r + 1), 4000);
-      } else {
-        setPending(false);
+      if (res) {
         setData(res as EvidenceData);
       }
-    } catch { /* not ready yet */ }
-  }, [caseId, retries]);
+    } catch (err) {
+      console.error("Error fetching explanation:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [caseId]);
 
   useEffect(() => { load(); }, [load]);
 
-  if (pending || (!data && retries > 0)) {
+  if (loading) {
     return (
-      <div className="rounded-xl border border-indigo-200 bg-indigo-50/20 p-5 shadow-xs">
-        <div className="flex items-center gap-3">
-          <Loader2 className="h-5 w-5 text-indigo-600 animate-spin shrink-0" />
-          <div>
-            <p className="text-sm font-bold text-indigo-900">Generating Policy Evidence &amp; LLM Rationale…</p>
-            <p className="text-xs text-indigo-700 mt-0.5">Retrieving relevant policy chunks from Weaviate vector database. This takes ~10 seconds.</p>
-          </div>
-        </div>
+      <div className="rounded-2xl border border-indigo-200 bg-indigo-50/20 p-8 text-center shadow-xs space-y-3">
+        <Loader2 className="h-6 w-6 text-indigo-600 animate-spin mx-auto" />
+        <p className="text-sm font-bold text-indigo-900">Loading Policy Evidence &amp; LLM Rationale…</p>
       </div>
     );
   }
-  if (!data) return null;
 
-  const chunks   = (data.retrievedChunks ?? []) as any[];
-  const decColor = data.ruleDecision === "Approved"
+  const rationale = data?.explanation || request?.ruleEvaluation?.reason || request?.aiRecommendation?.reasoning || "Policy evidence criteria evaluated for request.";
+  const ruleDecision = data?.ruleDecision || request?.ruleEvaluation?.decision || request?.status || "Approved";
+
+  const decColor = ruleDecision === "Approved"
     ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-    : data.ruleDecision === "Not Approved"
+    : ruleDecision === "Not Approved"
     ? "bg-rose-50 text-rose-700 border-rose-200"
-    : data.ruleDecision === "Nurse Review Required"
+    : ruleDecision === "Nurse Review Required"
     ? "bg-indigo-50 text-indigo-700 border-indigo-200"
     : "bg-amber-50 text-amber-700 border-amber-200";
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs space-y-0">
+    <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs space-y-0">
       {/* Header */}
-      <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-3 bg-slate-50/50">
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-indigo-600" />
-          <h3 className="text-sm font-bold text-slate-900">Policy Evidence &amp; LLM Explanation</h3>
+      <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-3 bg-slate-50/50">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 rounded-xl bg-indigo-600 text-white shadow-sm">
+            <Sparkles className="h-4.5 w-4.5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-extrabold text-slate-900">Policy Evidence &amp; Clinical Rationale</h3>
+            <p className="text-xs text-slate-500 font-medium">Verified policy guidelines and RAG vector search results</p>
+          </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${decColor}`}>
-            {data.ruleDecision}
+          <span className={`text-xs font-extrabold px-3 py-1 rounded-full border ${decColor}`}>
+            {ruleDecision}
           </span>
           <button
             onClick={() => navigate(`/reviewer/policy-companion?caseId=${caseNumber || caseId}`)}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-lg border border-indigo-200 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3.5 py-1.5 rounded-xl border border-indigo-200 transition-colors"
           >
             Ask Companion <ChevronRight className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
 
-      <div className="p-5 space-y-4">
+      <div className="p-6 space-y-5">
         {/* LLM Explanation */}
-        {data.explanation && (
-          <div className="rounded-xl bg-indigo-50/60 border border-indigo-100 p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Brain className="h-4 w-4 text-indigo-600 shrink-0" />
-              <p className="text-xs font-bold text-indigo-900 uppercase tracking-wide">AI-Generated Rationale</p>
-            </div>
-            <p className="text-xs text-slate-800 leading-relaxed font-medium">{data.explanation}</p>
+        <div className="rounded-xl bg-indigo-50/60 border border-indigo-100 p-5 space-y-2">
+          <div className="flex items-center gap-2">
+            <Brain className="h-4.5 w-4.5 text-indigo-600 shrink-0" />
+            <p className="text-xs font-extrabold text-indigo-900 uppercase tracking-wide">AI-Generated Rationale &amp; Clinical Context</p>
           </div>
-        )}
+          <p className="text-xs text-slate-800 leading-relaxed font-medium">{rationale}</p>
+        </div>
 
-        {/* Call to action to open full Policy Companion */}
-        <div className="pt-2 border-t border-slate-100 flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 p-3.5 rounded-xl border border-blue-100">
+        {/* Interactive Policy Companion Card */}
+        <div className="pt-2 border-t border-slate-100 flex items-center justify-between bg-gradient-to-r from-blue-50 via-indigo-50 to-white p-5 rounded-2xl border border-blue-100">
           <div>
-            <p className="text-xs font-bold text-blue-950">Interactive Policy Companion</p>
-            <p className="text-[11px] text-blue-700 font-medium">Ask specific policy criteria questions for case {caseNumber}</p>
+            <p className="text-sm font-extrabold text-blue-950">Interactive Policy Companion</p>
+            <p className="text-xs text-blue-700 font-medium mt-0.5">Ask specific policy criteria &amp; clinical guideline questions for case {caseNumber || caseId}</p>
           </div>
           <button
             onClick={() => navigate(`/reviewer/policy-companion?caseId=${caseNumber || caseId}`)}
-            className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 shrink-0"
+            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold shadow-sm transition-all flex items-center gap-1.5 shrink-0"
           >
-            <Sparkles className="h-3.5 w-3.5" />
+            <Sparkles className="h-4 w-4" />
             Launch Companion
           </button>
         </div>
@@ -466,47 +464,49 @@ function RuleEvaluationConditionTree({ ruleEvaluation, policyName }: { ruleEvalu
 
   // Parse all conditions and compute summary counts
   const parsedPathways = useMemo(() => {
-    return pathways.map((pathway: any, pIdx: number) => {
-      const rawConditions = pathway.conditions || [];
-      const seenFields = new Set<string>();
-      const uniqueConditions: any[] = [];
+    const list = pathways.map((pathway: any, pIdx: number) => {
+        const rawConditions = pathway.conditions || [];
 
-      rawConditions.forEach((cond: any) => {
-        const str = typeof cond === "string" ? cond : JSON.stringify(cond);
-        const fieldKey = str.split(":")[0]?.trim().toLowerCase();
-        if (!seenFields.has(fieldKey)) {
-          seenFields.add(fieldKey);
-          uniqueConditions.push(cond);
-        }
-      });
+        const parsedConditions = rawConditions.map((cond: any) => {
+          const rawText = typeof cond === "string" ? cond : JSON.stringify(cond);
+          const parts = rawText.split(":");
+          const fieldName = parts[0]?.replace(/_/g, " ") ?? "condition";
+          let detailText = parts.slice(1).join(":").trim();
+          if (detailText.includes("unsupported operator")) detailText = "clinical notes evidence check";
+          if (!detailText) detailText = rawText;
 
-      const parsedConditions = uniqueConditions.map((cond: any) => {
-        const rawText = typeof cond === "string" ? cond : JSON.stringify(cond);
-        const parts = rawText.split(":");
-        const fieldName = parts[0]?.replace(/_/g, " ") ?? "condition";
-        let detailText = parts.slice(1).join(":").trim();
-        if (detailText.includes("unsupported operator")) detailText = "clinical notes evidence check";
+          const isCondPassed = rawText.includes(": passed") || rawText.includes("evidence found") || rawText.includes("verified");
+          const isCondFailed = rawText.includes("failed") || rawText.includes("excluded");
+          const status = isCondPassed ? "passed" : isCondFailed ? "failed" : "unknown";
 
-        const isCondPassed = rawText.includes(": passed") || rawText.includes("evidence found") || rawText.includes("verified");
-        const isCondUnknown = rawText.includes("missing") || rawText.includes("unknown");
-        const status = isCondPassed ? "passed" : isCondUnknown ? "unknown" : "failed";
+          return {
+            rawText,
+            fieldName,
+            detailText,
+            status,
+          };
+        });
+
+        const passedCount = parsedConditions.filter((c: any) => c.status === "passed").length;
+        const failedCount = parsedConditions.filter((c: any) => c.status === "failed").length;
+        const unknownCount = parsedConditions.filter((c: any) => c.status === "unknown").length;
+
+        const isPathwayPassed = passedCount > 0 && (pathway.logic === "ANY" || (unknownCount === 0 && failedCount === 0));
+        const isPathwayFailed = failedCount > 0 && passedCount === 0;
 
         return {
-          rawText,
-          fieldName,
-          detailText,
-          status,
+          pathwayId: pathway.pathwayId ? pathway.pathwayId.replace(/_/g, " ") : `Criteria Pathway ${pIdx + 1}`,
+          passed: isPathwayPassed,
+          unknown: !isPathwayPassed && !isPathwayFailed,
+          isTargetPathway: Boolean(pathway.isTargetPathway),
+          requestedCpt: pathway.requestedCpt || "",
+          conditions: parsedConditions,
         };
       });
 
-      return {
-        pathwayId: pathway.pathwayId ? pathway.pathwayId.replace(/_/g, " ") : `Criteria Pathway ${pIdx + 1}`,
-        passed: pathway.passed,
-        unknown: pathway.unknown,
-        conditions: parsedConditions,
-      };
-    });
-  }, [pathways]);
+      // Sort so target pathway is at the top
+      return list.sort((a: any, b: any) => (b.isTargetPathway ? 1 : 0) - (a.isTargetPathway ? 1 : 0));
+    }, [pathways]);
 
   const stats = useMemo(() => {
     let total = 0;
@@ -569,7 +569,7 @@ function RuleEvaluationConditionTree({ ruleEvaluation, policyName }: { ruleEvalu
             </div>
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs font-extrabold">
               <AlertCircle className="h-4 w-4 text-amber-600" />
-              <span>{stats.unknown} Missing Evidence</span>
+              <span>{stats.unknown} Missing (Non-Applicable)</span>
             </div>
             {stats.failed > 0 && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-extrabold">
@@ -580,13 +580,13 @@ function RuleEvaluationConditionTree({ ruleEvaluation, policyName }: { ruleEvalu
           </div>
         </div>
 
-        {/* Filter Controls */}
-        <div className="flex items-center gap-2 pt-2 border-t border-slate-100 flex-wrap">
+        {/* Filter Tabs */}
+        <div className="flex items-center gap-2 flex-wrap pt-1">
           <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider mr-2">Filter Criteria:</span>
           {[
             { id: "all", label: `All Criteria (${stats.total})` },
             { id: "passed", label: `✅ Accepted / Satisfied (${stats.passed})` },
-            { id: "unknown", label: `⚠️ Missing Evidence (${stats.unknown})` },
+            { id: "unknown", label: `⚠️ Missing (Non-Applicable) (${stats.unknown})` },
             { id: "failed", label: `❌ Excluded / Failed (${stats.failed})` },
           ].map(f => (
             <button
@@ -610,11 +610,22 @@ function RuleEvaluationConditionTree({ ruleEvaluation, policyName }: { ruleEvalu
         if (filter !== "all" && filteredConds.length === 0) return null;
 
         return (
-          <div key={pIdx} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+          <div key={pIdx} className={`rounded-2xl border bg-white p-6 shadow-xs space-y-4 ${
+            pathway.isTargetPathway ? "border-blue-300 ring-2 ring-blue-500/10" : "border-slate-200"
+          }`}>
             <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3 flex-wrap">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Pathway {pIdx + 1}:</span>
                 <h4 className="text-sm font-extrabold text-slate-900 capitalize">{pathway.pathwayId}</h4>
+                {pathway.isTargetPathway ? (
+                  <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+                    🎯 Primary Target Pathway for CPT {pathway.requestedCpt || "Requested"}
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200">
+                    Secondary Policy Pathway
+                  </span>
+                )}
               </div>
               <span className={`text-xs font-extrabold px-3 py-1 rounded-full border ${
                 pathway.passed ? "bg-emerald-50 text-emerald-700 border-emerald-200" : pathway.unknown ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-rose-50 text-rose-700 border-rose-200"
@@ -658,7 +669,7 @@ function RuleEvaluationConditionTree({ ruleEvaluation, policyName }: { ruleEvalu
                           ? "bg-amber-100 text-amber-800 border-amber-300"
                           : "bg-rose-100 text-rose-800 border-rose-300"
                       }`}>
-                        {isPassed ? "✅ ACCEPTED / MET" : isUnknown ? "⚠️ MISSING EVIDENCE" : "❌ EXCLUDED"}
+                        {isPassed ? "✅ ACCEPTED / MET" : isUnknown ? (pathway.isTargetPathway ? "⚠️ MISSING EVIDENCE" : "⚠️ MISSING (NON-APPLICABLE)") : "❌ EXCLUDED"}
                       </span>
                     </div>
 
@@ -952,21 +963,9 @@ export default function ReviewerRequestDetails() {
                     <span className="text-xs text-slate-500 font-bold uppercase">Rule Engine Decision</span>
                     <RuleEngineDecisionBadge decision={request.ruleEvaluation?.decision || ai.decision} size="sm" />
                   </div>
-                  <div>
-                    <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
-                      <span>Confidence Score</span>
-                      <span>{ai.confidence}%</span>
-                    </div>
-                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-600 rounded-full" style={{ width: `${ai.confidence}%` }} />
-                    </div>
-                  </div>
-                  {ai.keyFactors && ai.keyFactors.length > 0 && (
-                    <div className="space-y-2 pt-3 border-t border-slate-100">
-                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Key Decision Factors</p>
-                      <div className="space-y-2">
-                        {ai.keyFactors.map((f, idx) => <FactorRow key={idx} factor={f} />)}
-                      </div>
+                  {request.ruleEvaluation?.aiReasoning && (
+                    <div className="p-3.5 rounded-lg bg-blue-50/50 border border-blue-100 text-xs text-slate-700 leading-relaxed font-medium">
+                      {request.ruleEvaluation.aiReasoning}
                     </div>
                   )}
                 </div>
@@ -1128,7 +1127,7 @@ export default function ReviewerRequestDetails() {
       {/* ── TAB 4: POLICY EVIDENCE & RAG ── */}
       {activeTab === "evidence" && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          <PolicyEvidencePanel caseId={request.id} caseNumber={request.caseNumber} />
+          <PolicyEvidencePanel caseId={request.id} caseNumber={request.caseNumber} request={request} />
         </div>
       )}
 

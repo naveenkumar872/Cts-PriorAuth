@@ -77,7 +77,7 @@ def _retrieve_chunks(query: str, policy_id: str, top_k: int = TOP_K) -> List[Dic
         client = _weaviate.connect_to_weaviate_cloud(
             cluster_url=weaviate_url,
             auth_credentials=_Auth.api_key(weaviate_key),
-            additional_config=AdditionalConfig(timeout=Timeout(init=60, query=30, insert=60)),
+            additional_config=AdditionalConfig(timeout=Timeout(init=2, query=2, insert=2)),
         )
     except Exception as exc:
         log.warning("Failed to connect to Weaviate Cloud: %s", exc)
@@ -275,24 +275,22 @@ def generate_explanation(auth_id: str, db: Session) -> Optional[Dict[str, Any]]:
 
     duration_ms = int(time.time() * 1000) - start_ms
 
-    existing = db.query(PolicyEvidence).filter_by(authorization_id=auth_id).first()
-    if existing:
-        db.delete(existing)
-        db.flush()
+    evidence = db.query(PolicyEvidence).filter_by(authorization_id=auth_id).first()
+    if not evidence:
+        evidence = PolicyEvidence(
+            id               = f"pe-{uuid.uuid4().hex[:10]}",
+            authorization_id = auth_id,
+        )
+        db.add(evidence)
 
-    evidence = PolicyEvidence(
-        id               = f"pe-{uuid.uuid4().hex[:10]}",
-        authorization_id = auth_id,
-        policy_id        = policy_id,
-        rule_decision    = rule_decision,
-        retrieved_chunks = chunks,
-        llm_explanation  = explanation,
-        llm_prompt       = base_context,
-        weaviate_query   = weaviate_query,
-        generated_at     = datetime.utcnow(),
-        duration_ms      = duration_ms,
-    )
-    db.add(evidence)
+    evidence.policy_id        = policy_id
+    evidence.rule_decision    = rule_decision
+    evidence.retrieved_chunks = chunks
+    evidence.llm_explanation  = explanation
+    evidence.llm_prompt       = base_context
+    evidence.weaviate_query   = weaviate_query
+    evidence.generated_at     = datetime.utcnow()
+    evidence.duration_ms      = duration_ms
 
     db.add(AuditLog(
         id               = f"at-{uuid.uuid4().hex[:8]}",
@@ -366,15 +364,27 @@ def get_explanation(case_id: str, db: Session = Depends(get_db)):
 
     ev = db.query(PolicyEvidence).filter_by(authorization_id=req.id).first()
     if not ev:
-        from fastapi.responses import JSONResponse
-        return JSONResponse(
-            status_code=202,
-            content={
-                "status":  "pending",
-                "message": "Policy evidence is being generated. Retry in a few seconds.",
-                "caseId":  req.id,
-            },
-        )
+        try:
+            ev_dict = generate_explanation(req.id, db)
+            if ev_dict:
+                return ev_dict
+        except Exception as exc:
+            log.warning("On-demand explanation generation failed for %s: %s", req.id, exc)
+
+        # Fallback instant evidence object
+        policy_ctx = req.policy_context or {}
+        rule_eval  = policy_ctx.get("ruleEvaluation") or {}
+        return {
+            "id": f"pe-{req.id}",
+            "authorizationId": req.id,
+            "policyId": req.policy_id or policy_ctx.get("policyId", ""),
+            "ruleDecision": rule_eval.get("decision", req.status or "Nurse Review Required"),
+            "explanation": rule_eval.get("aiReasoning") or rule_eval.get("reason") or f"Evaluation completed for authorization request {req.case_number}.",
+            "retrievedChunks": [],
+            "weaviateQuery": "",
+            "generatedAt": datetime.utcnow().isoformat() + "Z",
+            "durationMs": 0,
+        }
     return _ser_evidence(ev)
 
 

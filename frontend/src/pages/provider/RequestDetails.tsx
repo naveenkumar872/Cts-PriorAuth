@@ -110,15 +110,6 @@ export default function ProviderRequestDetails() {
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-xl font-bold text-slate-900 font-mono">{request.caseNumber}</h1>
             
-            {/* Highlighted Rule Engine Decision next to PA Request */}
-            <div className="flex items-center gap-1.5 bg-slate-100/90 px-3 py-1 rounded-xl border border-slate-200 shadow-2xs">
-              <span className="text-[10px] font-black uppercase text-slate-600 tracking-wider">Rule Engine Decision:</span>
-              <RuleEngineDecisionBadge
-                decision={request.ruleEvaluation?.decision || request.aiRecommendation?.decision || request.status}
-                size="sm"
-              />
-            </div>
-
             <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${statusBadgeStyle}`}>
               <StatusBadgeIcon className="h-3.5 w-3.5" />
               {statusLabel}

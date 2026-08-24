@@ -39,7 +39,52 @@ def _ser(req: AuthorizationRequest, db: Optional[Session] = None, auto_evaluate:
     p = req.patient
     prov = req.provider
 
-    rule_eval = (req.policy_context or {}).get("ruleEvaluation") or {}
+    rule_eval = {}
+    if db is not None:
+        try:
+            from core.database import RuleEvaluationRecord
+            import json
+            rec = db.query(RuleEvaluationRecord).filter_by(authorization_id=req.id).first()
+            if rec and rec.pathways:
+                p_val = rec.pathways
+                if isinstance(p_val, str):
+                    try:
+                        p_val = json.loads(p_val)
+                    except Exception:
+                        p_val = []
+
+                m_val = rec.missing_information
+                if isinstance(m_val, str):
+                    try:
+                        m_val = json.loads(m_val)
+                    except Exception:
+                        m_val = []
+
+                e_val = rec.exclusions
+                if isinstance(e_val, str):
+                    try:
+                        e_val = json.loads(e_val)
+                    except Exception:
+                        e_val = []
+
+                rule_eval = {
+                    "decision": rec.decision,
+                    "reason": rec.reason,
+                    "aiReasoning": rec.ai_reasoning,
+                    "missingInformation": m_val or [],
+                    "exclusions": e_val or [],
+                    "pathways": p_val or [],
+                    "keyFactors": rec.key_factors or [],
+                    "policyReferences": rec.policy_references or [],
+                    "mlComplexity": rec.ml_complexity or {},
+                    "evaluatedAt": rec.evaluated_at.isoformat() + "Z" if rec.evaluated_at else None,
+                }
+        except Exception:
+            pass
+
+    if not rule_eval:
+        rule_eval = (req.policy_context or {}).get("ruleEvaluation") or {}
+
     if auto_evaluate and (not rule_eval or not rule_eval.get("pathways")) and db is not None:
         try:
             from api.routes.evaluation import _evaluate_and_store
@@ -59,14 +104,27 @@ def _ser(req: AuthorizationRequest, db: Optional[Session] = None, auto_evaluate:
         dec = decision_map.get(rule_eval.get("decision"), "Escalate")
 
         pathways = rule_eval.get("pathways", [])
+        if isinstance(pathways, str):
+            try:
+                import json
+                pathways = json.loads(pathways)
+            except Exception:
+                pathways = []
+
         total_conds = 0
         passed_conds = 0
-        for pathway in pathways:
-            for cond in pathway.get("conditions", []):
-                total_conds += 1
-                cstr = str(cond)
-                if ": passed" in cstr or "evidence found" in cstr or "verified" in cstr:
-                    passed_conds += 1
+        if isinstance(pathways, list):
+            for pathway in pathways:
+                if isinstance(pathway, dict):
+                    for cond in pathway.get("conditions", []):
+                        total_conds += 1
+                        cstr = str(cond)
+                        if ": passed" in cstr or "evidence found" in cstr or "verified" in cstr:
+                            passed_conds += 1
+                elif isinstance(pathway, str):
+                    total_conds += 1
+                    if ": passed" in pathway or "evidence found" in pathway or "verified" in pathway:
+                        passed_conds += 1
 
         if total_conds > 0:
             calc_conf = round((passed_conds / total_conds) * 100)
@@ -303,7 +361,8 @@ def verify_patient_id(patient_id: str, db: Session = Depends(get_db)):
                 "gender": patient.gender or "Other",
                 "phone": patient.phone or "",
                 "primaryCare": patient.primary_care or "",
-                # memberId omitted so it is NOT auto-filled on provider side
+                "member_id": patient.member_id or "",
+                "memberId": patient.member_id or "",
             },
             "message": f"Patient ID '{patient.id}' is verified in database ({patient.name})."
         }
@@ -338,6 +397,8 @@ def verify_member_id(member_id: str, db: Session = Depends(get_db)):
                 "gender": patient.gender or "Other",
                 "phone": patient.phone or "",
                 "primaryCare": patient.primary_care or "",
+                "member_id": patient.member_id or "",
+                "memberId": patient.member_id or "",
             },
             "message": f"Member ID '{patient.member_id}' is verified in database ({patient.name})."
         }
