@@ -82,6 +82,23 @@ export const api = {
   /** Fetch the combined Structured PA JSON (the final pipeline output) */
   getStructuredPA: (caseId: string) =>
     request<unknown>(`/validation/${caseId}/structured-pa`),
+  uploadDocument: async (authorizationId: string, file: File, documentType: string = "other", uploadedBy: string = "Provider") => {
+    const fd = new FormData();
+    fd.append("authorization_id", authorizationId);
+    fd.append("document_type", documentType);
+    fd.append("uploaded_by", uploadedBy);
+    fd.append("file", file, file.name);
+    const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:8000/api/v1";
+    const res = await fetch(`${API_BASE}/documents/upload`, {
+      method: "POST",
+      body: fd,
+    });
+    if (!res.ok) {
+      const errText = await res.text().catch(() => res.statusText);
+      throw new Error(errText || `HTTP ${res.status}`);
+    }
+    return res.json() as Promise<any>;
+  },
   /** Re-apply / upload missing documentation for an existing case */
   reapplyAuthorization: (caseId: string, data: { newDocuments?: any[]; additionalNotes?: string }) =>
     request<unknown>(`/validation/${caseId}/reapply`, {
