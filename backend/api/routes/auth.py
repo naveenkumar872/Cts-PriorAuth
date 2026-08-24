@@ -34,14 +34,21 @@ router = APIRouter()
 
 # ── Serialiser ────────────────────────────────────────────────────────────────
 
-def _ser(req: AuthorizationRequest) -> Dict[str, Any]:
+def _ser(req: AuthorizationRequest, db: Optional[Session] = None, auto_evaluate: bool = False) -> Dict[str, Any]:
     """Convert ORM row → exact AuthorizationRequest JSON shape expected by the frontend."""
     p = req.patient
     prov = req.provider
 
     rule_eval = (req.policy_context or {}).get("ruleEvaluation") or {}
-    ai_rec = req.ai_recommendation
-    if not ai_rec and rule_eval:
+    if auto_evaluate and (not rule_eval or not rule_eval.get("pathways")) and db is not None:
+        try:
+            from api.routes.evaluation import _evaluate_and_store
+            rule_eval = _evaluate_and_store(req, db)
+        except Exception:
+            pass
+
+    # Always compute dynamic AI recommendation & confidence score from evaluated criteria
+    if rule_eval and rule_eval.get("pathways"):
         decision_map = {
             "Approved": "Approve",
             "Not Approved": "Deny",
@@ -50,12 +57,37 @@ def _ser(req: AuthorizationRequest) -> Dict[str, Any]:
             "Nurse Review Required": "Escalate",
         }
         dec = decision_map.get(rule_eval.get("decision"), "Escalate")
-        conf_map = {"Approve": 94, "Deny": 88, "Request More Info": 82, "Escalate": 85}
+
+        pathways = rule_eval.get("pathways", [])
+        total_conds = 0
+        passed_conds = 0
+        for pathway in pathways:
+            for cond in pathway.get("conditions", []):
+                total_conds += 1
+                cstr = str(cond)
+                if ": passed" in cstr or "evidence found" in cstr or "verified" in cstr:
+                    passed_conds += 1
+
+        if total_conds > 0:
+            calc_conf = round((passed_conds / total_conds) * 100)
+            if dec == "Approve":
+                calc_conf = max(85, calc_conf)
+            elif dec == "Deny":
+                calc_conf = max(80, calc_conf)
+        else:
+            calc_conf = 0
+
         ai_rec = {
             "decision": dec,
-            "confidence": conf_map.get(dec, 85),
+            "confidence": calc_conf,
             "reasoning": rule_eval.get("reason", "Rule engine evaluation completed."),
+            "keyFactors": [
+                f"{passed_conds} of {total_conds} clinical policy criteria satisfied",
+                f"Rule Engine Decision: {rule_eval.get('decision', 'Nurse Review Required')}",
+            ]
         }
+    else:
+        ai_rec = req.ai_recommendation
 
     return {
         "id": req.id,
@@ -140,6 +172,7 @@ def _load(db: Session):
 # ── Pydantic schemas ──────────────────────────────────────────────────────────
 
 class PatientPayload(BaseModel):
+    patientId: Optional[str] = ""
     name: str
     dob: str
     gender: Optional[str] = "Other"
@@ -215,13 +248,13 @@ def list_authorizations(
     db: Session = Depends(get_db),
 ):
     q = _load(db)
-    if status and status.lower() not in ("all", ""):
+    if status and isinstance(status, str) and status.lower() not in ("all", ""):
         q = q.filter(AuthorizationRequest.status.ilike(status))
-    if priority and priority.lower() not in ("all", ""):
+    if priority and isinstance(priority, str) and priority.lower() not in ("all", ""):
         q = q.filter(AuthorizationRequest.priority == priority.lower())
     cases = q.order_by(AuthorizationRequest.submitted_at.desc()).all()
 
-    if search:
+    if search and isinstance(search, str):
         s = search.lower()
         cases = [
             c for c in cases
@@ -231,7 +264,7 @@ def list_authorizations(
             or any(s in (pr.get("description", "")).lower() for pr in (c.procedures or []))
         ]
 
-    return {"total": len(cases), "cases": [_ser(c) for c in cases]}
+    return {"total": len(cases), "cases": [_ser(c, db, auto_evaluate=False) for c in cases]}
 
 
 @router.get("/{case_id}")
@@ -242,7 +275,45 @@ def get_authorization(case_id: str, db: Session = Depends(get_db)):
         req = _load(db).filter(AuthorizationRequest.case_number == case_id).first()
     if not req:
         raise HTTPException(status_code=404, detail="Case not found")
-    return _ser(req)
+    return _ser(req, db, auto_evaluate=True)
+
+
+@router.get("/patients/verify-patient/{patient_id}")
+def verify_patient_id(patient_id: str, db: Session = Depends(get_db)):
+    """Check whether a Patient ID is present in the database."""
+    pid = (patient_id or "").strip()
+    if not pid:
+        return {"exists": False, "patientId": "", "message": "Patient ID is empty."}
+
+    patient = db.query(Patient).filter(Patient.id.ilike(pid)).first()
+    if not patient:
+        patient = db.query(Patient).filter(Patient.id.ilike(f"%{pid}")).first()
+
+    if patient:
+        return {
+            "exists": True,
+            "patientId": patient.id,
+            "patient": {
+                "id": patient.id,
+                "name": patient.name,
+                "dob": patient.dob.isoformat() if patient.dob else None,
+                "payer": patient.payer or "Apex Health Plan",
+                "plan": patient.plan or "Gold HMO Plan",
+                "groupId": patient.group_id or "",
+                "gender": patient.gender or "Other",
+                "phone": patient.phone or "",
+                "primaryCare": patient.primary_care or "",
+                # memberId omitted so it is NOT auto-filled on provider side
+            },
+            "message": f"Patient ID '{patient.id}' is verified in database ({patient.name})."
+        }
+
+    return {
+        "exists": False,
+        "patientId": pid,
+        "patient": None,
+        "message": f"Patient ID '{pid}' was not found in the patient database."
+    }
 
 
 @router.get("/patients/verify-member/{member_id}")
@@ -292,7 +363,6 @@ def create_authorization(payload: CreateAuthPayload, db: Session = Depends(get_d
         try:
             index = _get_index()
             valid_keys = {k.upper() for k in index.keys()}
-            valid_keys.update({f"POL-00{i}" for i in range(1, 10)})
             if policy_id.upper() not in valid_keys:
                 raise HTTPException(
                     status_code=400,
@@ -303,14 +373,28 @@ def create_authorization(payload: CreateAuthPayload, db: Session = Depends(get_d
         except Exception:
             pass
 
-    # ── 1. Upsert patient by memberId ──────────────────────────────────────
-    patient = db.query(Patient).filter(Patient.member_id == payload.patient.memberId).first()
+    # ── 1. Upsert patient by Patient ID or memberId ────────────────────────
+    pid = (payload.patient.patientId or payload.patient.groupId or "").strip()
+    patient = None
+    if pid:
+        patient = db.query(Patient).filter(Patient.id.ilike(pid)).first()
+    if not patient and payload.patient.memberId:
+        patient = db.query(Patient).filter(Patient.member_id.ilike(payload.patient.memberId.strip())).first()
+
+    # Validate entered Member ID against existing patient record if registered
+    if patient and patient.member_id and payload.patient.memberId:
+        if payload.patient.memberId.strip().upper() != patient.member_id.strip().upper():
+            raise HTTPException(
+                status_code=400,
+                detail=f"Entered Member ID '{payload.patient.memberId}' does not match registered Insurance Member ID on record for Patient ID '{patient.id}' ({patient.member_id})."
+            )
+
     if not patient:
         patient = Patient(
-            id=f"p-{uuid.uuid4().hex[:8]}",
+            id=pid if pid else f"pat-{uuid.uuid4().hex[:8]}",
             name=payload.patient.name,
             dob=datetime.strptime(payload.patient.dob, "%Y-%m-%d").date() if payload.patient.dob else now.date(),
-            member_id=payload.patient.memberId,
+            member_id=payload.patient.memberId or None,
             group_id=payload.patient.groupId,
             plan=payload.patient.plan or "Standard Plan",
             payer=payload.patient.payer or "BlueCross BlueShield Insurance",
@@ -324,6 +408,8 @@ def create_authorization(payload: CreateAuthPayload, db: Session = Depends(get_d
     else:
         # Update mutable fields in case they changed
         patient.name = payload.patient.name
+        if payload.patient.memberId:
+            patient.member_id = payload.patient.memberId
         patient.plan = payload.patient.plan or patient.plan or "Standard Plan"
         patient.payer = payload.patient.payer or patient.payer or "BlueCross BlueShield Insurance"
 
@@ -422,8 +508,27 @@ def create_authorization(payload: CreateAuthPayload, db: Session = Depends(get_d
             "Priority": payload.priority or "normal",
         },
     ))
-
     db.commit()
+
+    # ── 7.5 Synchronously perform context mapping & rule evaluation ─────────
+    try:
+        from api.routes.context import map_policy, MapPolicyRequest
+        from api.routes.evaluation import _evaluate_and_store
+
+        procs = req.procedures or []
+        first_proc = procs[0] if procs else {}
+        mapping = map_policy(MapPolicyRequest(
+            policyId=req.policy_id or None,
+            serviceCode=first_proc.get("code") or None,
+            codingSystem=first_proc.get("codingSystem") or "CPT",
+            caseId=req.id,
+        ))
+        req.policy_context = mapping
+        db.flush()
+        _evaluate_and_store(req, db)
+    except Exception as exc:
+        logger = __import__("logging").getLogger(__name__)
+        logger.warning("Synchronous context mapping / evaluation failed for %s: %s", req.id, exc)
 
     # ── 8. Auto-trigger validation & preprocessing + context mapping in background ──
     def _trigger_pipeline(auth_id: str) -> None:

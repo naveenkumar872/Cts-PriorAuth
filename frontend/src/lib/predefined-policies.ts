@@ -1779,46 +1779,6 @@ export const PREDEFINED_POLICIES: PredefinedPolicy[] = [
       "G0329",
       "97610"
     ]
-  },
-  {
-    "id": "POL-001",
-    "name": "Demo Coverage Policy 1",
-    "codes": []
-  },
-  {
-    "id": "POL-002",
-    "name": "Demo Coverage Policy 2",
-    "codes": []
-  },
-  {
-    "id": "POL-003",
-    "name": "Demo Coverage Policy 3",
-    "codes": []
-  },
-  {
-    "id": "POL-004",
-    "name": "Demo Coverage Policy 4",
-    "codes": []
-  },
-  {
-    "id": "POL-005",
-    "name": "Demo Coverage Policy 5",
-    "codes": []
-  },
-  {
-    "id": "POL-006",
-    "name": "Demo Coverage Policy 6",
-    "codes": []
-  },
-  {
-    "id": "POL-007",
-    "name": "Demo Coverage Policy 7",
-    "codes": []
-  },
-  {
-    "id": "POL-008",
-    "name": "Demo Coverage Policy 8",
-    "codes": []
   }
 ];
 

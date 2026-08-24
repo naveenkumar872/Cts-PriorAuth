@@ -82,7 +82,7 @@ class Patient(Base):
     id           = Column(String(36), primary_key=True)
     name         = Column(String(255), nullable=False)
     dob          = Column(Date, nullable=False)
-    member_id    = Column(String(100), nullable=False, unique=True)
+    member_id    = Column(String(100), nullable=True)
     group_id     = Column(String(100))
     plan         = Column(String(255))
     payer        = Column(String(255))

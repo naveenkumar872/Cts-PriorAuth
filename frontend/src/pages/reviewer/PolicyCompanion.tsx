@@ -1,18 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import {
-  Sparkles, BookOpen, Send, FileText, RefreshCw, Cpu, AlertCircle, CheckCircle, Clock, ChevronDown
+  Sparkles, BookOpen, Send, FileText, RefreshCw, Cpu, AlertCircle, CheckCircle, Clock, ChevronDown, FileCheck, ArrowUpRight
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-
-interface MatchedRule {
-  id: string;
-  name: string;
-  category: string;
-  result: "PASS" | "FAIL" | "WARNING";
-  detail: string;
-}
 
 interface CompanionMessage {
   sender: "user" | "companion";
@@ -23,6 +15,7 @@ interface CompanionMessage {
 
 export default function PolicyCompanionPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const caseIdParam = searchParams.get("caseId");
 
   const [allCases, setAllCases] = useState<any[]>([]);
@@ -72,7 +65,7 @@ export default function PolicyCompanionPage() {
 
   const getInitialWelcome = (cId: string): CompanionMessage => ({
     sender: "companion",
-    text: `Hello! I am your AI Policy Companion for case ${cId}. I evaluate requests against explicit policy rules and Weaviate vector evidence to explain decision recommendations with 0% hallucination risk. How can I assist your review?`,
+    text: `Hello! I am your AI Policy Companion for case ${cId || "selected"}. I evaluate requests against explicit policy rules and clinical vector evidence to explain decision recommendations with 0% hallucination risk. How can I assist your review?`,
     timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
   });
 
@@ -82,6 +75,7 @@ export default function PolicyCompanionPage() {
   useEffect(() => {
     let isMounted = true;
     async function loadHistory() {
+      if (!selectedCaseId) return;
       if (chatHistoriesByCaseId[selectedCaseId]) return;
       try {
         const msgs: any[] = await api.getCompanionMessages(selectedCaseId).catch(() => []);
@@ -117,16 +111,15 @@ export default function PolicyCompanionPage() {
     loadHistory();
   }, [selectedCaseId]);
 
-  // Filter out cases that are already Approved (only show pending/nurse review cases requiring decision support)
+  // Use all cases (fallback if searchParam case is selected)
   const activeCases = useMemo(() => {
-    return allCases.filter((c) => c.status !== "Approved");
+    return allCases.length > 0 ? allCases : [];
   }, [allCases]);
 
-  const currentCase = activeCases.find((r) => r.id === selectedCaseId || r.caseNumber === selectedCaseId) || activeCases[0];
-  const currentPolicy = policies.find((p) => p.id === selectedPolicyId) || policies[0];
+  const currentCase = activeCases.find((r) => r.id === selectedCaseId || r.caseNumber === selectedCaseId) || activeCases[0] || {};
+  const currentPolicy = policies.find((p) => p.id === selectedPolicyId) || policies[0] || {};
 
   const diagCode = currentCase?.diagnoses?.[0]?.code || "N/A";
-  const diagDesc = currentCase?.diagnoses?.[0]?.description || "N/A";
 
   const quickQuestions = [
     "Why is this request requiring review?",
@@ -138,6 +131,9 @@ export default function PolicyCompanionPage() {
   const handleSendQuestion = async (q?: string) => {
     const questionToAsk = q || inputQuestion;
     if (!questionToAsk.trim()) return;
+
+    const cNum = currentCase?.caseNumber || selectedCaseId || "Case";
+    const pTitle = currentPolicy?.title || currentCase?.policyId || "Coverage Policy";
 
     const userMsg: CompanionMessage = {
       sender: "user",
@@ -173,23 +169,22 @@ export default function PolicyCompanionPage() {
         const isGreeting = ["hi", "hello", "hey", "good morning", "good afternoon", "greetings", "hi there", "hello there", "help"].includes(lower) || lower === "hi";
 
         if (isGreeting) {
-          companionReply = `Hello! I am your AI Policy Companion for case #${currentCase.caseNumber || selectedCaseId}. How may I assist you with reviewing policy guidelines, medical necessity criteria, or required clinical documentation for this request?`;
+          companionReply = `Hello! I am your AI Policy Companion for case #${cNum}. How may I assist you with reviewing policy guidelines, medical necessity criteria, or required clinical documentation for this request?`;
         } else if (lower.includes("why") || lower.includes("pending") || lower.includes("review")) {
-          companionReply = `Request ${currentCase.caseNumber} requires review because Rule R003 (Clinical Documentation) failed. The patient meets diagnostic criteria (ICD-10 ${diagCode}) and conservative therapy requirements, but modern orthopedic consultation notes within 30 days are missing.`;
+          companionReply = `Request ${cNum} requires review because the deterministic Rule Engine evaluated missing or unverified clinical evidence. Diagnoses (ICD-10 ${diagCode}) were evaluated against policy criteria.`;
         } else if (lower.includes("missing") || lower.includes("documentation") || lower.includes("required")) {
-          companionReply = `According to ${currentPolicy.title} (${currentPolicy.id} v3.2, Section 4.2), the following documentation is required: (1) Specialist orthopedic clinical evaluation within 30 days, (2) Physical therapy progress log showing 6+ weeks of conservative trial, and (3) Functional impairment scale assessment.`;
+          companionReply = `According to ${pTitle}, required documentation includes: (1) Specialist clinical evaluation, (2) Conservative treatment log, and (3) Objective diagnostic imaging reports.`;
         } else if (lower.includes("satisfied") || lower.includes("conditions") || lower.includes("pass")) {
-          companionReply = `The request satisfied 3 of 4 policy criteria: Rule R001 (Diagnosis Eligibility: PASS), Rule R002 (Conservative Treatment ≥6 weeks: PASS), and Rule R004 (Contraindication Safety Check: PASS).`;
+          companionReply = `The request was evaluated against active policy criteria. See the Rule Engine Evaluation tab for detailed criteria status breakdown.`;
         } else {
-          companionReply = `Based on ${currentPolicy.title} (${currentPolicy.id} v3.2) and clinical file ${currentCase.caseNumber}, the patient (${currentCase.patient?.name}) meets primary medical indication criteria for ${currentCase.procedures?.[0]?.description}. Full approval is subject to submission of missing orthopedic specialist consultation records.`;
+          companionReply = `Based on ${pTitle} and clinical file ${cNum}, the request was evaluated for medical necessity. Full approval is subject to submission of verified clinical documentation.`;
         }
-
 
         citations = [
           {
-            title: `${currentPolicy.title} (${currentPolicy.id})`,
-            section: "Section 4.2 — Required Documentation",
-            text: "Authorization requires written specialist evaluation, physical therapy progress logs, and non-invasive diagnostic imaging reports within 60 days of submission.",
+            title: pTitle,
+            section: "Section 4 — Policy Criteria & Evidence",
+            text: "Authorization requires written specialist evaluation, physical therapy progress logs, and non-invasive diagnostic imaging reports.",
           },
         ];
       }
@@ -213,12 +208,19 @@ export default function PolicyCompanionPage() {
     }
   };
 
+  const handleCaseChange = (newCaseId: string) => {
+    setSelectedCaseId(newCaseId);
+    const targetCase = allCases.find((r) => r.id === newCaseId || r.caseNumber === newCaseId);
+    const caseRef = targetCase?.caseNumber || targetCase?.id || newCaseId;
+    navigate(`/reviewer/policy-companion?caseId=${caseRef}`, { replace: true });
+  };
+
   return (
     <div className="w-full space-y-6 font-sans">
       {/* Header Card with Inline Rule Engine Output & Case Selector */}
       <div className="bg-white p-5 rounded-2xl border border-[#D2E6FF] shadow-xs space-y-4 font-sans">
-        {/* Top Row: Title + Case Selector */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* Top Row: Title + Case Selector & Action Button */}
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2.5">
               <div className="p-2 rounded-xl bg-[#1E6BF3] text-white shadow-md shadow-blue-500/20">
@@ -234,23 +236,40 @@ export default function PolicyCompanionPage() {
             </p>
           </div>
 
-          {/* Case Selector */}
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-bold text-[#5A7CA6] uppercase tracking-wider">Select Case:</span>
-            <select
-              value={selectedCaseId}
-              onChange={(e) => setSelectedCaseId(e.target.value)}
-              className="px-4 py-2 rounded-xl border border-[#82B3FF] bg-[#EBF4FF] text-xs font-bold text-[#0A192F] focus:outline-none focus:ring-2 focus:ring-[#1E6BF3]"
+          {/* Case Selector & Review Request Action Button */}
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-[#5A7CA6] uppercase tracking-wider whitespace-nowrap">Select Case:</span>
+              <select
+                value={currentCase?.id || currentCase?.caseNumber || selectedCaseId}
+                onChange={(e) => handleCaseChange(e.target.value)}
+                className="px-3.5 py-2 rounded-xl border border-[#82B3FF] bg-[#EBF4FF] text-xs font-bold text-[#0A192F] focus:outline-none focus:ring-2 focus:ring-[#1E6BF3] cursor-pointer max-w-[260px] truncate"
+              >
+                {allCases.map((r) => {
+                  const optVal = r.id || r.caseNumber;
+                  return (
+                    <option key={r.id || optVal} value={optVal}>
+                      {r.caseNumber || r.id} — {r.patient?.name || "Patient"} ({r.procedures?.[0]?.code || "Procedure"})
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
+            {/* Redirect to Case Review Page Button */}
+            <button
+              type="button"
+              onClick={() => {
+                const targetId = currentCase?.id || currentCase?.caseNumber || selectedCaseId;
+                if (targetId) navigate(`/reviewer/requests/${targetId}`);
+              }}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#1E6BF3] hover:bg-blue-700 text-white font-extrabold text-xs shadow-md shadow-blue-500/20 transition-all cursor-pointer group shrink-0 whitespace-nowrap"
+              title="Go to case review page to submit final decision"
             >
-              {activeCases.map((r) => {
-                const val = r.caseNumber || r.id;
-                return (
-                  <option key={r.id || val} value={val}>
-                    {r.caseNumber} - {r.patient?.name} ({r.procedures?.[0]?.code || "Procedure"})
-                  </option>
-                );
-              })}
-            </select>
+              <FileCheck className="w-4 h-4 group-hover:scale-110 transition-transform" />
+              <span>Review Request &amp; Make Final Decision</span>
+              <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </button>
           </div>
         </div>
 
@@ -261,22 +280,22 @@ export default function PolicyCompanionPage() {
               <Cpu className="w-4 h-4 text-[#1E6BF3]" />
               <span>Rule Engine Output:</span>
             </div>
-            <StatusBadge status={currentCase.status} size="sm" />
+            <StatusBadge status={currentCase?.status || "Nurse Review Required"} size="sm" />
           </div>
 
           <div className="flex-1 text-[#4B6B94] font-semibold text-xs truncate px-2">
-            {currentCase.ruleEvaluation?.reason || currentCase.aiRecommendation?.reasoning || "Evaluated against medical necessity pathways and policy ruleset criteria."}
+            {currentCase?.ruleEvaluation?.reason || currentCase?.aiRecommendation?.reasoning || "Evaluated against medical necessity pathways and policy ruleset criteria."}
           </div>
 
           <div className="flex items-center gap-2 text-[11px] font-bold">
             <span className="px-2.5 py-1 rounded-lg bg-[#EBF4FF] text-[#1E6BF3] border border-[#82B3FF]">
-              Policy: {currentCase.policyId || currentPolicy.id}
+              Policy: {currentCase?.policyId || currentPolicy?.id || "Active Policy"}
             </span>
             <span className="px-2.5 py-1 rounded-lg bg-white text-[#0A192F] border border-[#D2E6FF]">
-              CPT: {currentCase.procedures?.[0]?.code || "73721"}
+              CPT: {currentCase?.procedures?.[0]?.code || "73721"}
             </span>
             <span className="px-2.5 py-1 rounded-lg bg-white text-[#0A192F] border border-[#D2E6FF]">
-              ICD-10: {currentCase.diagnoses?.[0]?.code || "M17.11"}
+              ICD-10: {currentCase?.diagnoses?.[0]?.code || "M17.11"}
             </span>
           </div>
         </div>
@@ -293,7 +312,7 @@ export default function PolicyCompanionPage() {
             </div>
             <div>
               <h3 className="text-sm font-extrabold text-[#0A192F]">Ask Policy Companion</h3>
-              <p className="text-[10px] font-bold text-[#1E6BF3]">Grounding: {currentPolicy.id} &amp; {currentCase.caseNumber}</p>
+              <p className="text-[10px] font-bold text-[#1E6BF3]">Grounding: {currentPolicy?.id || "Policy"} &amp; {currentCase?.caseNumber || selectedCaseId}</p>
             </div>
           </div>
           <button
@@ -319,100 +338,114 @@ export default function PolicyCompanionPage() {
           ))}
         </div>
 
-        {/* Chat Messages Body */}
-        <div className="flex-1 p-4 overflow-y-auto space-y-4 scrollbar-thin">
+        {/* Chat History Area */}
+        <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-gradient-to-b from-[#F8FBFF]/50 to-white">
           {chatHistory.map((msg, i) => {
             const isUser = msg.sender === "user";
             return (
-              <div
-                key={i}
-                className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}
-              >
-                <div
-                  className={`max-w-[85%] p-3.5 rounded-2xl text-xs font-medium leading-relaxed ${
-                    isUser
-                      ? "bg-[#1E6BF3] text-white rounded-br-none shadow-xs font-semibold"
-                      : "bg-[#F8FBFF] text-[#0A192F] border border-[#D2E6FF] rounded-bl-none shadow-2xs"
-                  }`}
-                >
-                  {msg.text}
+              <div key={i} className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}>
+                <div className={`flex items-start gap-2.5 max-w-3xl ${isUser ? "flex-row-reverse" : ""}`}>
+                  <div
+                    className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 shadow-2xs ${
+                      isUser ? "bg-[#0A192F] text-white" : "bg-[#1E6BF3] text-white"
+                    }`}
+                  >
+                    {isUser ? "U" : <Sparkles className="w-3.5 h-3.5" />}
+                  </div>
 
-                  {/* RAG Citations — Collapsible with toggle button */}
-                  {msg.citations && msg.citations.length > 0 && (
-                    <div className="mt-3 pt-2 border-t border-[#D2E6FF]/80">
-                      <button
-                        type="button"
-                        onClick={() => toggleCitation(i)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-[#B8D7FF] hover:bg-[#EBF4FF] text-[#1E6BF3] font-bold text-[11px] transition-all shadow-2xs cursor-pointer"
-                      >
-                        <FileText className="w-3.5 h-3.5 text-[#1E6BF3]" />
-                        <span>
-                          {expandedCitations[i]
-                            ? "Hide Policy Citations"
-                            : `View Policy Citation Evidence (${msg.citations.length})`}
-                        </span>
-                        <ChevronDown
-                          className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                            expandedCitations[i] ? "rotate-180" : ""
-                          }`}
-                        />
-                      </button>
+                  <div
+                    className={`p-4 rounded-2xl text-xs sm:text-sm shadow-2xs space-y-2 leading-relaxed ${
+                      isUser
+                        ? "bg-[#0A192F] text-white rounded-tr-none font-medium"
+                        : "bg-white text-[#0A192F] border border-[#D2E6FF] rounded-tl-none font-medium"
+                    }`}
+                  >
+                    <p className="whitespace-pre-wrap">{msg.text}</p>
 
-                      {expandedCitations[i] && (
-                        <div className="mt-2.5 space-y-2 animate-in fade-in duration-200">
-                          <span className="text-[10px] font-extrabold text-[#1E6BF3] uppercase tracking-wider block">
-                            Policy Citation Evidence:
-                          </span>
-                          {msg.citations.map((c, cIdx) => (
-                            <div
-                              key={cIdx}
-                              className="p-2.5 rounded-xl bg-[#EBF4FF] border border-[#82B3FF] text-[11px] text-[#0A192F] space-y-1 shadow-2xs"
-                            >
-                              <p className="font-bold text-[#1E6BF3] flex flex-wrap items-center justify-between gap-1">
-                                <span>{c.title}</span>
-                                <span className="text-[10px] font-semibold text-[#4B6B94]">{c.section}</span>
-                              </p>
-                              <p className="text-[#334155] italic leading-snug">"{c.text}"</p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                    {/* Citations & Evidence Dropdown */}
+                    {!isUser && msg.citations && msg.citations.length > 0 && (
+                      <div className="mt-3 pt-2 border-t border-[#D2E6FF]">
+                        <button
+                          onClick={() => toggleCitation(i)}
+                          className="flex items-center gap-1 text-[11px] font-extrabold text-[#1E6BF3] hover:underline cursor-pointer"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          <span>Retrieved Evidence &amp; Citations ({msg.citations.length})</span>
+                          <ChevronDown
+                            className={`w-3 h-3 transition-transform ${
+                              expandedCitations[i] ? "rotate-180" : ""
+                            }`}
+                          />
+                        </button>
+
+                        {expandedCitations[i] && (
+                          <div className="mt-2 space-y-2 animate-in fade-in duration-150">
+                            {msg.citations.map((c, cIdx) => (
+                              <div
+                                key={cIdx}
+                                className="p-2.5 rounded-xl bg-[#F8FBFF] border border-[#82B3FF] text-[11px] space-y-1"
+                              >
+                                <div className="flex items-center justify-between font-bold text-[#0A192F]">
+                                  <span>{c.title}</span>
+                                  <span className="text-[10px] text-[#1E6BF3] bg-[#EBF4FF] px-2 py-0.5 rounded-md border border-[#82B3FF]">
+                                    {c.section}
+                                  </span>
+                                </div>
+                                <p className="text-[#4B6B94] italic font-normal leading-snug">"{c.text}"</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div
+                      className={`text-[10px] font-bold mt-1 text-right ${
+                        isUser ? "text-slate-400" : "text-[#5A7CA6]"
+                      }`}
+                    >
+                      {msg.timestamp}
                     </div>
-                  )}
-
+                  </div>
                 </div>
-                <span className="text-[10px] font-bold text-[#5A7CA6] mt-1 px-1">{msg.timestamp}</span>
               </div>
             );
           })}
 
           {loadingAnswer && (
-            <div className="flex items-center gap-2 p-3 rounded-2xl bg-[#F8FBFF] border border-[#D2E6FF] max-w-[70%]">
-              <div className="w-4 h-4 border-2 border-[#1E6BF3] border-t-transparent rounded-full animate-spin" />
-              <span className="text-xs font-bold text-[#4B6B94]">Querying Weaviate Vector Policy Store &amp; Rewriting Query...</span>
+            <div className="flex items-center gap-2 text-xs font-bold text-[#1E6BF3] p-3 rounded-xl bg-[#EBF4FF] border border-[#82B3FF] w-fit animate-pulse">
+              <Sparkles className="w-4 h-4 animate-spin text-[#1E6BF3]" />
+              Analyzing request against policy vector database...
             </div>
           )}
         </div>
 
-        {/* Chat Input Bar */}
-        <div className="p-3 bg-white border-t border-[#D2E6FF] flex items-center gap-2">
-          <input
-            type="text"
-            placeholder="Ask a policy question about this PA request..."
-            value={inputQuestion}
-            onChange={(e) => setInputQuestion(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSendQuestion()}
-            className="flex-1 px-3.5 py-2.5 rounded-xl border border-[#82B3FF] bg-[#F8FBFF] text-xs font-bold text-[#0A192F] placeholder:text-[#5A7CA6] focus:outline-none focus:ring-2 focus:ring-[#1E6BF3]"
-          />
-          <button
-            onClick={() => handleSendQuestion()}
-            disabled={!inputQuestion.trim() || loadingAnswer}
-            className="p-2.5 rounded-xl bg-[#1E6BF3] hover:bg-[#1554C0] disabled:opacity-50 text-white font-bold transition-all shadow-md shadow-blue-500/20 cursor-pointer"
+        {/* Input Bar */}
+        <div className="p-4 bg-white border-t border-[#D2E6FF]">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSendQuestion();
+            }}
+            className="flex items-center gap-2"
           >
-            <Send className="w-4 h-4" />
-          </button>
+            <input
+              type="text"
+              value={inputQuestion}
+              onChange={(e) => setInputQuestion(e.target.value)}
+              placeholder="Ask Policy Companion about medical necessity, policy rules, or required documentation..."
+              className="flex-1 px-4 py-3 text-xs sm:text-sm border border-[#82B3FF] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E6BF3] bg-[#F8FBFF] font-medium text-[#0A192F]"
+            />
+            <button
+              type="submit"
+              disabled={loadingAnswer || !inputQuestion.trim()}
+              className="px-5 py-3 rounded-xl bg-[#1E6BF3] hover:bg-blue-700 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-blue-500/20 disabled:opacity-50 transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <span>Ask</span>
+              <Send className="w-4 h-4" />
+            </button>
+          </form>
         </div>
-
       </div>
     </div>
   );

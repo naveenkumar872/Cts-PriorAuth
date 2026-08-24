@@ -203,11 +203,6 @@ export function DocumentPreviewModal({
               className="p-2 rounded-lg text-slate-500 hover:bg-slate-200 transition-colors">
               <RotateCw className="h-4 w-4" />
             </button>
-            <div className="w-px h-5 bg-slate-200 mx-1" />
-            <button onClick={() => window.print()} title="Print"
-              className="p-2 rounded-lg text-slate-500 hover:bg-slate-200 transition-colors">
-              <Printer className="h-4 w-4" />
-            </button>
             <button onClick={onClose} title="Close"
               className="p-2 rounded-lg text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors">
               <X className="h-4 w-4" />

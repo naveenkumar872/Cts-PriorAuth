@@ -19,6 +19,10 @@ export const api = {
     return request<{ total: number; cases: unknown[] }>(`/authorizations${qs}`);
   },
   getAuthorization: (id: string) => request<unknown>(`/authorizations/${id}`),
+  verifyPatientId: (patientId: string) =>
+    request<{ exists: boolean; patientId: string; patient?: any; message: string }>(
+      `/authorizations/patients/verify-patient/${encodeURIComponent(patientId)}`
+    ),
   verifyMemberId: (memberId: string) =>
     request<{ exists: boolean; memberId: string; patient?: any; message: string }>(
       `/authorizations/patients/verify-member/${encodeURIComponent(memberId)}`

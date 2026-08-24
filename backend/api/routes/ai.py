@@ -86,7 +86,7 @@ def _generate_recommendation(
 
             prompt = f"""=== CLINICAL RULE ENGINE DECISION & PROVIDER CONTEXT ===
 RULE ENGINE DECISION: {rule_decision} (Mapped UI Recommendation: {final_decision})
-RULE ENGINE REASON: {rule_reason}
+RULE ENGINE EVALUATION DETAIL: {rule_reason}
 POLICY ID: {policy_id}
 
 REQUESTED PROCEDURES: {proc_text or 'Unspecified'}
@@ -94,13 +94,17 @@ DIAGNOSES: {diag_text or 'Unspecified'}
 CLINICAL NOTES:
 {safe_notes[:1500]}
 
-TASK: You are an expert clinical medical reviewer. The deterministic Rule Engine has already made the decision above ({final_decision}).
-Your job is to generate clear clinical reasoning and factor analysis explaining WHY the Rule Engine reached this decision.
-Do NOT contradict the Rule Engine decision.
+TASK: You are an expert clinical prior-authorization reviewer. The Rule Engine evaluated the request as '{rule_decision}'.
+Generate concise, professional clinical reasoning explaining why this decision was made.
+
+CRITICAL INSTRUCTIONS FOR REASONING:
+1. Clearly state what specific clinical information or policy criteria is missing or unverified (for example: missing conservative therapy trial duration, missing objective diagnostic imaging findings, non-standard procedure/ICD code, or unverified symptom duration).
+2. Keep the explanation clear, professional, and balanced (2 concise sentences maximum). Do not make it overly verbose or wordy.
+3. Do NOT contradict the Rule Engine decision.
 
 Return ONLY a valid JSON object matching this exact schema:
 {{
-  "reasoning": "2-3 sentence clinical reasoning explaining why the rule engine decision was reached.",
+  "reasoning": "2 concise sentences explaining the decision and clearly specifying what clinical information or evidence is missing.",
   "keyFactors": [
     {{"name": "Factor Name", "impact": "positive" | "negative" | "neutral", "weight": 0.40, "description": "Details"}}
   ],
@@ -120,11 +124,15 @@ Return ONLY a valid JSON object matching this exact schema:
                 lines = raw_text.splitlines()
                 raw_text = "\n".join(lines[1:-1]) if lines[-1].startswith("```") else "\n".join(lines[1:])
 
+            proc_names = ", ".join([p.get("description") or p.get("code") for p in (procedures or []) if isinstance(p, dict) and (p.get("description") or p.get("code"))]) or "requested service"
+            diag_names = ", ".join([d.get("description") or d.get("code") for d in (diagnoses or []) if isinstance(d, dict) and (d.get("description") or d.get("code"))]) or "specified diagnosis"
+            fallback_reasoning = f"The Rule Engine evaluated procedure ({proc_names}) against policy {policy_id} for diagnosis ({diag_names}). Decision: {final_decision}. {rule_reason}"
+
             parsed = json.loads(raw_text)
             return {
                 "decision": final_decision,
                 "confidence": confidence,
-                "reasoning": parsed.get("reasoning", f"Rule engine decision: {final_decision}. {rule_reason}"),
+                "reasoning": parsed.get("reasoning") or fallback_reasoning,
                 "keyFactors": parsed.get("keyFactors", []),
                 "missingInfo": parsed.get("missingInfo", []),
                 "policyReferences": parsed.get("policyReferences", [{
@@ -140,11 +148,15 @@ Return ONLY a valid JSON object matching this exact schema:
         except Exception as e:
             log.warning("Gemini LLM Reasoning generation failed, using fallback: %s", e)
 
-    # Fallback reasoning structure when Gemini SDK is unconfigured
+    proc_names = ", ".join([p.get("description") or p.get("code") for p in (procedures or []) if isinstance(p, dict) and (p.get("description") or p.get("code"))]) or "requested service"
+    diag_names = ", ".join([d.get("description") or d.get("code") for d in (diagnoses or []) if isinstance(d, dict) and (d.get("description") or d.get("code"))]) or "specified diagnosis"
+    fallback_reasoning = f"The Rule Engine evaluated procedure ({proc_names}) against policy {policy_id} for diagnosis ({diag_names}). Decision: {final_decision}. {rule_reason}"
+
+    # Fallback reasoning structure when Gemini API is unconfigured or rate limited
     return {
         "decision": final_decision,
         "confidence": confidence,
-        "reasoning": f"Rule Engine Decision: {final_decision}. {rule_reason}",
+        "reasoning": fallback_reasoning,
         "keyFactors": [
             {"name": "Rule Engine Pathway Evaluation", "impact": "positive" if final_decision == "Approve" else "negative", "weight": 0.50, "description": rule_reason},
             {"name": "Clinical Documentation", "impact": "positive" if final_decision == "Approve" else "neutral", "weight": 0.30, "description": "Submitted clinical notes evaluated against policy criteria."}

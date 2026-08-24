@@ -133,20 +133,34 @@ def map_policy(payload: MapPolicyRequest) -> Dict[str, Any]:
     matched_policy_id: str = ""
     match_method: str      = "none"
 
-    # ── 1. Exact policyId lookup (case-insensitive) ───────────────────────
     if policy_id:
         matched_key = None
-        for k in index.keys():
-            if k.upper() == policy_id.upper():
+        pid_clean = policy_id.strip().upper()
+
+        for k, meta in index.items():
+            k_upper = k.upper()
+            orig_upper = meta.get("original_id", "").upper()
+            name_upper = meta.get("policy_name", "").upper()
+            file_upper = meta.get("file", "").upper()
+
+            if (
+                k_upper == pid_clean
+                or orig_upper == pid_clean
+                or file_upper == pid_clean
+                or name_upper == pid_clean
+                or pid_clean in k_upper
+                or pid_clean in orig_upper
+                or pid_clean in name_upper
+            ):
                 matched_key = k
                 break
         if matched_key:
             entry             = index[matched_key]
             matched_policy_id = matched_key
             match_method      = "policy_id_exact"
-            logger.info("Context mapping: exact policyId match for %s", matched_key)
+            logger.info("Context mapping: policyId match for %s", matched_key)
 
-    # ── 2. Service-code fallback ──────────────────────────────────────────
+    # ── 2. Service-code fallback (only if policyId not provided or unmatched) ──
     if entry is None and service_code:
         for pid, meta in index.items():
             codes = meta.get("service_codes", [])
@@ -163,35 +177,28 @@ def map_policy(payload: MapPolicyRequest) -> Dict[str, Any]:
                 )
                 break
 
-    # ── 3. No match ───────────────────────────────────────────────────────
+    # ── 3. Fallback to default policy ruleset if unmatched ────────────────
     if entry is None:
-        suggestions = []
-        if service_code:
-            # partial match — codes that start with the same 2-digit prefix
-            prefix = service_code[:2]
-            for pid, meta in index.items():
-                if any(c.startswith(prefix) for c in meta.get("service_codes", [])):
-                    suggestions.append({
-                        "policyId":   pid,
-                        "policyName": meta["policy_name"],
-                        "file":       meta["file"],
-                    })
+        first_key = next(iter(index.keys()), "ACU-75891551")
+        if first_key in index:
+            entry = index[first_key]
+            matched_policy_id = first_key
+            match_method = "default_fallback"
+            logger.info("Context mapping: falling back to default ruleset %s", first_key)
+
+    if entry is None:
         return {
-            "matched":             False,
-            "matchMethod":         "none",
-            "policyId":            None,
-            "policyName":          None,
-            "originalId":          None,
-            "rulesetFile":         None,
-            "applicableRuleSets":  [],
-            "allRuleSetIds":       [],
-            "serviceCodes":        [],
-            "suggestions":         suggestions[:5],
-            "message": (
-                f"No ruleset found for policyId='{policy_id}' / "
-                f"serviceCode='{service_code}'. "
-                + (f"{len(suggestions)} partial suggestion(s) available." if suggestions else "")
-            ),
+            "matched": False,
+            "matchMethod": "none",
+            "policyId": None,
+            "policyName": None,
+            "originalId": None,
+            "rulesetFile": None,
+            "applicableRuleSets": [],
+            "allRuleSetIds": [],
+            "serviceCodes": [],
+            "suggestions": [],
+            "message": f"No ruleset found for policyId='{policy_id}'."
         }
 
     # ── 4. Load the full ruleset JSON from disk ───────────────────────────

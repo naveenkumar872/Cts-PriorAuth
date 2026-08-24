@@ -205,7 +205,7 @@ function PolicyIdSelect({
               ? "border-emerald-400 focus:ring-emerald-500/20 focus:border-emerald-500"
               : ""
           }`}
-          placeholder="Search or select Policy ID (e.g. ACU-75891551, MRI-12493019, POL-001)"
+          placeholder="Search or select Policy ID (e.g. ACU-75891551, MRI-12493019, BAR-43479050)"
           value={value}
           onFocus={() => setIsOpen(true)}
           onChange={e => {
@@ -336,16 +336,16 @@ export default function CreateAuthorization() {
   const [validationModalOpen, setValidationModalOpen] = useState(false);
   const [validationPhase, setValidationPhase] = useState<"processing" | "failed" | "passed">("processing");
   const [validationSteps, setValidationSteps] = useState<Array<{
-    id: "verify_member" | "preprocess_data" | "rule_pipeline";
+    id: "verify_patient" | "preprocess_data" | "rule_pipeline";
     title: string;
     sublabel: string;
     status: "idle" | "running" | "passed" | "failed";
     errorDetail?: string;
   }>>([
     {
-      id: "verify_member",
-      title: "1. Database & Member ID Verification",
-      sublabel: "Checking patient Member ID in database...",
+      id: "verify_patient",
+      title: "1. Database & Patient ID Verification",
+      sublabel: "Checking Patient ID in database...",
       status: "idle",
     },
     {
@@ -363,6 +363,34 @@ export default function CreateAuthorization() {
   ]);
   const [createdAuthId, setCreatedAuthId] = useState<string>("");
 
+  const [patientVerifyStatus, setPatientVerifyStatus] = useState<{
+    checking: boolean;
+    checked: boolean;
+    exists: boolean;
+    patient?: any;
+    message?: string;
+  }>({ checking: false, checked: false, exists: false });
+
+  const handlePatientIdBlur = async () => {
+    const pid = form.patient.patientId.trim();
+    if (!pid) {
+      setPatientVerifyStatus({ checking: false, checked: false, exists: false });
+      return;
+    }
+    setPatientVerifyStatus(p => ({ ...p, checking: true }));
+    try {
+      const res = await api.verifyPatientId(pid);
+      setPatientVerifyStatus({
+        checking: false,
+        checked: true,
+        exists: res.exists,
+        patient: res.patient,
+        message: res.message,
+      });
+    } catch {
+      setPatientVerifyStatus({ checking: false, checked: true, exists: false, message: "Patient verification failed." });
+    }
+  };
   const [memberVerifyStatus, setMemberVerifyStatus] = useState<{
     checking: boolean;
     checked: boolean;
@@ -387,8 +415,20 @@ export default function CreateAuthorization() {
         patient: res.patient,
         message: res.message,
       });
+      if (!res.exists) {
+        setErrors(e => ({
+          ...e,
+          memberId: `Member ID "${mid}" is not registered in the payer database.`
+        }));
+      } else {
+        setErrors(e => {
+          const newE = { ...e };
+          delete newE.memberId;
+          return newE;
+        });
+      }
     } catch {
-      setMemberVerifyStatus({ checking: false, checked: true, exists: false, message: "Member verification failed." });
+      setMemberVerifyStatus({ checking: false, checked: true, exists: false, message: "Member ID verification failed." });
     }
   };
 
@@ -468,13 +508,24 @@ export default function CreateAuthorization() {
   const validateStep = () => {
     const e: Record<string, string> = {};
     if (step === 1) {
-      if (!form.patient.name.trim())     e.name     = "Patient name is required";
-      if (!form.patient.dob)             e.dob      = "Date of birth is required";
-      if (!form.patient.memberId.trim()) e.memberId = "Member ID is required";
+      if (!form.patient.patientId.trim()) e.patientId = "Patient ID is required for verification";
+      if (!form.patient.name.trim())     e.name      = "Patient name is required";
+      if (!form.patient.dob)             e.dob       = "Date of birth is required";
+      if (!form.patient.memberId.trim()) {
+        e.memberId = "Member ID is required (must be manually entered)";
+      } else if (memberVerifyStatus.checked && !memberVerifyStatus.exists) {
+        e.memberId = `Member ID "${form.patient.memberId}" is not registered in the payer database.`;
+      } else if (
+        patientVerifyStatus.exists &&
+        patientVerifyStatus.patient?.memberId &&
+        form.patient.memberId.trim().toUpperCase() !== patientVerifyStatus.patient.memberId.trim().toUpperCase()
+      ) {
+        e.memberId = `Entered Member ID "${form.patient.memberId}" does not match registered Insurance Member ID on record (${patientVerifyStatus.patient.memberId}).`;
+      }
       if (!form.patient.policyId.trim()) {
         e.policyId = "Policy ID is required";
       } else if (!isValidPolicyId(form.patient.policyId)) {
-        e.policyId = `Invalid Policy ID: "${form.patient.policyId}". Policy ID must match a predefined ruleset policy (e.g. ACU-75891551, MRI-12493019, POL-001).`;
+        e.policyId = `Invalid Policy ID: "${form.patient.policyId}". Policy ID must match a predefined ruleset policy (e.g. ACU-75891551, MRI-12493019, BAR-43479050).`;
       }
     }
     if (step === 2) {
@@ -501,16 +552,16 @@ export default function CreateAuthorization() {
     setErrors({});
 
     const initialSteps: Array<{
-      id: "verify_member" | "preprocess_data" | "rule_pipeline";
+      id: "verify_patient" | "preprocess_data" | "rule_pipeline";
       title: string;
       sublabel: string;
       status: "idle" | "running" | "passed" | "failed";
       errorDetail?: string;
     }> = [
       {
-        id: "verify_member",
-        title: "1. Database & Member ID Verification",
-        sublabel: "Checking patient Member ID in database...",
+        id: "verify_patient",
+        title: "1. Database & Patient ID Verification",
+        sublabel: "Checking Patient ID in database...",
         status: "running",
       },
       {
@@ -528,31 +579,31 @@ export default function CreateAuthorization() {
     ];
     setValidationSteps(initialSteps);
 
-    // ── STEP 1: Verify Member ID against Database ──
-    const mid = form.patient.memberId.trim();
-    let isMemberValid = false;
+    // ── STEP 1: Verify Patient ID against Database ──
+    const pid = form.patient.patientId.trim();
+    let isPatientValid = false;
     let verifyMsg = "";
 
     try {
-      if (!mid) {
-        verifyMsg = "Member ID is required for patient verification.";
+      if (!pid) {
+        verifyMsg = "Patient ID is required for patient verification.";
       } else {
-        const vRes = await api.verifyMemberId(mid);
+        const vRes = await api.verifyPatientId(pid);
         if (vRes.exists) {
-          isMemberValid = true;
-          verifyMsg = vRes.message || `Member ID '${mid}' verified in database.`;
+          isPatientValid = true;
+          verifyMsg = vRes.message || `Patient ID '${pid}' verified in database.`;
         } else {
-          verifyMsg = vRes.message || `Member ID '${mid}' was not found in the patient database. Please verify patient records.`;
+          verifyMsg = vRes.message || `Patient ID '${pid}' was not found in the patient database. Please verify patient records.`;
         }
       }
     } catch (err: any) {
-      verifyMsg = err?.message || "Failed to connect to database for member verification.";
+      verifyMsg = err?.message || "Failed to connect to database for patient verification.";
     }
 
-    if (!isMemberValid) {
+    if (!isPatientValid) {
       setValidationSteps(prev =>
         prev.map(s =>
-          s.id === "verify_member"
+          s.id === "verify_patient"
             ? { ...s, status: "failed", errorDetail: verifyMsg }
             : s
         )
@@ -565,7 +616,7 @@ export default function CreateAuthorization() {
     // Step 1 Passed -> Mark Passed & Start Step 2
     setValidationSteps(prev =>
       prev.map(s =>
-        s.id === "verify_member"
+        s.id === "verify_patient"
           ? { ...s, status: "passed" }
           : s.id === "preprocess_data"
           ? { ...s, status: "running" }
@@ -792,10 +843,62 @@ export default function CreateAuthorization() {
             <div>
               <SectionHeader title="Patient Details" />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>Patient ID *</label>
-                  <input className={inputClass} placeholder="e.g. PT-00123" value={form.patient.patientId}
-                    onChange={e => setPatient("patientId", e.target.value)} />
+                <div className="sm:col-span-2">
+                  <div className="flex items-center justify-between">
+                    <label className={labelClass}>Patient ID *</label>
+                    {patientVerifyStatus.checking && (
+                      <span className="text-[11px] text-teal-600 font-semibold animate-pulse">Checking DB...</span>
+                    )}
+                  </div>
+                  <input
+                    className={inputClass}
+                    placeholder="e.g. pat-001, pat-016, or PT-00123"
+                    value={form.patient.patientId}
+                    onChange={e => {
+                      setPatient("patientId", e.target.value);
+                      setPatientVerifyStatus({ checking: false, checked: false, exists: false });
+                    }}
+                    onBlur={handlePatientIdBlur}
+                  />
+                  {errors.patientId && <p className="text-xs text-red-500 mt-1">{errors.patientId}</p>}
+
+                  {/* Patient Database Verification Banner */}
+                  {patientVerifyStatus.checked && (
+                    <div className={`mt-2 p-2.5 rounded-lg border text-xs flex items-start justify-between gap-2 transition-all ${
+                      patientVerifyStatus.exists ? "bg-emerald-50 border-emerald-200 text-emerald-900" : "bg-amber-50 border-amber-200 text-amber-900"
+                    }`}>
+                      <div className="flex items-start gap-1.5 min-w-0">
+                        {patientVerifyStatus.exists ? (
+                          <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                        ) : (
+                          <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                        )}
+                        <div className="min-w-0">
+                          <p className="font-bold text-xs">
+                            {patientVerifyStatus.exists ? "Patient Verified in Database" : "Patient Not Found in DB Registry"}
+                          </p>
+                          <p className="text-[11px] mt-0.5 leading-snug">
+                            {patientVerifyStatus.message}
+                          </p>
+                        </div>
+                      </div>
+                      {patientVerifyStatus.exists && patientVerifyStatus.patient && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const p = patientVerifyStatus.patient;
+                            if (p.name) setPatient("name", p.name);
+                            if (p.dob) setPatient("dob", p.dob);
+                            if (p.gender) setPatient("gender", p.gender);
+                            if (p.plan) setPatient("policyTier", p.plan);
+                          }}
+                          className="text-[10px] font-bold px-2 py-1 rounded bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shrink-0 shadow-2xs cursor-pointer"
+                        >
+                          Auto-fill Details
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className={labelClass}>Patient Name *</label>
@@ -809,7 +912,7 @@ export default function CreateAuthorization() {
                     onChange={e => setPatient("dob", e.target.value)} />
                   {errors.dob && <p className="text-xs text-red-500 mt-1">{errors.dob}</p>}
                 </div>
-                <div>
+                <div className="sm:col-span-2">
                   <label className={labelClass}>Gender</label>
                   <select className={inputClass} value={form.patient.gender}
                     onChange={e => setPatient("gender", e.target.value)}>
@@ -826,13 +929,11 @@ export default function CreateAuthorization() {
                 <div>
                   <div className="flex items-center justify-between">
                     <label className={labelClass}>Member ID *</label>
-                    {memberVerifyStatus.checking && (
-                      <span className="text-[11px] text-teal-600 font-semibold animate-pulse">Checking DB...</span>
-                    )}
+                    <span className="text-[10px] text-slate-400 font-medium">(Manual Entry)</span>
                   </div>
                   <input
                     className={inputClass}
-                    placeholder="e.g. MEM-1001 or BCB-4821-001"
+                    placeholder="Enter Insurance Member ID (e.g. MEM-1001)"
                     value={form.patient.memberId}
                     onChange={e => {
                       setPatient("memberId", e.target.value);
@@ -840,44 +941,20 @@ export default function CreateAuthorization() {
                     }}
                     onBlur={handleMemberIdBlur}
                   />
-                  {errors.memberId && <p className="text-xs text-red-500 mt-1">{errors.memberId}</p>}
-
-                  {/* Member Database Verification Banner */}
-                  {memberVerifyStatus.checked && (
-                    <div className={`mt-2 p-2.5 rounded-lg border text-xs flex items-start justify-between gap-2 transition-all ${
-                      memberVerifyStatus.exists ? "bg-emerald-50 border-emerald-200 text-emerald-900" : "bg-amber-50 border-amber-200 text-amber-900"
-                    }`}>
-                      <div className="flex items-start gap-1.5 min-w-0">
-                        {memberVerifyStatus.exists ? (
-                          <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
-                        ) : (
-                          <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                        )}
-                        <div className="min-w-0">
-                          <p className="font-bold text-xs">
-                            {memberVerifyStatus.exists ? "Member Verified in Database" : "Member Not Found in DB Registry"}
-                          </p>
-                          <p className="text-[11px] mt-0.5 leading-snug">
-                            {memberVerifyStatus.message}
-                          </p>
-                        </div>
-                      </div>
-                      {memberVerifyStatus.exists && memberVerifyStatus.patient && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const p = memberVerifyStatus.patient;
-                            if (p.name) setPatient("name", p.name);
-                            if (p.dob) setPatient("dob", p.dob);
-                            if (p.gender) setPatient("gender", p.gender);
-                          }}
-                          className="text-[10px] font-bold px-2 py-1 rounded bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shrink-0 shadow-2xs cursor-pointer"
-                        >
-                          Auto-fill Details
-                        </button>
-                      )}
-                    </div>
+                  {memberVerifyStatus.checking && (
+                    <p className="text-[11px] text-teal-600 font-semibold animate-pulse mt-1">Verifying Member ID in DB...</p>
                   )}
+                  {memberVerifyStatus.checked && memberVerifyStatus.exists && (
+                    <p className="text-[11px] text-emerald-600 font-bold mt-1 flex items-center gap-1">
+                      <CheckCircle className="h-3 w-3 inline shrink-0" /> Member ID Verified in Database ({memberVerifyStatus.patient?.name})
+                    </p>
+                  )}
+                  {memberVerifyStatus.checked && !memberVerifyStatus.exists && (
+                    <p className="text-xs text-rose-500 font-bold mt-1 flex items-center gap-1">
+                      <AlertCircle className="h-3.5 w-3.5 inline shrink-0" /> Member ID "{form.patient.memberId}" was not found in database registry.
+                    </p>
+                  )}
+                  {errors.memberId && <p className="text-xs text-red-500 font-bold mt-1">{errors.memberId}</p>}
                 </div>
                 <div>
                   <PolicyIdSelect
@@ -890,14 +967,6 @@ export default function CreateAuthorization() {
                     }}
                     error={errors.policyId}
                   />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className={labelClass}>Policy Tier</label>
-                  <select className={inputClass} value={form.patient.policyTier}
-                    onChange={e => setPatient("policyTier", e.target.value)}>
-                    <option value="">Select tier...</option>
-                    {POLICY_TIERS.map(t => <option key={t}>{t}</option>)}
-                  </select>
                 </div>
               </div>
               <p className="mt-3 flex items-start gap-1.5 text-xs text-slate-500 font-medium">

@@ -701,40 +701,11 @@ function Step4Panel({ step }: { step: ValidationResult["steps"]["step4"] }) {
     <div className="space-y-5">
       <SummaryBar summary={step.summary} status={step.status} />
 
-      {/* Completeness + Risk */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Completeness score */}
-        <div className="sm:col-span-1 rounded-xl border border-slate-200 bg-white p-5 flex flex-col items-center justify-center gap-2">
-          <ScoreRing value={vs.completenessScore} label="Completeness" />
-          <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${riskCfg.bg} ${riskCfg.text}`}>
-            {riskCfg.label}
-          </div>
-        </div>
-
-        {/* Field breakdown */}
-        <div className="sm:col-span-2 rounded-xl border border-slate-200 bg-white p-4">
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">Field Completeness Breakdown</p>
-          <div className="space-y-2.5">
-            {fieldEntries.map(([field, score]) => {
-              const maxForField = field === "primaryDiagnosis" || field === "clinicalNotes" || field === "conservativeTxEvidence" || field === "procedureCodes" ? 15 : 10;
-              const pct = Math.round((score / maxForField) * 100);
-              const barColor = pct === 100 ? "bg-emerald-500" : pct >= 50 ? "bg-amber-500" : "bg-rose-500";
-              const label = field
-                .replace(/([A-Z])/g, " $1")
-                .replace(/^./, s => s.toUpperCase());
-              return (
-                <div key={field} className="flex items-center gap-3">
-                  <div className="w-40 shrink-0 text-xs text-slate-600 truncate" title={label}>{label}</div>
-                  <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div className={`h-full ${barColor} rounded-full transition-all duration-500`} style={{ width: `${pct}%` }} />
-                  </div>
-                  <span className={`text-xs font-bold w-10 text-right ${pct === 100 ? "text-emerald-600" : pct >= 50 ? "text-amber-600" : "text-rose-600"}`}>
-                    {score}/{maxForField}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+      {/* Risk status */}
+      <div className="rounded-xl border border-slate-200 bg-white p-4 flex items-center justify-between">
+        <span className="text-xs font-bold text-slate-700">Triage Risk Assessment</span>
+        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${riskCfg.bg} ${riskCfg.text}`}>
+          {riskCfg.label}
         </div>
       </div>
 
