@@ -146,11 +146,10 @@ export default function ReviewerDashboard() {
       </div>
 
       {/* AI Performance */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {[
-          { label: "AI Precision & Accuracy", value: currentAiPerf.accuracy ?? currentAiPerf.aiAccuracy ?? 94.2, icon: CheckCircle },
-          { label: "Human-AI Agreement",     value: currentAiPerf.agreementRate ?? currentAiPerf.humanAIAgreement ?? 96.8, icon: Eye },
-          { label: "Override Rate",          value: currentAiPerf.overrideRate ?? 3.2, icon: AlertCircle },
+          { label: "Human-AI Agreement",     value: currentAiPerf.agreementRate ?? currentAiPerf.humanAIAgreement ?? 0, icon: Eye },
+          { label: "Override Rate",          value: currentAiPerf.overrideRate ?? 0, icon: AlertCircle },
         ].map(({ label, value, icon: Icon }) => (
           <div key={label} className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between mb-3">
@@ -223,7 +222,7 @@ export default function ReviewerDashboard() {
         <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-6 text-center shadow-sm">
           <Clock className="h-8 w-8 text-blue-600 mx-auto mb-3" />
           <h4 className="font-extrabold text-[#0A192F] mb-1">Nurse Review Queue</h4>
-          <p className="text-2xl font-black text-[#0A192F] mb-4">{statusBreakdown.underReview + statusBreakdown.new || 5}</p>
+          <p className="text-2xl font-black text-[#0A192F] mb-4">{statusBreakdown.underReview + statusBreakdown.new}</p>
           <Link to="/reviewer/review-queue" className="btn-primary">
             Open Nurse Queue
           </Link>
@@ -231,7 +230,7 @@ export default function ReviewerDashboard() {
         <div className="rounded-lg border border-slate-200 bg-amber-50/40 p-6 text-center shadow-sm">
           <AlertCircle className="h-8 w-8 text-amber-600 mx-auto mb-3" />
           <h4 className="font-extrabold text-[#0A192F] mb-1">More Info Needed</h4>
-          <p className="text-2xl font-black text-[#0A192F] mb-4">{statusBreakdown.moreInfo || 3}</p>
+          <p className="text-2xl font-black text-[#0A192F] mb-4">{statusBreakdown.moreInfo}</p>
           <Link to="/reviewer/requests" className="btn-primary bg-amber-600 hover:bg-amber-700 text-white font-bold transition-all shadow-md shadow-amber-500/20">
             Review Pending Requests
           </Link>

@@ -82,7 +82,7 @@ def _get_gemini():
             _gemini_client = genai_legacy
     return _gemini_client
 
-GEMINI_MODEL = "gemini-3.6-flash"
+GEMINI_MODEL = "gemini-3.5-flash"
 
 # ── File paths ────────────────────────────────────────────────────────────────
 UPLOAD_ROOT = Path(__file__).parent.parent.parent / "uploads"

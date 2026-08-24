@@ -11,7 +11,7 @@ Uses:
 import re
 import logging
 from datetime import datetime, date
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional, List, Tuple
 
 log = logging.getLogger(__name__)
 
@@ -151,3 +151,82 @@ def anonymize_text(
         log.warning("Presidio anonymization warning: %s.", err)
 
     return sanitized
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 3. Tokenization & Local Re-identification (Zero-PHI External LLM Protocol)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def mask_text_with_tokens(text: str) -> Tuple[str, Dict[str, str]]:
+    """
+    Scrubs PHI from document text by replacing sensitive names, IDs, DOBs, SSNs, and phone numbers
+    with deterministic token placeholders (e.g. [TOKEN_PATIENT_NAME], [TOKEN_PATIENT_ID]).
+    Returns both the masked text (safe for external LLM API) and a local in-memory token map.
+    """
+    if not text or not text.strip():
+        return "", {}
+
+    token_map: Dict[str, str] = {}
+    masked_text = text
+
+    # Patient Name
+    m_name = re.search(r'Patient Name:\s*([^\n\r,]+)', text, re.IGNORECASE)
+    if m_name:
+        real_name = m_name.group(1).strip()
+        if len(real_name) > 1 and real_name != "[PATIENT_NAME_REDACTED]":
+            token = "[TOKEN_PATIENT_NAME]"
+            token_map[token] = real_name
+            masked_text = re.sub(re.escape(real_name), token, masked_text)
+
+    # Patient ID
+    m_id = re.search(r'Patient ID:\s*([^\n\r,\s]+)', text, re.IGNORECASE)
+    if m_id:
+        real_id = m_id.group(1).strip()
+        token = "[TOKEN_PATIENT_ID]"
+        token_map[token] = real_id
+        masked_text = re.sub(re.escape(real_id), token, masked_text)
+
+    # Member ID
+    m_mem = re.search(r'Member ID:\s*([^\n\r,\s]+)', text, re.IGNORECASE)
+    if m_mem:
+        real_mem = m_mem.group(1).strip()
+        token = "[TOKEN_MEMBER_ID]"
+        token_map[token] = real_mem
+        masked_text = re.sub(re.escape(real_mem), token, masked_text)
+
+    # Date of Birth
+    m_dob = re.search(r'Date of Birth:\s*([^\n\r,\s()]+)', text, re.IGNORECASE) or re.search(r'DOB:\s*([^\n\r,\s()]+)', text, re.IGNORECASE)
+    if m_dob:
+        real_dob = m_dob.group(1).strip()
+        token = "[TOKEN_PATIENT_DOB]"
+        token_map[token] = real_dob
+        masked_text = re.sub(re.escape(real_dob), token, masked_text)
+
+    # General Regex Redactions for extraneous PII
+    masked_text = SSN_RE.sub("[SSN_REDACTED]", masked_text)
+    masked_text = PHONE_RE.sub("[PHONE_REDACTED]", masked_text)
+    masked_text = EMAIL_RE.sub("[EMAIL_REDACTED]", masked_text)
+    masked_text = MRN_RE.sub("[MRN_REDACTED]", masked_text)
+
+    return masked_text, token_map
+
+
+def unmask_data_with_tokens(data: Any, token_map: Dict[str, str]) -> Any:
+    """
+    Recursively replaces token placeholders back to real PHI values
+    LOCALLY on the secure backend before returning data to the provider frontend form.
+    """
+    if not token_map or not data:
+        return data
+
+    if isinstance(data, str):
+        result = data
+        for token, real_val in token_map.items():
+            if token in result:
+                result = result.replace(token, real_val)
+        return result
+    elif isinstance(data, dict):
+        return {k: unmask_data_with_tokens(v, token_map) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [unmask_data_with_tokens(item, token_map) for item in data]
+    return data

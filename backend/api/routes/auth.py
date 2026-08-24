@@ -17,10 +17,15 @@ Returns the EXACT AuthorizationRequest shape that every frontend page reads.
 
 import uuid
 import threading
+import os
+import re
+import json
+import tempfile
+import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
 
@@ -28,6 +33,9 @@ from core.database import (
     AuditLog, AuthorizationRequest, Document, Notification, Patient, Provider, User, get_db,
     SessionLocal,
 )
+from core.privacy import anonymize_text, mask_text_with_tokens, unmask_data_with_tokens
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -325,6 +333,152 @@ def list_authorizations(
     return {"total": len(cases), "cases": [_ser(c, db, auto_evaluate=False) for c in cases]}
 
 
+@router.post("/autofill")
+async def autofill_from_document(
+    file: UploadFile = File(...)
+):
+    """
+    Extract text from uploaded clinical document (PDF, DOCX, PNG, JPG, TXT, CSV)
+    using Kreuzberg document extractor, then map text fields to PA Request form JSON.
+    """
+    contents = await file.read()
+    if not contents:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+
+    original_name = file.filename or "uploaded_document.pdf"
+    ext = os.path.splitext(original_name)[1].lower() or ".pdf"
+
+    # 1. Extract text using Kreuzberg with temporary file
+    with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
+        tmp.write(contents)
+        tmp_path = tmp.name
+
+    extracted_text = ""
+    try:
+        from kreuzberg import extract_file_sync
+        res = extract_file_sync(tmp_path)
+        extracted_text = (res.content if hasattr(res, "content") else str(res)).strip()
+    except Exception as exc:
+        logger.warning("Kreuzberg text extraction failed for %s: %s", original_name, exc)
+    finally:
+        if os.path.exists(tmp_path):
+            try:
+                os.remove(tmp_path)
+            except Exception:
+                pass
+
+    if not extracted_text:
+        try:
+            extracted_text = contents.decode("utf-8", errors="ignore").strip()
+        except Exception:
+            extracted_text = ""
+
+    if not extracted_text:
+        raise HTTPException(status_code=422, detail="No readable text could be extracted from document.")
+
+    # 2. Tokenize PHI (replace real names, IDs, DOBs with deterministic tokens) before sending to LLM
+    safe_text_for_llm, token_map = mask_text_with_tokens(extracted_text)
+
+    # 3. Map extracted text to structured PA Request Form JSON using Gemini NLP
+    structured_data: Dict[str, Any] = {}
+    try:
+        from core.config import settings
+        if settings.GEMINI_API_KEY:
+            try:
+                from google import genai
+                from google.genai import types as genai_types
+                client = genai.Client(api_key=settings.GEMINI_API_KEY)
+                prompt = (
+                    "You are a medical NLP data extraction system processing a Prior Authorization clinical document.\n"
+                    "Extract structured form fields from the text below and return ONLY valid JSON — no markdown, no explanation.\n\n"
+                    "JSON Schema:\n"
+                    "{\n"
+                    '  "patient": {\n'
+                    '    "patientId": "p-003",\n'
+                    '    "name": "Full Patient Name",\n'
+                    '    "dob": "YYYY-MM-DD",\n'
+                    '    "gender": "Male|Female|Other",\n'
+                    '    "memberId": "Member ID",\n'
+                    '    "policyId": "Policy ID e.g. KID-26349233",\n'
+                    '    "policyTier": "Platinum|Gold HMO Plan|Standard Plan"\n'
+                    "  },\n"
+                    '  "treatment": {\n'
+                    '    "serviceType": "Surgery / Procedure",\n'
+                    '    "serviceName": "Procedure Name / Description",\n'
+                    '    "serviceCode": "CPT code e.g. 50360",\n'
+                    '    "codingSystem": "CPT",\n'
+                    '    "quantity": "1",\n'
+                    '    "frequency": "",\n'
+                    '    "duration": ""\n'
+                    "  },\n"
+                    '  "diagnoses": [\n'
+                    '    { "code": "E11.22", "description": "Diagnosis Description", "type": "primary" }\n'
+                    "  ],\n"
+                    '  "clinicalIndication": "Clinical history summary",\n'
+                    '  "symptoms": "Symptoms summary",\n'
+                    '  "previousTreatments": [\n'
+                    '    { "id": "1", "name": "Treatment Name", "duration": "Duration", "outcome": "Outcome" }\n'
+                    "  ],\n"
+                    '  "measurements": [\n'
+                    '    { "id": "1", "name": "Measurement Name e.g. eGFR or BMI", "value": "Value", "unit": "Unit" }\n'
+                    "  ],\n"
+                    '  "testResults": [\n'
+                    '    { "id": "1", "name": "Test Name", "date": "YYYY-MM-DD", "finding": "Finding" }\n'
+                    "  ],\n"
+                    '  "clinicalJustification": "Clinical justification"\n'
+                    "}\n\n"
+                    f"TEXT TO EXTRACT FROM:\n{safe_text_for_llm}"
+                )
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=prompt,
+                    config=genai_types.GenerateContentConfig(
+                        temperature=0.1,
+                        response_mime_type="application/json",
+                    ),
+                )
+                raw = (response.text or "").strip()
+                if raw.startswith("```"):
+                    raw = re.sub(r"^```(?:json)?\s*", "", raw)
+                    raw = re.sub(r"\s*```$", "", raw)
+                structured_data = json.loads(raw)
+            except Exception as e:
+                logger.warning("Gemini autofill extraction failed: %s", e)
+    except Exception:
+        pass
+
+    if not isinstance(structured_data, dict):
+        structured_data = {}
+
+    p_data = structured_data.setdefault("patient", {})
+    if not p_data.get("name"):
+        m = re.search(r'Patient Name:\s*([^\n\r,]+)', extracted_text, re.IGNORECASE)
+        if m: p_data["name"] = m.group(1).strip()
+    if not p_data.get("patientId"):
+        m = re.search(r'Patient ID:\s*([^\n\r,\s]+)', extracted_text, re.IGNORECASE)
+        if m: p_data["patientId"] = m.group(1).strip()
+    if not p_data.get("memberId"):
+        m = re.search(r'Member ID:\s*([^\n\r,\s]+)', extracted_text, re.IGNORECASE)
+        if m: p_data["memberId"] = m.group(1).strip()
+    if not p_data.get("policyId"):
+        m = re.search(r'Policy ID:\s*([^\n\r,\s]+)', extracted_text, re.IGNORECASE)
+        if m: p_data["policyId"] = m.group(1).strip()
+
+    t_data = structured_data.setdefault("treatment", {})
+    if not t_data.get("serviceCode"):
+        m = re.search(r'CPT\s* Code:\s*(\d{5})', extracted_text, re.IGNORECASE) or re.search(r'CPT\s*(\d{5})', extracted_text, re.IGNORECASE)
+        if m: t_data["serviceCode"] = m.group(1)
+
+    # 4. Unmask token placeholders LOCALLY on the server using the in-memory token map
+    structured_data = unmask_data_with_tokens(structured_data, token_map)
+
+    return {
+        "fileName": original_name,
+        "extractedText": extracted_text[:500] + "..." if len(extracted_text) > 500 else extracted_text,
+        "formData": structured_data,
+    }
+
+
 @router.get("/{case_id}")
 def get_authorization(case_id: str, db: Session = Depends(get_db)):
     req = _load(db).filter(AuthorizationRequest.id == case_id).first()
@@ -475,14 +629,25 @@ def create_authorization(payload: CreateAuthPayload, db: Session = Depends(get_d
         patient.payer = payload.patient.payer or patient.payer or "BlueCross BlueShield Insurance"
 
 
-    # ── 2. Upsert provider by NPI ──────────────────────────────────────────
-    provider_npi = payload.provider.npi or "0000000000"
-    provider = db.query(Provider).filter(Provider.npi == provider_npi).first()
+    # ── 2. Upsert provider ────────────────────────────────────────────────
+    provider_npi = (payload.provider.npi or "").strip()
+    provider_id = (payload.provider.id or "").strip()
+
+    provider = None
+    if provider_npi:
+        provider = db.query(Provider).filter(Provider.npi == provider_npi).first()
+    if not provider and provider_id:
+        provider = db.query(Provider).filter(Provider.id == provider_id).first()
+
     if not provider:
+        new_prov_id = provider_id
+        if not new_prov_id or db.query(Provider).filter(Provider.id == new_prov_id).first():
+            new_prov_id = f"prov-{uuid.uuid4().hex[:8]}"
+
         provider = Provider(
-            id=payload.provider.id or f"prov-{uuid.uuid4().hex[:8]}",
+            id=new_prov_id,
             name=payload.provider.name or "Unknown Provider",
-            npi=provider_npi,
+            npi=provider_npi or "0000000000",
             specialty=payload.provider.specialty,
             organization=payload.provider.organization,
             phone=payload.provider.phone,
@@ -492,24 +657,39 @@ def create_authorization(payload: CreateAuthPayload, db: Session = Depends(get_d
         )
         db.add(provider)
         db.flush()
+    else:
+        if payload.provider.name:
+            provider.name = payload.provider.name
+        if provider_npi and not db.query(Provider).filter(Provider.npi == provider_npi, Provider.id != provider.id).first():
+            provider.npi = provider_npi
+        if payload.provider.specialty:
+            provider.specialty = payload.provider.specialty
+        if payload.provider.organization:
+            provider.organization = payload.provider.organization
 
     # ── 3. Generate case number ────────────────────────────────────────────
     year = now.year
-    last = (
-        db.query(AuthorizationRequest)
+    all_cases = (
+        db.query(AuthorizationRequest.case_number)
         .filter(AuthorizationRequest.case_number.like(f"PA-{year}-%"))
-        .order_by(AuthorizationRequest.submitted_at.desc())
-        .first()
+        .all()
     )
-    if last:
-        try:
-            last_seq = int(last.case_number.split("-")[-1])
-        except ValueError:
-            last_seq = 0
-        seq = last_seq + 1
-    else:
-        seq = 1
-    case_number = f"PA-{year}-{seq:05d}"
+    max_seq = 0
+    for (cn,) in all_cases:
+        if cn:
+            try:
+                num = int(cn.split("-")[-1])
+                if num > max_seq:
+                    max_seq = num
+            except (ValueError, IndexError):
+                pass
+
+    seq = max_seq + 1
+    while True:
+        case_number = f"PA-{year}-{seq:05d}"
+        if not db.query(AuthorizationRequest).filter(AuthorizationRequest.case_number == case_number).first():
+            break
+        seq += 1
 
     # ── 4. Determine risk ──────────────────────────────────────────────────
     risk_map = {"urgent": "high", "high": "high", "normal": "medium", "low": "low"}

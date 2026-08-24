@@ -322,6 +322,10 @@ export default function CreateAuthorization() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const autofillInputRef = useRef<HTMLInputElement>(null);
+
+  const [autofilling, setAutofilling] = useState(false);
+  const [autofillStatus, setAutofillStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   const [step, setStep]           = useState(1);
   const [form, setForm]           = useState<FormData>(emptyForm);
@@ -331,6 +335,120 @@ export default function CreateAuthorization() {
   const [caseNumber, setCaseNumber] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [previewDoc, setPreviewDoc] = useState<FormDoc | null>(null);
+
+  const handleAutofillFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0]) return;
+    const file = e.target.files[0];
+    setAutofilling(true);
+    setAutofillStatus(null);
+    try {
+      const result = await api.autofillFromDocument(file);
+      const data = result.formData || {};
+
+      // 1. Patient Data
+      if (data.patient) {
+        setForm(p => ({
+          ...p,
+          patient: {
+            patientId: data.patient.patientId || p.patient.patientId,
+            name: data.patient.name || p.patient.name,
+            dob: data.patient.dob || p.patient.dob,
+            gender: data.patient.gender || p.patient.gender,
+            memberId: data.patient.memberId || p.patient.memberId,
+            policyId: data.patient.policyId || p.patient.policyId,
+            policyTier: data.patient.policyTier || p.patient.policyTier,
+          }
+        }));
+      }
+
+      // 2. Treatment Data
+      if (data.treatment) {
+        setForm(p => ({
+          ...p,
+          treatment: {
+            serviceType: data.treatment.serviceType || p.treatment.serviceType,
+            serviceName: data.treatment.serviceName || p.treatment.serviceName,
+            serviceCode: data.treatment.serviceCode || p.treatment.serviceCode,
+            codingSystem: data.treatment.codingSystem || p.treatment.codingSystem || "CPT",
+            quantity: data.treatment.quantity || p.treatment.quantity || "1",
+            frequency: data.treatment.frequency || p.treatment.frequency,
+            duration: data.treatment.duration || p.treatment.duration,
+          }
+        }));
+      }
+
+      // 3. Diagnoses
+      if (Array.isArray(data.diagnoses) && data.diagnoses.length > 0) {
+        setForm(p => ({
+          ...p,
+          diagnoses: data.diagnoses.map((d: any) => ({
+            code: d.code || "",
+            description: d.description || "",
+            type: (d.type?.toLowerCase() === "primary" ? "primary" : "secondary") as "primary" | "secondary"
+          }))
+        }));
+      }
+
+      // 4. Clinical Details
+      if (data.clinicalIndication || data.symptoms || data.clinicalJustification) {
+        setForm(p => ({
+          ...p,
+          clinicalIndication: data.clinicalIndication || p.clinicalIndication,
+          symptoms: data.symptoms || p.symptoms,
+          clinicalJustification: data.clinicalJustification || p.clinicalJustification,
+        }));
+      }
+
+      if (Array.isArray(data.measurements) && data.measurements.length > 0) {
+        setForm(p => ({
+          ...p,
+          measurements: data.measurements.map((m: any) => ({
+            id: uid(),
+            name: m.name || "",
+            value: m.value || "",
+            unit: m.unit || ""
+          }))
+        }));
+      }
+
+      if (Array.isArray(data.previousTreatments) && data.previousTreatments.length > 0) {
+        setForm(p => ({
+          ...p,
+          previousTreatments: data.previousTreatments.map((t: any) => ({
+            id: uid(),
+            name: t.name || "",
+            duration: t.duration || "",
+            outcome: t.outcome || ""
+          }))
+        }));
+      }
+
+      if (Array.isArray(data.testResults) && data.testResults.length > 0) {
+        setForm(p => ({
+          ...p,
+          testResults: data.testResults.map((tr: any) => ({
+            id: uid(),
+            name: tr.name || "",
+            date: tr.date || "",
+            finding: tr.finding || ""
+          }))
+        }));
+      }
+
+      setAutofillStatus({
+        type: "success",
+        message: `Successfully extracted text and auto-filled request form from "${file.name}"!`,
+      });
+    } catch (err: any) {
+      setAutofillStatus({
+        type: "error",
+        message: `Auto-fill failed: ${err.message || "Could not extract data from document"}`,
+      });
+    } finally {
+      setAutofilling(false);
+      e.target.value = "";
+    }
+  };
 
   // ── Validation Modal State ──
   const [validationModalOpen, setValidationModalOpen] = useState(false);
@@ -719,7 +837,16 @@ export default function CreateAuthorization() {
           fd.append("document_type",    doc.type);
           fd.append("uploaded_by",      user?.name || "Provider");
           fd.append("file",             doc.file as File, doc.name);
-          await fetch(`${API_BASE}/documents/upload`, { method: "POST", body: fd });
+          const uploadRes = await fetch(`${API_BASE}/documents/upload`, { method: "POST", body: fd });
+          if (!uploadRes.ok) {
+            const errText = await uploadRes.text().catch(() => uploadRes.statusText);
+            let detail = errText;
+            try {
+              const parsed = JSON.parse(errText);
+              if (parsed.detail) detail = typeof parsed.detail === "string" ? parsed.detail : JSON.stringify(parsed.detail);
+            } catch {}
+            throw new Error(`Failed to upload "${doc.name}": ${detail}`);
+          }
         }));
       }
     } catch (err: any) {
@@ -819,12 +946,74 @@ export default function CreateAuthorization() {
     <div className="w-full space-y-6">
       <input type="file" ref={fileInputRef} onChange={handleFileInputChange}
         multiple accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.tiff,.txt,.csv,.xlsx" className="hidden" />
+      <input type="file" ref={autofillInputRef} onChange={handleAutofillFileSelect}
+        accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.tiff,.txt,.csv,.xlsx" className="hidden" />
 
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">New Authorization Request</h1>
-        <p className="text-sm text-slate-500 mt-1">Submit a prior authorization request for your patient</p>
+      {/* Header & Kreuzberg Auto-Fill Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">New Authorization Request</h1>
+          <p className="text-sm text-slate-500 mt-1">Submit a prior authorization request for your patient</p>
+        </div>
+
+        {/* Smart Auto-Fill Button & PHI Scrubbing Badge */}
+        <div className="flex items-center gap-3">
+          <span className="hidden sm:inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 font-medium border border-slate-200">
+            <ShieldCheck className="h-3.5 w-3.5 text-teal-600" />
+            <span>PHI De-identified</span>
+          </span>
+          <button
+            type="button"
+            disabled={autofilling}
+            onClick={() => autofillInputRef.current?.click()}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-semibold shadow-md shadow-blue-500/20 transition-all duration-200 disabled:opacity-50 cursor-pointer"
+          >
+            {autofilling ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin text-white" />
+                <span>Extracting & Scrubbing PHI...</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4.5 w-4.5 text-amber-300" />
+                <FileUp className="h-4 w-4 text-white" />
+                <span>Upload PDF to Auto-Fill Form</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
+
+      {/* Auto-fill Alert Banner */}
+      {autofillStatus && (
+        <div className={`p-4 rounded-xl border flex items-start justify-between gap-3 transition-all ${
+          autofillStatus.type === "success"
+            ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+            : "bg-rose-50 border-rose-200 text-rose-900"
+        }`}>
+          <div className="flex items-center gap-3">
+            {autofillStatus.type === "success" ? (
+              <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+            ) : (
+              <AlertCircle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
+            )}
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-bold">{autofillStatus.type === "success" ? "Form Auto-Filled from Document" : "Auto-Fill Error"}</p>
+                {autofillStatus.type === "success" && (
+                  <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold">
+                    <ShieldCheck className="h-3 w-3 text-emerald-700" /> PHI Scrubbed
+                  </span>
+                )}
+              </div>
+              <p className="text-xs mt-0.5 font-medium">{autofillStatus.message}</p>
+            </div>
+          </div>
+          <button onClick={() => setAutofillStatus(null)} className="text-slate-400 hover:text-slate-600 p-1">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       {/* Stepper */}
       <div className="flex items-center max-w-4xl mx-auto py-2">

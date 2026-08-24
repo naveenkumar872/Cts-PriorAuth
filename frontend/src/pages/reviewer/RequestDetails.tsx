@@ -460,53 +460,73 @@ const customNodeTypes = {
 // ── Clean & Structured Policy Rule Evaluation Component ─────────────────────────
 function RuleEvaluationConditionTree({ ruleEvaluation, policyName }: { ruleEvaluation: any; policyName?: string }) {
   const [filter, setFilter] = useState<"all" | "passed" | "unknown" | "failed">("all");
-  const pathways = ruleEvaluation.pathways ?? [];
+  const exclusions = ruleEvaluation?.exclusions ?? [];
+  const pathways = ruleEvaluation?.pathways ?? [];
 
   // Parse all conditions and compute summary counts
   const parsedPathways = useMemo(() => {
     const list = pathways.map((pathway: any, pIdx: number) => {
-        const rawConditions = pathway.conditions || [];
+      const rawConditions = pathway.conditions || [];
 
-        const parsedConditions = rawConditions.map((cond: any) => {
-          const rawText = typeof cond === "string" ? cond : JSON.stringify(cond);
-          const parts = rawText.split(":");
-          const fieldName = parts[0]?.replace(/_/g, " ") ?? "condition";
-          let detailText = parts.slice(1).join(":").trim();
-          if (detailText.includes("unsupported operator")) detailText = "clinical notes evidence check";
-          if (!detailText) detailText = rawText;
+      const parsedConditions = rawConditions.map((cond: any) => {
+        const rawText = typeof cond === "string" ? cond : JSON.stringify(cond);
+        const parts = rawText.split(":");
+        const fieldName = parts[0]?.replace(/_/g, " ") ?? "condition";
+        let detailText = parts.slice(1).join(":").trim();
+        if (detailText.includes("unsupported operator")) detailText = "clinical notes evidence check";
+        if (!detailText) detailText = rawText;
 
-          const isCondPassed = rawText.includes(": passed") || rawText.includes("evidence found") || rawText.includes("verified");
-          const isCondFailed = rawText.includes("failed") || rawText.includes("excluded");
-          const status = isCondPassed ? "passed" : isCondFailed ? "failed" : "unknown";
-
-          return {
-            rawText,
-            fieldName,
-            detailText,
-            status,
-          };
-        });
-
-        const passedCount = parsedConditions.filter((c: any) => c.status === "passed").length;
-        const failedCount = parsedConditions.filter((c: any) => c.status === "failed").length;
-        const unknownCount = parsedConditions.filter((c: any) => c.status === "unknown").length;
-
-        const isPathwayPassed = passedCount > 0 && (pathway.logic === "ANY" || (unknownCount === 0 && failedCount === 0));
-        const isPathwayFailed = failedCount > 0 && passedCount === 0;
+        const isCondPassed = rawText.includes(": passed") || rawText.includes("evidence found") || rawText.includes("verified");
+        const isCondFailed = rawText.includes("failed") || rawText.includes("excluded") || rawText.includes("outside range") || rawText.includes("non-compliant") || rawText.includes("EXCLUDED");
+        const status = isCondPassed ? "passed" : isCondFailed ? "failed" : "unknown";
 
         return {
-          pathwayId: pathway.pathwayId ? pathway.pathwayId.replace(/_/g, " ") : `Criteria Pathway ${pIdx + 1}`,
-          passed: isPathwayPassed,
-          unknown: !isPathwayPassed && !isPathwayFailed,
-          isTargetPathway: Boolean(pathway.isTargetPathway),
-          requestedCpt: pathway.requestedCpt || "",
-          conditions: parsedConditions,
+          rawText,
+          fieldName,
+          detailText,
+          status,
         };
       });
 
-      // Sort so target pathway is at the top
-      return list.sort((a: any, b: any) => (b.isTargetPathway ? 1 : 0) - (a.isTargetPathway ? 1 : 0));
-    }, [pathways]);
+      const passedCount = parsedConditions.filter((c: any) => c.status === "passed").length;
+      const failedCount = parsedConditions.filter((c: any) => c.status === "failed").length;
+      const unknownCount = parsedConditions.filter((c: any) => c.status === "unknown").length;
+
+      const isPathwayPassed = passedCount > 0 && (pathway.logic === "ANY" || (unknownCount === 0 && failedCount === 0));
+      const isPathwayFailed = failedCount > 0 && passedCount === 0;
+
+      return {
+        pathwayId: pathway.pathwayId ? pathway.pathwayId.replace(/_/g, " ") : `Criteria Pathway ${pIdx + 1}`,
+        passed: isPathwayPassed,
+        unknown: !isPathwayPassed && !isPathwayFailed,
+        isTargetPathway: Boolean(pathway.isTargetPathway),
+        requestedCpt: pathway.requestedCpt || "",
+        conditions: parsedConditions,
+      };
+    });
+
+    list.sort((a: any, b: any) => (b.isTargetPathway ? 1 : 0) - (a.isTargetPathway ? 1 : 0));
+
+    if (exclusions.length > 0) {
+      const exclusionPathway = {
+        pathwayId: "Policy Exclusions & Contraindications",
+        passed: false,
+        unknown: false,
+        isTargetPathway: true,
+        isExclusionBlock: true,
+        requestedCpt: ruleEvaluation.requestedCpt || "",
+        conditions: exclusions.map((ex: string) => ({
+          rawText: `${ex}: EXCLUDED`,
+          fieldName: ex,
+          detailText: "Identified in submitted clinical evidence — Policy Exclusion Match",
+          status: "failed",
+        })),
+      };
+      list.unshift(exclusionPathway);
+    }
+
+    return list;
+  }, [pathways, exclusions, ruleEvaluation.requestedCpt]);
 
   const stats = useMemo(() => {
     let total = 0;
@@ -610,14 +630,24 @@ function RuleEvaluationConditionTree({ ruleEvaluation, policyName }: { ruleEvalu
         if (filter !== "all" && filteredConds.length === 0) return null;
 
         return (
-          <div key={pIdx} className={`rounded-2xl border bg-white p-6 shadow-xs space-y-4 ${
-            pathway.isTargetPathway ? "border-blue-300 ring-2 ring-blue-500/10" : "border-slate-200"
+          <div key={pIdx} className={`rounded-2xl border p-6 shadow-xs space-y-4 ${
+            pathway.isExclusionBlock
+              ? "bg-rose-50/20 border-rose-300 ring-2 ring-rose-500/10"
+              : pathway.isTargetPathway
+              ? "bg-white border-blue-300 ring-2 ring-blue-500/10"
+              : "bg-white border-slate-200"
           }`}>
             <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3 flex-wrap">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Pathway {pIdx + 1}:</span>
+                <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">
+                  {pathway.isExclusionBlock ? "Exclusion Check:" : `Pathway ${pIdx}:`}
+                </span>
                 <h4 className="text-sm font-extrabold text-slate-900 capitalize">{pathway.pathwayId}</h4>
-                {pathway.isTargetPathway ? (
+                {pathway.isExclusionBlock ? (
+                  <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200 flex items-center gap-1">
+                    <XCircle className="h-3 w-3 text-rose-600" /> 🚫 Identified Policy Exclusions
+                  </span>
+                ) : pathway.isTargetPathway ? (
                   <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
                     🎯 Primary Target Pathway for CPT {pathway.requestedCpt || "Requested"}
                   </span>
@@ -628,9 +658,15 @@ function RuleEvaluationConditionTree({ ruleEvaluation, policyName }: { ruleEvalu
                 )}
               </div>
               <span className={`text-xs font-extrabold px-3 py-1 rounded-full border ${
-                pathway.passed ? "bg-emerald-50 text-emerald-700 border-emerald-200" : pathway.unknown ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-rose-50 text-rose-700 border-rose-200"
+                pathway.isExclusionBlock
+                  ? "bg-rose-100 text-rose-800 border-rose-300"
+                  : pathway.passed
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  : pathway.unknown
+                  ? "bg-amber-50 text-amber-700 border-amber-200"
+                  : "bg-rose-50 text-rose-700 border-rose-200"
               }`}>
-                {pathway.passed ? "✅ Pathway Satisfied" : pathway.unknown ? "⚠️ Attention Needed" : "❌ Pathway Not Met"}
+                {pathway.isExclusionBlock ? "❌ Exclusions Flagged" : pathway.passed ? "✅ Pathway Satisfied" : pathway.unknown ? "⚠️ Attention Needed" : "❌ Pathway Not Met"}
               </span>
             </div>
 

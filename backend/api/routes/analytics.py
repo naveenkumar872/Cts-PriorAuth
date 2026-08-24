@@ -29,35 +29,68 @@ def get_kpis(db: Session = Depends(get_db)) -> Dict[str, Any]:
     sc: Dict[str, int] = {r[0]: r[1] for r in status_rows}
 
     approved  = sc.get("Approved", 0)
-    rejected  = sc.get("Rejected", 0) + sc.get("Denied", 0)
-    pending   = sc.get("Pending Review", 0)
+    rejected  = sc.get("Rejected", 0) + sc.get("Denied", 0) + sc.get("Not Approved", 0)
+    pending   = sc.get("Pending Review", 0) + sc.get("Nurse Review Required", 0)
     review    = sc.get("Under Review", 0)
     more_info = sc.get("More Information Required", 0)
 
     approval_rate = round(approved / total * 100, 1) if total else 0.0
     denial_rate   = round(rejected / total * 100, 1) if total else 0.0
+    pending_rate  = round((pending + review + more_info) / total * 100, 1) if total else 0.0
 
-    # AI accuracy: compare ai_recommendation.decision with actual status
-    all_reqs = db.query(AuthorizationRequest).filter(
+    # Calculate AI accuracy from requests with decision submitted
+    decided_reqs = db.query(AuthorizationRequest).filter(
+        AuthorizationRequest.ai_recommendation.isnot(None),
+        AuthorizationRequest.status.in_(["Approved", "Denied", "Rejected", "Not Approved", "More Information Required"])
+    ).all()
+
+    ai_total = len(decided_reqs)
+    ai_correct = 0
+    overrides = 0
+
+    for r in decided_reqs:
+        ai_dec = (r.ai_recommendation or {}).get("decision", "")
+        status_map = {"Approve": "Approved", "Deny": "Not Approved", "Request More Info": "More Information Required"}
+        expected_status = status_map.get(ai_dec, ai_dec)
+        if expected_status == r.status or (r.status in ["Denied", "Rejected", "Not Approved"] and expected_status in ["Denied", "Rejected", "Not Approved"]):
+            ai_correct += 1
+        else:
+            overrides += 1
+
+    ai_accuracy = round(ai_correct / ai_total * 100, 1) if ai_total else 0.0
+    human_agreement = round(ai_correct / ai_total * 100, 1) if ai_total else 0.0
+    override_rate = round(overrides / ai_total * 100, 1) if ai_total else 0.0
+
+    # Confidence calculation
+    all_reqs_with_ai = db.query(AuthorizationRequest).filter(
         AuthorizationRequest.ai_recommendation.isnot(None)
     ).all()
-    ai_total = len(all_reqs)
-    ai_correct = 0
-    for r in all_reqs:
-        ai_dec = (r.ai_recommendation or {}).get("decision", "")
-        ai_map = {"Approve": "Approved", "Deny": "Rejected", "Request More Info": "More Information Required"}
-        if ai_map.get(ai_dec) == r.status:
-            ai_correct += 1
-    ai_accuracy = round(ai_correct / ai_total * 100, 1) if ai_total else 91.7
-
     avg_conf = 0.0
     conf_count = 0
-    for r in all_reqs:
+    for r in all_reqs_with_ai:
         c_val = (r.ai_recommendation or {}).get("confidence")
         if c_val is not None:
             avg_conf += float(c_val)
             conf_count += 1
-    avg_confidence = round(avg_conf / conf_count, 1) if conf_count else 87.3
+    avg_confidence = round(avg_conf / conf_count, 1) if conf_count else 0.0
+
+    # Calculate actual average review time in hours from AuditLog
+    decision_logs = db.query(AuditLog).filter(
+        AuditLog.action.ilike("%Decision%")
+    ).all()
+
+    total_review_hours = 0.0
+    reviewed_cases_count = 0
+
+    for log in decision_logs:
+        if log.authorization_id and log.timestamp:
+            req = db.query(AuthorizationRequest).filter(AuthorizationRequest.id == log.authorization_id).first()
+            if req and req.submitted_at and log.timestamp > req.submitted_at:
+                diff_hours = (log.timestamp - req.submitted_at).total_seconds() / 3600.0
+                total_review_hours += diff_hours
+                reviewed_cases_count += 1
+
+    avg_review_time = round(total_review_hours / reviewed_cases_count, 1) if reviewed_cases_count else 0.0
 
     now = datetime.utcnow()
     first_this = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
@@ -74,7 +107,7 @@ def get_kpis(db: Session = Depends(get_db)) -> Dict[str, Any]:
         "totalCasesYTD": total,
         "approvalRate": approval_rate,
         "denialRate": denial_rate,
-        "pendingRate": round((pending + review + more_info) / total * 100, 1) if total else 0.0,
+        "pendingRate": pending_rate,
         "approvedCount": approved,
         "deniedCount": rejected,
         "pendingCount": pending + review + more_info,
@@ -83,9 +116,9 @@ def get_kpis(db: Session = Depends(get_db)) -> Dict[str, Any]:
         "casesLastMonth": last_month,
         "aiAccuracy": ai_accuracy,
         "avgConfidence": avg_confidence,
-        "humanAIAgreement": round(ai_accuracy * 0.93, 1),
-        "overrideRate": round(100 - ai_accuracy * 0.93, 1),
-        "averageReviewTime": 4.2,
+        "humanAIAgreement": human_agreement,
+        "overrideRate": override_rate,
+        "averageReviewTime": avg_review_time,
     }
 
 
@@ -117,7 +150,7 @@ def get_trends(db: Session = Depends(get_db)):
         )
         sm = {r[0]: r[1] for r in status_rows}
         approved = sm.get("Approved", 0)
-        denied   = sm.get("Rejected", 0) + sm.get("Denied", 0)
+        denied   = sm.get("Rejected", 0) + sm.get("Denied", 0) + sm.get("Not Approved", 0)
 
         monthly.append({
             "month": _MONTH[month - 1],
@@ -141,7 +174,6 @@ def get_by_service(db: Session = Depends(get_db)):
     for r in all_reqs:
         procs = r.procedures or []
         svc = procs[0].get("description", "Other") if procs else "Other"
-        # Shorten to first 2 words for chart label
         label = " ".join(svc.split()[:3]) if svc else "Other"
         if label not in service_map:
             service_map[label] = {"count": 0, "approved": 0}
@@ -166,30 +198,42 @@ def get_by_service(db: Session = Depends(get_db)):
 
 @router.get("/ai-performance")
 def get_ai_performance(db: Session = Depends(get_db)):
-    all_reqs = db.query(AuthorizationRequest).filter(
-        AuthorizationRequest.ai_recommendation.isnot(None)
+    decided_reqs = db.query(AuthorizationRequest).filter(
+        AuthorizationRequest.ai_recommendation.isnot(None),
+        AuthorizationRequest.status.in_(["Approved", "Denied", "Rejected", "Not Approved", "More Information Required"])
     ).all()
 
-    total = len(all_reqs)
+    total = len(decided_reqs)
     correct = 0
+    overrides = 0
     total_conf = 0.0
     conf_n = 0
 
-    for r in all_reqs:
+    all_ai = db.query(AuthorizationRequest).filter(
+        AuthorizationRequest.ai_recommendation.isnot(None)
+    ).all()
+
+    for r in all_ai:
         ai = r.ai_recommendation or {}
-        ai_dec = ai.get("decision", "")
         conf = ai.get("confidence")
-        ai_map = {"Approve": "Approved", "Deny": "Rejected", "Request More Info": "More Information Required"}
-        if ai_map.get(ai_dec) == r.status:
-            correct += 1
         if conf is not None:
             total_conf += float(conf)
             conf_n += 1
 
-    accuracy   = round(correct / total * 100, 1) if total else 91.7
-    avg_conf   = round(total_conf / conf_n, 1) if conf_n else 87.3
-    agreement  = round(accuracy * 0.93, 1)
-    override   = round(100 - agreement, 1)
+    for r in decided_reqs:
+        ai = r.ai_recommendation or {}
+        ai_dec = ai.get("decision", "")
+        status_map = {"Approve": "Approved", "Deny": "Not Approved", "Request More Info": "More Information Required"}
+        expected_status = status_map.get(ai_dec, ai_dec)
+        if expected_status == r.status or (r.status in ["Denied", "Rejected", "Not Approved"] and expected_status in ["Denied", "Rejected", "Not Approved"]):
+            correct += 1
+        else:
+            overrides += 1
+
+    accuracy   = round(correct / total * 100, 1) if total else 0.0
+    avg_conf   = round(total_conf / conf_n, 1) if conf_n else 0.0
+    agreement  = round(correct / total * 100, 1) if total else 0.0
+    override   = round(overrides / total * 100, 1) if total else 0.0
 
     return {
         "accuracy": accuracy,
